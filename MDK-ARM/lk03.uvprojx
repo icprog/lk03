@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xE</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;   ../Drivers/STM32F1xx_HAL_Driver/Inc;   ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;   ../Middlewares/Third_Party/FreeRTOS/Source/include;   ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;   ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3;   ../Drivers/CMSIS/Device/ST/STM32F1xx/Include;   ../Drivers/CMSIS/Include;   ..\zjk_src\boards\lk03;   ..\zjk_src\sensor;   ..\zjk_src\hal;   ..\zjk_src\comToPC;   ..\zjk_src\serial;   ..\zjk_src\thinyFrame;   ..\zjk_src\thinyFrame\demo;   ..\zjk_src\task;   ..\zjk_src\flash</IncludePath>
+              <IncludePath>../Inc;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3;../Drivers/CMSIS/Device/ST/STM32F1xx/Include;../Drivers/CMSIS/Include;..\zjk_src\boards\lk03;..\zjk_src\sensor;..\zjk_src\hal;..\zjk_src\comToPC;..\zjk_src\serial;..\zjk_src\thinyFrame;..\zjk_src\thinyFrame\demo;..\zjk_src\task;..\zjk_src\flash;..\zjk_src\include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -688,9 +688,9 @@
               <FilePath>..\zjk_src\task\z_freeRtos.c</FilePath>
             </File>
             <File>
-              <FileName>z_include.h</FileName>
+              <FileName>z_param.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\zjk_src\task\z_include.h</FilePath>
+              <FilePath>..\zjk_src\task\z_param.h</FilePath>
             </File>
           </Files>
         </Group>

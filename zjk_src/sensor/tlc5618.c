@@ -1,7 +1,7 @@
 #include "tlc5618.h"
-#include "z_param.h"
-extern SPI_HandleTypeDef DRIVER_SPI_TLC5618;
-SPI_HandleTypeDef *tlc5618_spi = &DRIVER_SPI_TLC5618 ;
+
+extern SPI_HandleTypeDef hspi1;
+SPI_HandleTypeDef *tlc5618_spi = &hspi1 ;
 #define tlc5618_idle()      HAL_GPIO_WritePin(tlc5618_cs_GPIO_Port,tlc5618_cs_Pin,GPIO_PIN_SET)
 #define tlc5618_select()    HAL_GPIO_WritePin(tlc5618_cs_GPIO_Port,tlc5618_cs_Pin,GPIO_PIN_RESET)
 #define tlc5618_release()   HAL_GPIO_WritePin(tlc5618_cs_GPIO_Port,tlc5618_cs_Pin,GPIO_PIN_SET)

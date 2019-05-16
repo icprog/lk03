@@ -1,13 +1,11 @@
 #include "z_analog.h"
-#include "z_include.h"
-#define DRIVER_ADC_HADC hadc1
 
 #define REF_VALUSE   3300                    //ref  voltage  
-ADC_HandleTypeDef  *z_anlog = &DRIVER_ADC_HADC;
-#define BUF_SIZE     10
+ADC_HandleTypeDef  *z_anlog = &hadc1;
+
 uint16_t adc_buf[BUF_SIZE]= {0};
 uint16_t adc_value_DMA =0;   //DMA 获取平均值
-uint8_t adcDMAisComplete =0;   //DMA是否转换完成
+bool ifDMAisComplete =false;   //DMA是否转换完成
 
 
   /*delay ns */
@@ -18,23 +16,23 @@ uint8_t adcDMAisComplete =0;   //DMA是否转换完成
    
  }
  uint8_t erro_count=0;
-uint8_t z_analog_convert(uint16_t *value)
+bool z_analog_convert(uint16_t *value)
 {
   HAL_ADCEx_Calibration_Start(z_anlog);  //Need to calibrate,Otherwise it's not accurate 
   HAL_ADC_Start_DMA(z_anlog,(uint32_t*)adc_buf,BUF_SIZE);
   // z_analog_convertNorml();
-	analog_delay(1000);  //延时等待DMA转换完成
-	if(adcDMAisComplete)
+	//analog_delay(1000);  //延时等待DMA转换完成
+	if(ifDMAisComplete)
 	{
-		adcDMAisComplete =0;
+		ifDMAisComplete =false;
 	  adc_value_DMA = z_analog_covertDMA ();
 		*value = adc_value_DMA;
-		return Z_ANALOG_SUEED;
+		return true;
   }
 	else
 	{
 	  erro_count ++;
-		return Z_ANALOG_ERRO;
+		return false;
 	}
 	 
 }
@@ -94,7 +92,8 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *AdcHandle)
 {
 
    HAL_ADC_Stop_DMA(z_anlog);
-	  adcDMAisComplete = 1;
+	 adc_value_DMA = z_analog_covertDMA ();
+	 ifDMAisComplete = true;
 }
 
 

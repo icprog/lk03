@@ -6,6 +6,7 @@
 #include "z_serial.h"
 #include "z_param.h"
 
+#include "z_include.h"
 TinyFrame *demo_tf=NULL;
 TinyFrame zjk_tf;	
 bool do_corrupt = false;
@@ -21,6 +22,7 @@ lk_statu_ lk_param_statu={
 	.ifGetOnceDist = false,
 	.ifContinuDist = false,
 	.ifStopContinu = false,
+	.ifQCStand = false
 };
 
 
@@ -50,8 +52,17 @@ parm_ lk_parm ={
 	.red_laser_light = 0x01, //打开:0x01 关闭：0
   .front_or_base = 0,      //前基准：1 后基准：0
 	.ifHasConfig = 0,      //第一次烧写flash后会变成0x01
+	.outFreq = 100
 };
 
+/*QC 参数*/
+
+typedef struct{
+	uint8_t qc_stand_dist ;   //QC 标定距离 
+
+}QC_TYP;
+
+QC_TYP qc_param;
 /*激光器保存参数*/
 //parm_ lk_parm ={
 //	.product = 0,     //产品号lk03
@@ -70,11 +81,11 @@ parm_ lk_flash=
 	 .ifHasConfig = 0,      //第一次烧写flash后会变成0x01
 };
 
-typedef enum  { DataDistSend = 1, ParmsConfig = 2, ParmaSend, ErroSend }FRAME_TYPE_CMD ;
+typedef enum  { DataDistSend = 1, ParmsConfig = 2, ParmaSend=3, QC=6,ErroSend }FRAME_TYPE_CMD ;
 typedef enum  { ParamAll=1}FRAME_GetParam_CMD;
 typedef enum  { DistOnce = 1, DistContinue,DistStop}FRAME_GetDataID_CMD;
 typedef enum  { BarudRate = 1, RedLight, FrontOrBase }FRAME_ParmSaveID_CMD;
-
+typedef enum  { stand = 1 }FRAME_ParmQC_CMD;
 /*数据获取命令*/
 void dataGetCmdSlect(FRAME_GetDataID_CMD  DATA_GET, TF_Msg *msg)
 {
@@ -91,7 +102,7 @@ void dataGetCmdSlect(FRAME_GetDataID_CMD  DATA_GET, TF_Msg *msg)
 		}break;
 		case DistStop:   //停止测量
 		{
-		    vTaskSuspend(xHandleGp21Trig);
+		    stop_txSignl_Tim();    //停止发射信号
 			  lk_param_statu.ifGetOnceDist = false;		
         lk_param_statu.ifContinuDist = false;
 				lk_param_statu.ifStopContinu = false;		
@@ -99,7 +110,7 @@ void dataGetCmdSlect(FRAME_GetDataID_CMD  DATA_GET, TF_Msg *msg)
 	}
 	 if((lk_param_statu.ifGetOnceDist) || (lk_param_statu.ifContinuDist))
 	 {
-	     vTaskResume(xHandleGp21Trig);   //恢复任务状态
+	    // vTaskResume(xHandleGp21Trig);   //恢复任务状态
 	 }
 
 }
@@ -142,6 +153,20 @@ void paramDataSaveCMD(FRAME_ParmSaveID_CMD PAMRM_SAVE, TF_Msg *msg)
   lk_param_statu.ifParamSave =true;
 }
 
+
+/*QC 检测命令*/
+void QC_CMD(FRAME_ParmQC_CMD qc, TF_Msg *msg)
+{
+   FRAME_ParmQC_CMD cnd=qc;
+	switch(cnd)
+	{
+		case stand:
+		{
+        qc_param.qc_stand_dist= *(uint8_t*)(msg->data);
+		}break;
+	}
+  lk_param_statu.ifQCStand =true;
+}
 /**
  * This function should be defined in the application code.
  * It implements the lowest layer - sending bytes to UART (or other)
@@ -176,6 +201,11 @@ TF_Msg *cmdMsg =NULL;
 		  FRAME_ParmSaveID_CMD parmaSaveCmd = (FRAME_ParmSaveID_CMD) (cmdMsg->frame_id);
 		  paramDataSaveCMD(parmaSaveCmd,msg);
 		}	break;
+		case QC:   /*标定命令*/
+		{
+		  FRAME_ParmQC_CMD QCCmd = (FRAME_ParmQC_CMD) (cmdMsg->frame_id);
+		  QC_CMD(QCCmd,msg);
+		}break;		
 		case ErroSend:
 		{
 		  
@@ -219,6 +249,7 @@ void parmSend(parm_ *parm)
 void z_tiny_test(void)
 {
    z_ListenerInit();
+	 parmSend(&lk_parm);
 	 if(addUartDmaRevListen(tinyRecFunc)) 
 	 {	 
 		 

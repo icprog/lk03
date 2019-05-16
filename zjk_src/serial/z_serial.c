@@ -1,10 +1,9 @@
 #include "z_serial.h"
 #include "cmsis_os.h"
-#include "z_param.h"
+
 #define MAX_LIST_SIZES 10
 
-UART_HandleTypeDef  *z_serial = &DRIVER_SERIAL_HUART;
-
+UART_HandleTypeDef  *z_serial = &huart1;
 static void z_serial_dma_start(void);
 uint16_t rev_lens = 0;
 SemaphoreHandle_t  serialSemaphore =NULL;  //创建信号量，用于串口空闲中断标志检查后通知任务执行
@@ -82,9 +81,9 @@ int fputc(int ch, FILE* stream)
 //串口初始化
 void z_serial_init(void)
 {
-   __HAL_UART_ENABLE_IT(z_serial, UART_IT_IDLE);//使能接收空闲中断
-    z_serial_dma_start();   //启动dma接收
 	  serialSemaphore = xSemaphoreCreateBinary();
+    z_serial_dma_start();   //启动dma接收
+	   __HAL_UART_ENABLE_IT(z_serial, UART_IT_IDLE);//使能接收空闲中
     if(serialSemaphore == NULL) //create fail
 		{
 		

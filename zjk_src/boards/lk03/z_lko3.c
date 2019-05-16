@@ -1,10 +1,13 @@
 #include "z_lko3.h"
 
-_TDC_typ _TDC_GP21;
-
-TIM_HandleTypeDef *z_tlc_txHv_pwm= &htim3;
+_TDC_TYP _TDC_GP21;
 TIM_HandleTypeDef *z_tlc_rxHv_pwm= &htim2;
-typedef enum  {VOL_CTL1,VOL_CTL2,VOL_CTL3}TX_VOL_ENUM_TYP;
+HIGHL_VOL_GP21 gp21_highVolCrlParm[3]=
+{
+  first_vol_param,
+  second_vol_param,	
+  third_vol_param,	
+};
 /*tx pwm high power cotrol*/
  void tx_VolCtl(TX_VOL_ENUM_TYP HVN)
  {
@@ -17,11 +20,11 @@ typedef enum  {VOL_CTL1,VOL_CTL2,VOL_CTL3}TX_VOL_ENUM_TYP;
 		 }break;
 	   case VOL_CTL2 :
 		 {
-		    tdc_vol_ctl2_Set();
+     tdc_vol_ctl2_Set();
 		 }break;		 
 	   case VOL_CTL3 :
 		 {
-		 
+		  tdc_vol_ctl3_Set();
 		 }break;		 
 	 }
     
@@ -37,11 +40,6 @@ typedef enum  {VOL_CTL1,VOL_CTL2,VOL_CTL3}TX_VOL_ENUM_TYP;
  } 
  
  
- void start_tx_tim(void)
- {
-  	HAL_TIM_PWM_Start(z_tlc_txHv_pwm, TIM_CHANNEL_2);   
- }
-
  void start_rx_tim(void)
  {
      HAL_TIM_PWM_Start(z_tlc_rxHv_pwm, TIM_CHANNEL_2);	
@@ -54,21 +52,21 @@ typedef enum  {VOL_CTL1,VOL_CTL2,VOL_CTL3}TX_VOL_ENUM_TYP;
 
   tdc_rx_voltge_high();
 	
- 	tdc_delay(500);
+	tdc_delay(500);
 	
    tdc_rx_voltge_low();
 
 }
-
  void tdc_board_init(void)
- {
-	 	tlc5618_write(TX_HIGH_VOL_TLC5618,AD603_AGC_DEFAULT); /*LK  AGC DAC Voltage control*/  
-	  tlc5618_writeAchannal(TX_HIGH_VOL_TLC5618);	  
+ {  
+	 for(int i=0;i<3;i++)
+	 {
+			_TDC_GP21.vol_param[i] = gp21_highVolCrlParm[i];
 	 
-		start_tx_tim(); 
-		start_rx_tim();	 
-	  tx_VolCtl(VOL_CTL1);    /*tx high voltage control  25->14v*/ 
-		rx_pwmHv (100);  //84v /*rx high voltage control*/  	 
+	 }
+	 	 tlc5618_write(_TDC_GP21.vol_param[FIRST_PARAM].tx5618_value,AD603_AGC_DEFAULT); /*LK  AGC DAC Voltage control*/  
+	  tlc5618_writeAchannal(_TDC_GP21.vol_param[FIRST_PARAM].tx5618_value);	  
+		start_rx_tim();
 		GP21_Init(); 
 		gp21_write(OPC_RESET);		 /*LK  gp21 Init*/	
 		gp21_defaultcofg();		
@@ -76,8 +74,7 @@ typedef enum  {VOL_CTL1,VOL_CTL2,VOL_CTL3}TX_VOL_ENUM_TYP;
     _TDC_GP21.pid.Kp = PID_KP;
     _TDC_GP21.pid.Ki = PID_KI;	 
 	  _TDC_GP21.pid.setpoint = PID_SETPOINT;
-
-
+	 _TDC_GP21.pid.ifTrunOnPid=false;
  }
 
 #define GP22_TNS  1000       //gp21 ���� 1000ns 1MHZ
@@ -100,19 +97,32 @@ void gp21_distance_cal(uint32_t *dit,uint8_t dislens)
 				tem= dit[i];
 				dit[i] = dit[minIndex];
 				dit[minIndex] = tem;
-		}
-		
+		}		
 		for(int i=0;i<dislens;i++)
 		{
 		   
-		    dist_av += dit[i] ;
-		
+		    dist_av += dit[i] ;		
 		}
 		dist_av = dist_av/dislens;
     dist_f = (((float)dist_av)/65536.0) * (GP22_TNS/2) * C_VELOCITY;
 		test_dit = dist_av;
-		_TDC_GP21.tdc_distance=test_distf = dist_f;
+		_TDC_GP21.distance=test_distf = dist_f;
   // dist_av = 0;
 }
 
- 
+ /*档位选择*/
+void gear_select(HIGHL_VOL_GP21 *g)
+{
+	
+	HIGHL_VOL_GP21 *p=g; 
+	tlc5618_writeAchannal(p->tx5618_value);	  	/*LK  AGC DAC Voltage control*/  
+	rx_pwmHv (p->rx_vol_value);   //接收高压
+  tx_VolCtl(p->tx_vol_ctl);    /*tx high voltage control*/ 
+	if(p->ifBootVolCtl)
+	{
+	  tdc_boot_vol_high();
+	}else
+  {
+	    tdc_boot_vol_low();
+	}		
+}

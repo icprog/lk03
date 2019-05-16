@@ -1,5 +1,5 @@
 #include "tdc_gp21.h"
-#include "z_param.h"
+//
 #define CONTENT_REG0   (uint32_t)( REG0_ANZ_FIRE(0) | REG0_DIV_FIRE(0) | REG0_ANZ_PER_CALRES(0) |     \
                         REG0_DIV_CLKHS(2) | REG0_START_CLKHS(1) |  REG0_ANZ_PORT(0) | REG0_TCYCLE(0) |  \
 												REG0_ANZ_FAKE(0)  | EG0_SEL_ECLK_TEMP(1)| REG0_CALIBRATE(1) | REG0_NO_CAL_AUTO(0) | REG0_MESSB2(0) )
@@ -14,7 +14,7 @@
 GPIO_TypeDef *tx_signalGpio = (GPIO_TypeDef *)TDC_Signal_GPIO_Port;
 
 void gp21_defaultcofg(void);
-SPI_HandleTypeDef  *gp21_spi = &DRIVER_SPI_TDC;
+SPI_HandleTypeDef  *gp21_spi = &hspi2;
 uint8_t rxbuf[5] = {0};
 uint8_t id[7] ={0};
 void GP21_Init(void)
@@ -25,7 +25,7 @@ void GP21_Init(void)
   HAL_Delay(10);
 	gp21_rstn_idle();
 	HAL_Delay(10);
-	gp21_en_startSignal();
+	gp21_close_startSignal();
 	gp21_close_stop1Signal();
 }
 
@@ -59,7 +59,8 @@ uint8_t  gp21_get_reg1Highbyte(void)
 
 void gp21_defaultcofg(void)
 {
-	  gp21_write_cfg(OP_CODE_WR(0x00), 0x00242012);   //4分频
+	gp21_write_cfg(OP_CODE_WR(0x00), 0x00242012);   //4分频
+	 //gp21_write_cfg(OP_CODE_WR(0x00), 0x00011202);   //不分频,关闭自动校准
     gp21_write_cfg(OP_CODE_WR(0x01), 0x01410025);//0x01420023 //STOP通道1个脉冲，stop通道2关闭，快速初始化功能启动,ALU提前数据处理的计算 stop ch1 -start
 		//bit29 = 1 ALU ok
 		//bit30 = 1 the received pulse counter is ready
@@ -71,6 +72,7 @@ void gp21_defaultcofg(void)
 		gp21_write_cfg(OP_CODE_WR(0x05), 0x00000014);  //脉冲触发器关闭，噪声单元关闭
 	  HAL_Delay(5);
 		gp21_write_cfg(OP_CODE_WR(0x06), 0x00000015);  //超声波..关闭			
+	  gp21_get_id(id);
 /*
 		gp21_write_cfg(OP_CODE_WR(0x00), 0x00242012);   //4分频
 		gp21_write_cfg(OP_CODE_WR(0x01), 0x01410025);//0x01420023 //STOP通道1个脉冲，stop通道2关闭，快速初始化功能启动,ALU提前数据处理的计算 stop ch1 -start

@@ -3,10 +3,7 @@
 #include "stdbool.h"
 #include "cmsis_os.h"
 
-#define DRIVER_SERIAL_HUART huart1
-#define DRIVER_ADC_HADC hadc1
-#define DRIVER_SPI_TDC   hspi2
-#define DRIVER_SPI_TLC5618   hspi1
+
 /*参数状态*/
 typedef struct
 {
@@ -15,7 +12,7 @@ typedef struct
 	bool ifGetOnceDist;
 	bool ifContinuDist;
 	bool ifStopContinu;
-
+  bool ifQCStand;
 }lk_statu_;
 
 /*结构对应数据指针和数据长度*/
@@ -35,6 +32,7 @@ typedef struct
 	uint8_t  red_laser_light; //红外激光
 	uint8_t front_or_base;//前后基准
   uint8_t ifHasConfig;     //是否已经配置
+	uint16_t outFreq;
 }parm_;
 
 

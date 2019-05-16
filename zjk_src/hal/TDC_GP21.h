@@ -145,8 +145,4 @@ typedef struct
    void (*init)(void);    /*init tdc gp21*/
    void (*write)(uint8_t reg);
 }_tdc_gp21;
-
-#define GP21_STATU_CH1      0x0038U
-#define GP21_STATU_TIMEOUT  0x0100U
-
 #endif

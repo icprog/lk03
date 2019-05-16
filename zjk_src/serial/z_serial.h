@@ -8,6 +8,7 @@
 void z_serial_write(uint8_t *ch, uint32_t lens);
 void z_serial_init(void);
 void get_revLens(uint16_t *data);
+void usartIdleInt(void);
 typedef void (* _listenFunc)(uint8_t *buf);
 typedef struct 
 {

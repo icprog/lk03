@@ -67,8 +67,6 @@ uint32_t test_td21=0;
 int16_t pid_resualt=0,ad603_resualt=0;
 
 
-uint16_t tdc_agc_control(void);
-
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -119,6 +117,11 @@ void MX_FREERTOS_Init(void) {
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
 
+  /* USER CODE BEGIN RTOS_QUEUES */
+
+  /* add queues, ... */
+  /* USER CODE END RTOS_QUEUES */
+
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
   osThreadDef(defaultTask, StartDefaultTask, osPriorityIdle, 0, 128);
@@ -128,10 +131,6 @@ void MX_FREERTOS_Init(void) {
   z_taskCreate();
   /* USER CODE END RTOS_THREADS */
 
-  /* USER CODE BEGIN RTOS_QUEUES */
-
-  /* add queues, ... */
-  /* USER CODE END RTOS_QUEUES */
 }
 
 /* USER CODE BEGIN Header_StartDefaultTask */
