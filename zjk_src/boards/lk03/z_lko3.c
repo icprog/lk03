@@ -79,7 +79,7 @@ HIGHL_VOL_GP21 gp21_highVolCrlParm[3]=
 
 #define GP22_TNS  1000       //gp21 ���� 1000ns 1MHZ
 float test_dit=0,test_distf=0;
-void gp21_distance_cal(uint32_t *dit,uint8_t dislens)
+uint16_t gp21_distance_cal(uint32_t *dit,uint8_t dislens)
 {
 	volatile uint8_t minIndex=0;
   volatile	uint32_t tem=0;
@@ -106,7 +106,8 @@ void gp21_distance_cal(uint32_t *dit,uint8_t dislens)
 		dist_av = dist_av/dislens;
     dist_f = (((float)dist_av)/65536.0) * (GP22_TNS/2) * C_VELOCITY;
 		test_dit = dist_av;
-		_TDC_GP21.distance=test_distf = dist_f;
+		test_distf = dist_f;
+		return test_distf;
   // dist_av = 0;
 }
 

@@ -1,7 +1,7 @@
 #ifndef _Z_INCLUDE_H_
 #define _Z_INCLUDE_H_
 #include "main.h"
-
+#include "stdio.h"
 extern TIM_HandleTypeDef *z_tlc_TxSignl_pwm;
 void z_taskCreate(void);
 

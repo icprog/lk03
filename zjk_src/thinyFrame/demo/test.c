@@ -45,7 +45,7 @@ arrayByte_ structToBytes(parm_ *p)
 } 
 
 ///*激光器保存参数*/
-parm_ lk_parm ={
+parm_ lk_defaultParm ={
 	.product = 0x02,     //产品号lk03
 	.baud_rate = 115200, //波特率
 	.limit_trigger = 100, //100米触发
@@ -55,14 +55,8 @@ parm_ lk_parm ={
 	.outFreq = 100
 };
 
-/*QC 参数*/
 
-typedef struct{
-	uint8_t qc_stand_dist ;   //QC 标定距离 
 
-}QC_TYP;
-
-QC_TYP qc_param;
 /*激光器保存参数*/
 //parm_ lk_parm ={
 //	.product = 0,     //产品号lk03
@@ -84,8 +78,8 @@ parm_ lk_flash=
 typedef enum  { DataDistSend = 1, ParmsConfig = 2, ParmaSend=3, QC=6,ErroSend }FRAME_TYPE_CMD ;
 typedef enum  { ParamAll=1}FRAME_GetParam_CMD;
 typedef enum  { DistOnce = 1, DistContinue,DistStop}FRAME_GetDataID_CMD;
-typedef enum  { BarudRate = 1, RedLight, FrontOrBase }FRAME_ParmSaveID_CMD;
-typedef enum  { stand = 1 }FRAME_ParmQC_CMD;
+typedef enum  { BarudRate = 1, RedLight, FrontOrBase,AutoMel}FRAME_ParmSaveID_CMD;
+typedef enum  { standStart = 1,StandParamFirst,StandParamSecond,StandParamThird }FRAME_ParmQC_CMD;
 /*数据获取命令*/
 void dataGetCmdSlect(FRAME_GetDataID_CMD  DATA_GET, TF_Msg *msg)
 {
@@ -137,18 +131,22 @@ void paramDataSaveCMD(FRAME_ParmSaveID_CMD PAMRM_SAVE, TF_Msg *msg)
 	{
 		case BarudRate:
 		{
-        lk_parm.baud_rate = *(int*)(msg->data);
+        lk_defaultParm.baud_rate = *(int*)(msg->data);
 		}break;
 		
 		case RedLight:
 		{
-          lk_parm.red_laser_light = *(uint8_t *)(msg->data);
+          lk_defaultParm.red_laser_light = *(uint8_t *)(msg->data);
 		}break;
 		
 		case FrontOrBase:
 		{
-         lk_parm.front_or_base =  *(uint8_t *)(msg->data);
+         lk_defaultParm.front_or_base =  *(uint8_t *)(msg->data);
 		}break;
+		case AutoMel:  //自动测量
+		{
+         
+		}break;		
 	}
   lk_param_statu.ifParamSave =true;
 }
@@ -160,12 +158,30 @@ void QC_CMD(FRAME_ParmQC_CMD qc, TF_Msg *msg)
    FRAME_ParmQC_CMD cnd=qc;
 	switch(cnd)
 	{
-		case stand:
+		case standStart:
 		{
-        qc_param.qc_stand_dist= *(uint8_t*)(msg->data);
+       
 		}break;
+		case StandParamFirst:  //上位机第1档标定值
+		{
+        lk_defaultParm.QC[LK03_FIRST_STAND].qc_stand_dist= msg->data[0]<<8|msg->data[1];
+			  lk_defaultParm.QC[LK03_FIRST_STAND].qc_ad603Gain= msg->data[2]<<8|msg->data[3];
+			  lk_param_statu.ifQCStand[LK03_FIRST_STAND] =true;
+		}break;
+		case StandParamSecond:  //上位机第2档标定值
+		{
+        lk_defaultParm.QC[LK03_SECOND_STAND].qc_stand_dist= msg->data[LK03_SECOND_STAND]<<8|msg->data[1];
+			  lk_defaultParm.QC[LK03_SECOND_STAND].qc_ad603Gain= msg->data[LK03_SECOND_STAND]<<8|msg->data[3];
+			  lk_param_statu.ifQCStand[LK03_SECOND_STAND] =true;
+		}break;	
+		case StandParamThird:  //上位机第3档标定值
+		{
+        lk_defaultParm.QC[LK03_THIRD_STAND].qc_stand_dist= msg->data[0]<<8|msg->data[1];
+			  lk_defaultParm.QC[LK03_THIRD_STAND].qc_ad603Gain= msg->data[2]<<8|msg->data[3];
+			  lk_param_statu.ifQCStand[LK03_THIRD_STAND] =true;
+		}break;			
 	}
-  lk_param_statu.ifQCStand =true;
+ 
 }
 /**
  * This function should be defined in the application code.
@@ -249,7 +265,7 @@ void parmSend(parm_ *parm)
 void z_tiny_test(void)
 {
    z_ListenerInit();
-	 parmSend(&lk_parm);
+	 parmSend(&lk_defaultParm);
 	 if(addUartDmaRevListen(tinyRecFunc)) 
 	 {	 
 		 

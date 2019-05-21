@@ -38,6 +38,7 @@ void z_serialDriverTask(void const * argument)
 		}
 
 }
+//直接发送
 
 
 //获取接收个数

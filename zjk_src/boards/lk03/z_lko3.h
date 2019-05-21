@@ -137,9 +137,8 @@ typedef struct
 
 extern _TDC_TYP _TDC_GP21;
 void tdc_board_init(void);
-void gp21_distance_cal(uint32_t *dit,uint8_t dislens);
 void gear_select(HIGHL_VOL_GP21 *g);
-
+uint16_t gp21_distance_cal(uint32_t *dit,uint8_t dislens);
 
 #endif
 

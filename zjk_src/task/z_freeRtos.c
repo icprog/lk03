@@ -24,6 +24,7 @@ int trigCount = 0;  //触发采集到的次数计数
 int erroTimeOutCount = 0;  //tdc 时间超时中断错误标记
 bool ifEnoughTrigComplete = false; //采集一次测量数据是否完成
  TDC_TRIGSTATU tdc_statu;
+ 
  //信号量
  SemaphoreHandle_t  tdcSignalSemaphore =NULL;  //创建信号量，用于串口TDC接收完设定的次数后触发控制峰值电压及处理数据
 /*任务句柄创建*/
@@ -32,6 +33,7 @@ TaskHandle_t xHandleGp21Trig = NULL;
 static TaskHandle_t xHandleSerialDriver = NULL;
  static TaskHandle_t xHandleSensorParam = NULL;
 /*函数声明*/
+void swStandSave(_LK03_STAND index);
 void SerialTask(void  * argument);
 void Gp21TrigTask(void  * argument);
  void LK_sensorParamTask(void *argument);
@@ -87,32 +89,41 @@ arrayByte_ flashParam;
 void LK_sensorParamTask(void *argument)
 {
   flash_SaveInit();
-	paramBuff = structToBytes(&lk_parm);
+	paramBuff = structToBytes(&lk_defaultParm);
 	flashParam = structToBytes(&lk_flash);
 	flash_paramRead(flashParam.point,flashParam.lens); //读取参数
 	if(lk_flash.ifHasConfig != 0x01)   //还没有配置
-	{	
+	{		
+	  lk_flash = lk_defaultParm;
 		lk_flash.ifHasConfig = 0x01;   //代表配置
-	  lk_flash = lk_parm;
-    flash_writeMoreData( (uint16_t *)(paramBuff.point),paramBuff.lens/2+1);		
+    flash_writeMoreData( (uint16_t *)(flashParam.point),flashParam.lens/2+1);		
+	}
+	else  //已经配置过
+	{
+	   lk_defaultParm = lk_flash;  //将flash内参数付给默认的参数配置  
 	}
   for(;;)
 	{
 	  if(lk_param_statu.ifParamSave)
 		{ 
-		 flash_writeMoreData( (uint16_t *)(paramBuff.point),paramBuff.lens/2+1);
+		 flash_writeMoreData( (uint16_t *)(flashParam.point),flashParam.lens/2+1);
+			/*这里应该有flash保存失败的处理！！！*/
 		 lk_param_statu.ifParamSave = false;
 		}
 		if(lk_param_statu.ifParamGet)
 		{
-			 parmSend(&lk_parm);
+			 parmSend(&lk_flash);
 		  lk_param_statu.ifParamGet = false;
 		}
-		if(lk_param_statu.ifQCStand) //标定
-		{
-			start_singnal();
-		  lk_param_statu.ifQCStand = false;
-		}
+			for(int i=0;i<LK03_STAND_COUNTS;i++)  //查看需要标定的档位
+			{
+			  if( lk_param_statu.ifQCStand[i]) //标定
+		    {
+				  _LK03_STAND index =(_LK03_STAND) i;
+					 swStandSave(index);
+				}
+			}
+
     if(lk_param_statu.ifGetOnceDist)	//单次测量
 		{
 		
@@ -128,14 +139,65 @@ void LK_sensorParamTask(void *argument)
 	}
 }
 
+/*标定选项*/
+void swStandSave(_LK03_STAND index)
+{
+	 _LK03_STAND _lk_standIndex = index;
+		lk_flash.QC[_lk_standIndex].qc_stand_dist= lk_defaultParm.QC[_lk_standIndex].qc_stand_dist;  //
+		lk_flash.QC[_lk_standIndex].qc_ad603Gain=lk_defaultParm.QC[_lk_standIndex].qc_ad603Gain;
+		lk_flash.QC[_lk_standIndex].ifHavedStand=true;   //标定成功
+		/*在这里保存flash*/
+		flash_writeMoreData( (uint16_t *)(flashParam.point),flashParam.lens/2+1);
+		/*这里应该有flash保存失败的处理！！！*/
+		lk_param_statu.ifQCStand[_lk_standIndex]= false;
+}
+
+
 void start_singnal(void)
 {
 		start_txSignl_Tim();   //开始pwm脉冲发射
 		HAL_TIM_PWM_Start_IT(&htim3, TIM_CHANNEL_4);	
 		trigOnce();			 
 }
+/*无校验的的数据发送*/
+void noCheckSend(uint8_t *buff, uint8_t len)
+{
+		uint8_t buffToSend[len+2];
+	  for(int i=1;i<len+1;i++)
+	{
+	  buffToSend[i]=buff[i];	
+	}
+  buffToSend[0]=0xAA;
+	buffToSend[len+1]=0xBB;
+	z_serial_write(buffToSend,len+2);   //发送以\r\n结尾的字符			
+}
 
+//发送距离，信号电压，增益
+uint8_t sendbuf[8]={0};
+void send_lk_paramNocheck(void)
+{
+  sendbuf[0]=0xAA;
+	sendbuf[1] = _TDC_GP21.siganl.vol>>8;
+	sendbuf[2] = _TDC_GP21.siganl.vol&0xff;
+	sendbuf[3] = _TDC_GP21.distance>>8;
+	sendbuf[4] = _TDC_GP21.distance&0xff;	
+	sendbuf[5] = _TDC_GP21.pid_resualt>>8;
+	sendbuf[6] = _TDC_GP21.pid_resualt&0xff;		
+  sendbuf[7]=0xEE;
 
+	z_serial_write(sendbuf,8);   //发送以\r\n结尾的字符
+}
+uint8_t buf[6]={0};
+void buff_distTosend()
+{
+  buf[0] = _TDC_GP21.siganl.vol>>8;
+	buf[1] = _TDC_GP21.siganl.vol&0xff;
+	buf[2] = _TDC_GP21.distance>>8;
+	buf[3] = _TDC_GP21.distance&0xff;	
+	buf[4] = _TDC_GP21.pid_resualt>>8;
+	buf[5] = _TDC_GP21.pid_resualt&0xff;	
+  zTF_sendOnceDist(buf,6);	
+}
 /* USER CODE BEGIN Header_SerialTask */
 /**
 * @brief Function implementing the z_serial thread.
@@ -154,9 +216,9 @@ void SerialTask(void  *argument)
      if(_TDC_GP21.ifComplete)
 		 {
 			 _TDC_GP21.ifComplete = false;
-		   Send_Pose_Data(&_TDC_GP21.siganl.vol,&_TDC_GP21.distance,&_TDC_GP21.pid_resualt);
-//       uint8_t *sendBuf =(uint8_t*)(&_TDC_GP21.tdc_distance);
-//			 zTF_sendOnceDist(sendBuf,2);			 
+		//		Send_Pose_Data(&_TDC_GP21.siganl.vol,&_TDC_GP21.distance,&_TDC_GP21.pid_resualt);
+      buff_distTosend();
+		 //   send_lk_paramNocheck();
 		 }
 		 switch(_TDC_GP21.running_statu)
 		 {
@@ -169,8 +231,8 @@ void SerialTask(void  *argument)
 					}
 					else if(_TDC_GP21.siganl.vol<1000)
 					{			
-					  _TDC_GP21.pid.ifTrunOnPid = true;
-						_TDC_GP21.running_statu = SECOND;
+//					  _TDC_GP21.pid.ifTrunOnPid = true;
+//						_TDC_GP21.running_statu = SECOND;
 					}
 			 }break;
 			 case FIRST:
@@ -187,7 +249,7 @@ void SerialTask(void  *argument)
 			 }break;		 			 
 		 }
 			 
-    osDelay(5);
+    osDelay(50);
   }
   /* USER CODE END SerialTask */
 }
@@ -210,7 +272,7 @@ void Gp21TrigTask(void *argument)
   tdcSignalSemaphore = xSemaphoreCreateBinary();	 //
   tdc_board_init();   /*初始化激光板*/
 	gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //开机默认第一档位
-	start_singnal();
+	//start_singnal();
   /* Infinite loop */
   for(;;)
   { 
@@ -224,7 +286,7 @@ void Gp21TrigTask(void *argument)
 		tdc_rx_voltge_relese();   /*高压信号采集释放*/
 		_TDC_GP21.pid_resualt= tdc_agc_Default_control(_TDC_GP21.siganl.vol,_TDC_GP21.pid.setpoint); //pid控制峰值电压	 
 	 }
-   osDelay(100);
+   osDelay(1);
   }
    
   /* USER CODE END Gp21TrigTask */
@@ -388,7 +450,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 				{
 						_TDC_GP21.pid_resualt= tdc_agc_control(_TDC_GP21.siganl.vol,_TDC_GP21.pid.setpoint); //pid控制峰值电压
 				}
-	      gp21_distance_cal(_TDC_GP21.buff,DISTANCE_RCV_SIZE); //数据处理
+	      _TDC_GP21.distance=  gp21_distance_cal(_TDC_GP21.buff,DISTANCE_RCV_SIZE)-lk_flash.QC[0].qc_stand_dist; //数据处理
 				_TDC_GP21.ifComplete = true;				//结束	
 		  				
 			}
