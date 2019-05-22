@@ -14,6 +14,8 @@ typedef struct
 	bool ifContinuDist;
 	bool ifStopContinu;
   bool ifQCStand[LK03_STAND_COUNTS];
+	bool ifQCgetParm;
+	bool ifQCgetParmReset[LK03_STAND_COUNTS];
 }lk_statu_;
 
 /*结构对应数据指针和数据长度*/
@@ -59,6 +61,8 @@ extern QC_TYP qc_param;
 extern parm_ lk_defaultParm;
 extern parm_ lk_flash;
 //函数
+//qc标定参数发送
+void QCparmSend(uint8_t *data,uint8_t lens);
 void parmSend(parm_ *parm);
 void zTF_sendOnceDist(uint8_t *data,uint8_t lens);   //发送测量距离
 arrayByte_ structToBytes(parm_ *p);       //参数结构转对应数组结构

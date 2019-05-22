@@ -33,6 +33,7 @@ TaskHandle_t xHandleGp21Trig = NULL;
 static TaskHandle_t xHandleSerialDriver = NULL;
  static TaskHandle_t xHandleSensorParam = NULL;
 /*函数声明*/
+void qc_param_send(void);
 void swStandSave(_LK03_STAND index);
 void SerialTask(void  * argument);
 void Gp21TrigTask(void  * argument);
@@ -115,15 +116,20 @@ void LK_sensorParamTask(void *argument)
 			 parmSend(&lk_flash);
 		  lk_param_statu.ifParamGet = false;
 		}
-			for(int i=0;i<LK03_STAND_COUNTS;i++)  //查看需要标定的档位
+			for(int i=0;i<LK03_STAND_COUNTS;i++)  //查看需要存储标定的信息
 			{
 			  if( lk_param_statu.ifQCStand[i]) //标定
 		    {
 				  _LK03_STAND index =(_LK03_STAND) i;
 					 swStandSave(index);
 				}
+				
 			}
-
+    if(lk_param_statu.ifQCgetParm)  //获取标定参数
+		{
+		    qc_param_send();
+			lk_param_statu.ifQCgetParm = false;
+		}
     if(lk_param_statu.ifGetOnceDist)	//单次测量
 		{
 		
@@ -197,6 +203,21 @@ void buff_distTosend()
 	buf[4] = _TDC_GP21.pid_resualt>>8;
 	buf[5] = _TDC_GP21.pid_resualt&0xff;	
   zTF_sendOnceDist(buf,6);	
+}
+
+//标定参数信息
+uint8_t buf_qc[LK03_STAND_COUNTS*5]={0};
+void qc_param_send(void)
+{
+	for(int i=0;i<LK03_STAND_COUNTS;i++)
+	{
+		buf_qc[0+5*i]=lk_flash.QC[i].qc_stand_dist >>8;
+		buf_qc[1+5*i]=lk_flash.QC[i].qc_stand_dist &0xff;
+		buf_qc[2+5*i]=lk_flash.QC[i].qc_ad603Gain >>8;
+		buf_qc[3+5*i]=lk_flash.QC[i].qc_ad603Gain &0xff;
+		buf_qc[4+5*i]=lk_flash.QC[i].ifHavedStand &0xff;
+	}
+  QCparmSend(buf_qc,LK03_STAND_COUNTS*5);
 }
 /* USER CODE BEGIN Header_SerialTask */
 /**

@@ -22,7 +22,8 @@ lk_statu_ lk_param_statu={
 	.ifGetOnceDist = false,
 	.ifContinuDist = false,
 	.ifStopContinu = false,
-	.ifQCStand = false
+	.ifQCStand = false,
+	.ifQCgetParm = false	
 };
 
 
@@ -79,7 +80,7 @@ typedef enum  { DataDistSend = 1, ParmsConfig = 2, ParmaSend=3, QC=6,ErroSend }F
 typedef enum  { ParamAll=1}FRAME_GetParam_CMD;
 typedef enum  { DistOnce = 1, DistContinue,DistStop}FRAME_GetDataID_CMD;
 typedef enum  { BarudRate = 1, RedLight, FrontOrBase,AutoMel}FRAME_ParmSaveID_CMD;
-typedef enum  { standStart = 1,StandParamFirst,StandParamSecond,StandParamThird }FRAME_ParmQC_CMD;
+typedef enum  { standStart = 1,StandParamFirst,StandParamSecond,StandParamThird,StandParamFirstReset, StandParamSecondReset, StandParamThirdReset,GetParam}FRAME_ParmQC_CMD;
 /*数据获取命令*/
 void dataGetCmdSlect(FRAME_GetDataID_CMD  DATA_GET, TF_Msg *msg)
 {
@@ -170,8 +171,8 @@ void QC_CMD(FRAME_ParmQC_CMD qc, TF_Msg *msg)
 		}break;
 		case StandParamSecond:  //上位机第2档标定值
 		{
-        lk_defaultParm.QC[LK03_SECOND_STAND].qc_stand_dist= msg->data[LK03_SECOND_STAND]<<8|msg->data[1];
-			  lk_defaultParm.QC[LK03_SECOND_STAND].qc_ad603Gain= msg->data[LK03_SECOND_STAND]<<8|msg->data[3];
+        lk_defaultParm.QC[LK03_SECOND_STAND].qc_stand_dist= msg->data[0]<<8|msg->data[1];
+			  lk_defaultParm.QC[LK03_SECOND_STAND].qc_ad603Gain= msg->data[2]<<8|msg->data[3];
 			  lk_param_statu.ifQCStand[LK03_SECOND_STAND] =true;
 		}break;	
 		case StandParamThird:  //上位机第3档标定值
@@ -179,6 +180,23 @@ void QC_CMD(FRAME_ParmQC_CMD qc, TF_Msg *msg)
         lk_defaultParm.QC[LK03_THIRD_STAND].qc_stand_dist= msg->data[0]<<8|msg->data[1];
 			  lk_defaultParm.QC[LK03_THIRD_STAND].qc_ad603Gain= msg->data[2]<<8|msg->data[3];
 			  lk_param_statu.ifQCStand[LK03_THIRD_STAND] =true;
+		}break;	
+		case StandParamSecondReset:  //第1档从新校准
+		{
+			lk_param_statu.ifQCgetParmReset[LK03_FIRST_STAND] = true;
+		}break;
+		case StandParamThirdReset:  //第2档从新校准
+		{
+		 	lk_param_statu.ifQCgetParmReset[LK03_SECOND_STAND] = true;
+		}break;	
+		case StandParamFirstReset:  //第3档从新校准
+		{
+			lk_param_statu.ifQCgetParmReset[LK03_THIRD_STAND] = true;
+		}break;	
+    case GetParam :  //获取参数
+		{
+			  lk_param_statu.ifQCgetParm = true;
+		
 		}break;			
 	}
  
@@ -258,6 +276,18 @@ void parmSend(parm_ *parm)
 	  msg.frame_id = ParamAll;
 	  msg.data = arrayBuff.point;
     msg.len = arrayBuff.lens;
+  	TF_Respond(demo_tf, &msg);	
+	
+}
+//qc标定参数发送
+void QCparmSend(uint8_t *data,uint8_t lens)
+{
+    TF_Msg msg;
+    TF_ClearMsg(&msg);	
+  	msg.type = QC;
+	  msg.frame_id = GetParam;
+	  msg.data = data;
+    msg.len = lens;
   	TF_Respond(demo_tf, &msg);	
 	
 }
