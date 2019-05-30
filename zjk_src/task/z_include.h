@@ -2,6 +2,10 @@
 #define _Z_INCLUDE_H_
 #include "main.h"
 #include "stdio.h"
+
+
+//usr include
+#include "ringQueue.h" 
 extern TIM_HandleTypeDef *z_tlc_TxSignl_pwm;
 void z_taskCreate(void);
 

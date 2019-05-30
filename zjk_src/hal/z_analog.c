@@ -22,18 +22,18 @@ bool z_analog_convert(uint16_t *value)
   HAL_ADC_Start_DMA(z_anlog,(uint32_t*)adc_buf,BUF_SIZE);
   // z_analog_convertNorml();
 	//analog_delay(1000);  //延时等待DMA转换完成
-	if(ifDMAisComplete)
-	{
-		ifDMAisComplete =false;
-	  adc_value_DMA = z_analog_covertDMA ();
-		*value = adc_value_DMA;
-		return true;
-  }
-	else
-	{
-	  erro_count ++;
-		return false;
-	}
+//	if(ifDMAisComplete)
+//	{
+//		ifDMAisComplete =false;
+//	  adc_value_DMA = z_analog_covertDMA ();
+//		*value = adc_value_DMA;
+//		return true;
+//  }
+//	else
+//	{
+//	  erro_count ++;
+//		return false;
+//	}
 	 
 }
 
@@ -63,18 +63,37 @@ uint16_t z_analog_convertNorml(void)
 
 float value = 0;
 float test_valuenum=0;
+uint16_t test_adc=0;
 uint16_t z_analog_covertDMA (void)
 {
 	 float num =0;
-   for(int i=0;i< BUF_SIZE;i++)
-	 {
-	
-	   num += adc_buf[i];   //2^4 = 16 平均数
-	
-	 }
-	 num = num/BUF_SIZE;
-	 test_valuenum = num;
-	 value = num  * REF_VALUSE/4096;  // 3300/4096
+  	volatile uint8_t minIndex=0;
+   volatile	uint32_t tem=0;	
+	  for( int i=0;i<BUF_SIZE-1;i++)    // selection sort 
+	  {
+		     minIndex = i;
+			  for( int j=i+1;j<BUF_SIZE;j++)
+		   	{
+					 if(adc_buf[j]<adc_buf[minIndex])     
+					 {
+					    minIndex = j;
+					 }
+				}
+				tem= adc_buf[i];
+				adc_buf[i] = adc_buf[minIndex];
+				adc_buf[minIndex] = tem;
+		}		
+		test_adc=adc_buf[2];
+//   for(int i=0;i< BUF_SIZE;i++)
+//	 {
+//	
+//	   num += adc_buf[i];   //
+//	
+//	 }
+//	 num = num/BUF_SIZE;
+//	 test_valuenum = num;
+//	 value = num  * REF_VALUSE/4096;  // 3300/4096
+	  value = test_adc  * REF_VALUSE/4096;  // 3300/4096
 	 return value;
 
 }
@@ -92,7 +111,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *AdcHandle)
 {
 
    HAL_ADC_Stop_DMA(z_anlog);
-	 adc_value_DMA = z_analog_covertDMA ();
+	// adc_value_DMA = z_analog_covertDMA ();
 	 ifDMAisComplete = true;
 }
 

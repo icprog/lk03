@@ -4,7 +4,7 @@
 #include "stdbool.h"
 #define Z_ANALOG_ERRO   0
 #define Z_ANALOG_SUEED   1
-#define BUF_SIZE     10
+#define BUF_SIZE     5
 
 uint16_t z_analog_covertDMA (void);
 uint16_t z_analog_convertNorml(void);

@@ -181,15 +181,15 @@ void QC_CMD(FRAME_ParmQC_CMD qc, TF_Msg *msg)
 			  lk_defaultParm.QC[LK03_THIRD_STAND].qc_ad603Gain= msg->data[2]<<8|msg->data[3];
 			  lk_param_statu.ifQCStand[LK03_THIRD_STAND] =true;
 		}break;	
-		case StandParamSecondReset:  //第1档从新校准
+		case StandParamFirstReset:  //第1档从新校准
 		{
 			lk_param_statu.ifQCgetParmReset[LK03_FIRST_STAND] = true;
 		}break;
-		case StandParamThirdReset:  //第2档从新校准
+		case StandParamSecondReset:  //第2档从新校准
 		{
 		 	lk_param_statu.ifQCgetParmReset[LK03_SECOND_STAND] = true;
 		}break;	
-		case StandParamFirstReset:  //第3档从新校准
+		case StandParamThirdReset:  //第3档从新校准
 		{
 			lk_param_statu.ifQCgetParmReset[LK03_THIRD_STAND] = true;
 		}break;	

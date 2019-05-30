@@ -17,13 +17,19 @@ HIGHL_VOL_GP21 gp21_highVolCrlParm[3]=
 	   case VOL_CTL1 :
 		 {
 		   tdc_vol_ctl1_Set();
+			 tdc_vol_ctl2_ReSet();
+			 tdc_vol_ctl3_ReSet();
 		 }break;
 	   case VOL_CTL2 :
 		 {
-     tdc_vol_ctl2_Set();
+       tdc_vol_ctl3_ReSet();
+			 tdc_vol_ctl1_ReSet();
+       tdc_vol_ctl2_Set();
 		 }break;		 
 	   case VOL_CTL3 :
 		 {
+			tdc_vol_ctl1_ReSet();
+			tdc_vol_ctl2_ReSet();
 		  tdc_vol_ctl3_Set();
 		 }break;		 
 	 }
@@ -74,7 +80,7 @@ HIGHL_VOL_GP21 gp21_highVolCrlParm[3]=
     _TDC_GP21.pid.Kp = PID_KP;
     _TDC_GP21.pid.Ki = PID_KI;	 
 	  _TDC_GP21.pid.setpoint = PID_SETPOINT;
-	 _TDC_GP21.pid.ifTrunOnPid=false;
+
  }
 
 #define GP22_TNS  1000       //gp21 ���� 1000ns 1MHZ

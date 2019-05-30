@@ -2,7 +2,13 @@
 #define _Z_PARAM_H
 #include "stdbool.h"
 #include "cmsis_os.h"
-
+#define TEST_QC 0
+#if TEST_QC 
+#define DIST_FIRST_OFFSET   776
+#define DIST_SECOND_OFFSET   777
+#define first_test   true
+#define second_test   true
+#endif
 #define LK03_STAND_COUNTS  3     //标定次数3
 typedef enum{LK03_FIRST_STAND=0,LK03_SECOND_STAND,LK03_THIRD_STAND} _LK03_STAND;
 /*参数状态*/

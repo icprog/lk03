@@ -47,7 +47,7 @@
 ;   <o> Stack Size (in Bytes) <0x0-0xFFFFFFFF:8>
 ; </h>
 ;<<<Use Configuration Wizard in Context Menu>>>
-Stack_Size		EQU     0x400
+Stack_Size		EQU     0x600
 
                 AREA    STACK, NOINIT, READWRITE, ALIGN=3
 Stack_Mem       SPACE   Stack_Size

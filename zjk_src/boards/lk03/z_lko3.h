@@ -12,7 +12,7 @@
 
 typedef enum{ trig_onece_complete =1,trig_enough_complete,trig_time_out} TDC_TRIGSTATU;
 typedef enum  {VOL_CTL1,VOL_CTL2,VOL_CTL3}TX_VOL_ENUM_TYP;
-typedef enum  {START,FIRST,SECOND,THIRD}RUN_STATU;
+typedef enum  {START,FIRST,SECOND,THIRD,STYLE}RUN_STATU;
 typedef enum  {FIRST_PARAM=0,SECOND_PARAM,THIRD_PARAM}HIGH_VOL_PARAM;
 typedef struct {
 
@@ -28,7 +28,7 @@ typedef struct {
 	float Ki;
 	float ki_sum;
 	int16_t setpoint;
-  bool ifTrunOnPid;
+  bool ifTrunOn;
 }_tdc_pid ;
 
 /*硬件电压参数*/
@@ -93,6 +93,10 @@ typedef struct
 #define tdc_boot_vol_high()      HAL_GPIO_WritePin(boot_vol_ctl_GPIO_Port,boot_vol_ctl_Pin,GPIO_PIN_SET)
 #define tdc_boot_vol_low()      HAL_GPIO_WritePin(boot_vol_ctl_GPIO_Port,boot_vol_ctl_Pin,GPIO_PIN_RESET)
 
+
+#define High_Vol_Ctl_on()      HAL_GPIO_WritePin(High_Vol_Ctl_GPIO_Port,High_Vol_Ctl_Pin,GPIO_PIN_RESET)
+#define High_Vol_Ctl_off()     HAL_GPIO_WritePin(High_Vol_Ctl_GPIO_Port,High_Vol_Ctl_Pin,GPIO_PIN_SET)
+
  void tdc_rx_voltge_relese(void);
 /*
 #define  TX_HIGH_VOL_TLC5618 1200  //50.1v
@@ -106,31 +110,33 @@ typedef struct
 #define GP21_STATU_TIMEOUT  0x0100U
 	
 #define first_vol_param {\
-				.tx5618_value=1300,\
+				.tx5618_value=1210,\
+				.rx_vol_value=100,\
+				.tx_vol_ctl=VOL_CTL2,\
+				.ifBootVolCtl=true}
+
+			
+#define second_vol_param {\
+	      .tx5618_value=600,\
 				.rx_vol_value=100,\
 				.tx_vol_ctl=VOL_CTL1,\
 				.ifBootVolCtl=false}
 
-#define second_vol_param {\
-				.tx5618_value=1300,\
-				.rx_vol_value=100,\
-				.tx_vol_ctl=VOL_CTL1,\
-				.ifBootVolCtl=false}	
-
+//三挡500us,2khz
 #define third_vol_param {\
-				.tx5618_value=1300,\
+	      .tx5618_value=600,\
 				.rx_vol_value=100,\
 				.tx_vol_ctl=VOL_CTL1,\
 				.ifBootVolCtl=false}					
 				
 /*参数配置*/
-#define AD603_AGC_DEFAULT   450  
-#define AD603_AGC_MIN     50 //0.16V -10DB
+#define AD603_AGC_DEFAULT   500  
+#define AD603_AGC_MIN     100 //0.16V -10DB
 #define AD603_AGC_MAX     700//0.720V 20DB
 
 
 #define PID_KP      0.1
-#define PID_KI      0.01
+#define PID_KI      0.05
 #define PID_SETPOINT 1000
 
 #define Debug_Pid   1

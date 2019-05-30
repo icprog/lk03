@@ -61,6 +61,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
  #include "z_include.h"
+ extern SqQueue lk_distQueue;  //Ñ­»·»º´æ
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -132,7 +133,7 @@ int main(void)
   MX_SPI1_Init();
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
-
+ 
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
