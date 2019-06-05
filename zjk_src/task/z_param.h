@@ -2,10 +2,16 @@
 #define _Z_PARAM_H
 #include "stdbool.h"
 #include "cmsis_os.h"
-#define TEST_QC 0
+//799 10mhei
+//#3 f:798,g450;s:780,g450
+//#2 f:716,g389;s:695,g383
+#define TEST_QC 1
+#define DEBUG_DISPLAY 1
 #if TEST_QC 
-#define DIST_FIRST_OFFSET   776
-#define DIST_SECOND_OFFSET   777
+//#define DIST_FIRST_OFFSET   716
+//#define DIST_SECOND_OFFSET   695
+#define DIST_FIRST_OFFSET   798
+#define DIST_SECOND_OFFSET   780
 #define first_test   true
 #define second_test   true
 #endif

@@ -16,7 +16,11 @@
 extern TIM_HandleTypeDef htim3;
 
 TIM_HandleTypeDef *singhlTim=&htim3;
-/*全局变量定义*/
+/*全局变量定义*/ 
+#define FIRST_OFFSET  4    //根据实验数据在10m黑板标定下，再补一个正4cm
+#define SECOND_OFFSET  0    
+#define THIRD_OFFSET  0    
+static uint16_t offset_dist[3]={FIRST_OFFSET,SECOND_OFFSET,THIRD_OFFSET};
 SqQueue lk_distQueue;  //循环缓存
 uint16_t dist_offset=0;  //偏差值
  TIM_HandleTypeDef *z_tlc_TxSignl_pwm= &htim3;
@@ -117,6 +121,7 @@ void LK_sensorParamTask(void *argument)
 	lk_param_statu.ifContinuDist = true;
 	#else 
 	lk_param_statu.ifContinuDist = false;
+		//lk_flash.QC[SECOND_PARAM].ifHavedStand=true;
 #endif	
 
 	
@@ -139,7 +144,7 @@ void LK_sensorParamTask(void *argument)
 			  if( lk_param_statu.ifQCStand[i]) //标定
 		    {
 				  _LK03_STAND index =(_LK03_STAND) i;
-					 dist_offset=lk_flash.QC[index].qc_stand_dist;
+					 dist_offset=lk_flash.QC[index].qc_stand_dist-offset_dist[index];
 					 swStandSave(index);
 				}
 				if(lk_param_statu.ifQCgetParmReset[i])  //档位切换后再校准
@@ -219,12 +224,12 @@ void send_lk_paramNocheck(void)
 	z_serial_write(sendbuf,8);   //发送以\r\n结尾的字符
 }
 uint8_t buf[6]={0};
-void buff_distTosend()
+void buff_distTosend(uint16_t dist)
 {
   buf[0] = _TDC_GP21.siganl.vol>>8;
 	buf[1] = _TDC_GP21.siganl.vol&0xff;
-	buf[2] = _TDC_GP21.distance>>8;
-	buf[3] = _TDC_GP21.distance&0xff;	
+	buf[2] = dist>>8;
+	buf[3] = dist&0xff;	
 	buf[4] = _TDC_GP21.pid_resualt>>8;
 	buf[5] = _TDC_GP21.pid_resualt&0xff;	
   zTF_sendOnceDist(buf,6);	
@@ -314,11 +319,20 @@ void SerialTask(void  *argument)
 			 }
        QE_FLASG ++;
 			lk_average(&disPlayDistBufer[0],AVERAGE_SIZE);
-		// Send_Pose_Data(&_TDC_GP21.siganl.vol,&average,&_TDC_GP21.pid_resualt);
-			 #if TEST_QC
-	       Send_Pose_Data(&_TDC_GP21.siganl.vol,&_TDC_GP21.distance,&_TDC_GP21.pid_resualt);
+		 
+			 #if DEBUG_DISPLAY
+			 if(_TDC_GP21.running_statu==FIRST)
+			 {
+			   _TDC_GP21.siganl.vol=1000;
+			 }
+			 else if(_TDC_GP21.running_statu==SECOND)
+			 {
+			     _TDC_GP21.siganl.vol=2000;
+			 }
+			 Send_Pose_Data(&_TDC_GP21.siganl.vol,&average,&_TDC_GP21.pid_resualt);
+	     //  Send_Pose_Data(&_TDC_GP21.siganl.vol,&_TDC_GP21.distance,&_TDC_GP21.pid_resualt);
        #else
-			   buff_distTosend();
+			   buff_distTosend(average);
 			 #endif
 			 // buff_distTosend();
 //   send_lk_paramNocheck();
@@ -330,7 +344,7 @@ void SerialTask(void  *argument)
 
         if((lk_flash.QC[FIRST_PARAM].ifHavedStand)&(lk_flash.QC[SECOND_PARAM].ifHavedStand))
 				{
-					 dist_offset=lk_flash.QC[FIRST_PARAM].qc_stand_dist;
+					 dist_offset=lk_flash.QC[FIRST_PARAM].qc_stand_dist-offset_dist[FIRST_PARAM];
 					_TDC_GP21.running_statu = FIRST;
 				}
         if(lk_flash.QC[THIRD_PARAM].ifHavedStand)
@@ -342,9 +356,9 @@ void SerialTask(void  *argument)
 			 }break;
 			 case FIRST:
 			 {
-				   if((_TDC_GP21.pid_resualt >620)&(_TDC_GP21.distance>2300))   //第1档增益大于600时
+				   if(_TDC_GP21.pid_resualt >600)   //第1档增益大于600时 (_TDC_GP21.pid_resualt >620)&(
 					 {
-						  dist_offset=lk_flash.QC[SECOND_PARAM].qc_stand_dist;
+						  dist_offset=lk_flash.QC[SECOND_PARAM].qc_stand_dist-offset_dist[SECOND_PARAM];
 						  _TDC_GP21.running_statu = SECOND;
 						  gear_select(&_TDC_GP21.vol_param[SECOND_PARAM]); 
 					 }
@@ -358,10 +372,10 @@ void SerialTask(void  *argument)
 						  gear_select(&_TDC_GP21.vol_param[THIRD_PARAM]);  //
 						  _TDC_GP21.running_statu = THIRD;
 					 }
-					 else if((_TDC_GP21.pid_resualt <280)&(_TDC_GP21.distance<2500))  //切换第一档
+					 else if(_TDC_GP21.pid_resualt <280) //切换第一档((_TDC_GP21.pid_resualt <280)&(_TDC_GP21.distance<3500))
 					 {
 					 
-						  dist_offset=lk_flash.QC[FIRST_PARAM].qc_stand_dist;
+						  dist_offset=lk_flash.QC[FIRST_PARAM].qc_stand_dist-offset_dist[FIRST_PARAM];
 					     gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //开机默认第一档位
 						  _TDC_GP21.running_statu = FIRST;
 					 }
@@ -411,6 +425,7 @@ void Gp21TrigTask(void *argument)
 
 	High_Vol_Ctl_on();
 	gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //开机默认第一档位 SECOND_PARAM
+	
 	_TDC_GP21.pid.ifTrunOn = true;  //先关闭pid
 
   /* Infinite loop */

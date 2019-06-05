@@ -137,7 +137,7 @@ typedef struct
 
 #define PID_KP      0.1
 #define PID_KI      0.05
-#define PID_SETPOINT 1000
+#define PID_SETPOINT 1500
 
 #define Debug_Pid   1
 

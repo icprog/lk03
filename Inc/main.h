@@ -98,6 +98,8 @@ void Error_Handler(void);
 #define TDC_rx_pwmHv_GPIO_Port GPIOA
 #define boot_vol_ctl_Pin GPIO_PIN_2
 #define boot_vol_ctl_GPIO_Port GPIOA
+#define ADJ_COMP_Pin GPIO_PIN_4
+#define ADJ_COMP_GPIO_Port GPIOA
 #define tlc5618_clk_Pin GPIO_PIN_5
 #define tlc5618_clk_GPIO_Port GPIOA
 #define tlc5618_dat_Pin GPIO_PIN_7
