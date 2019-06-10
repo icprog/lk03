@@ -291,7 +291,7 @@ uint8_t counts_index=0,QE_FLASG;
 int queue_lenth=0;
 #define AVERAGE_SIZE 80U
 
-//uint16_t first_dist = 2000;    //第一档2000
+uint32_t statu_gp21=0;
 
 void SerialTask(void  *argument)
 {
@@ -399,7 +399,8 @@ void SerialTask(void  *argument)
 			 
   
 		}		 
-		  osDelay(50);	 
+		  osDelay(50);	
+ statu_gp21=  get_gp21_statu();		
 	 }
 		
   /* USER CODE END SerialTask */
@@ -424,10 +425,12 @@ void Gp21TrigTask(void *argument)
   tdc_board_init();   /*初始化激光板*/
 
 	High_Vol_Ctl_on();
-	gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //开机默认第一档位 SECOND_PARAM
-	
-	_TDC_GP21.pid.ifTrunOn = true;  //先关闭pid
-
+	//gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //开机默认第一档位 SECOND_PARAM
+//	gear_select(&_TDC_GP21.vol_param[SECOND_PARAM]);
+		_TDC_GP21.pid.ifTrunOn =true;  //先关闭pid
+		__HAL_TIM_SET_AUTORELOAD(singhlTim,500);  //设定500us周期
+		gear_select(&_TDC_GP21.vol_param[THIRD_PARAM]);  //
+		_TDC_GP21.running_statu = STYLE;
   /* Infinite loop */
   for(;;)
   { 
@@ -475,13 +478,14 @@ void closeTdc(void)
 TDC_TRIGSTATU trigGetData(void)
 {
 	uint32_t gp21_statu_INT;
-
+  uint8_t reg_index;
   gp21_statu_INT = get_gp21_statu();	 
  	
 	if(gp21_statu_INT & GP21_STATU_CH1)
 	{
 		closeTdc();		
-    _TDC_GP21.buff[trigCount++] = gp21_read_diatance();//收集激光测量数据		
+     reg_index=gp21_statu_INT&0xfff; //取结果寄存器地址
+			_TDC_GP21.buff[trigCount++] = gp21_read_diatance(reg_index);//收集激光测量数据		
     if(trigCount == DISTANCE_RCV_SIZE) 	
 		{
 			trigCount = 0;
@@ -637,21 +641,22 @@ int16_t pid_resualt=0,ad603_resualt=0;
    /* gp21 intn interrupt callback */
 BaseType_t xHigherPriorityTaskWoken = pdTRUE;
 uint16_t vol_signal=0,statu_erro=0,dist_checkLast=0,dist_checkNow;
-uint8_t flag=0,erro_count_test=0;
-
+uint8_t flag=0,erro_count_test=0,reg_index;
+uint32_t gp21_statu_INT_test;
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 { 
    
   if(GPIO_Pin ==GP21_INTN_Pin )
 	{ 
 			
-		uint32_t gp21_statu_INT;
-		gp21_statu_INT = get_gp21_statu();	
+		gp21_statu_INT_test = get_gp21_statu();	
     textCount++;  	
-		if(gp21_statu_INT & GP21_STATU_CH1)
+		if(gp21_statu_INT_test & GP21_STATU_CH1)
 		{	
-			_TDC_GP21.buff[trigCount++] = gp21_read_diatance();//收集激光测量数据	
-      gp21_write(OPC_START_TOF);			
+			reg_index=gp21_statu_INT_test&0xfff; //取结果寄存器地址
+			_TDC_GP21.buff[trigCount++] = gp21_read_diatance(reg_index);//收集激光测量数据	
+     // gp21_write(OPC_START_TOF);
+      gp21_write(OPC_INIT);			
 			if(trigCount == DISTANCE_RCV_SIZE) 	
 			{				
 				trigCount = 0;
