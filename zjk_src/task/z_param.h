@@ -7,6 +7,7 @@
 //#2 f:716,g389;s:695,g383
 #define TEST_QC 1
 #define DEBUG_DISPLAY 1
+
 #if TEST_QC 
 //#define DIST_FIRST_OFFSET   716
 //#define DIST_SECOND_OFFSET   695
@@ -17,6 +18,8 @@
 #endif
 #define LK03_STAND_COUNTS  3     //标定次数3
 typedef enum{LK03_FIRST_STAND=0,LK03_SECOND_STAND,LK03_THIRD_STAND} _LK03_STAND;
+
+typedef enum{DIST_TYPE=1}TypedSend;  //发送协议功能定义
 /*参数状态*/
 typedef struct
 {

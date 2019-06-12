@@ -10,7 +10,7 @@
 #include "TinyFrame.h"
 #include "z_param.h"
 #include "z_flashParamSave.h"
-
+#include "z_checksum.h"
 //
 #include "z_include.h"
 extern TIM_HandleTypeDef htim3;
@@ -223,16 +223,22 @@ void send_lk_paramNocheck(void)
 
 	z_serial_write(sendbuf,8);   //发送以\r\n结尾的字符
 }
-uint8_t buf[6]={0};
+uint8_t buf[8]={0},ret;
 void buff_distTosend(uint16_t dist)
 {
-  buf[0] = _TDC_GP21.siganl.vol>>8;
-	buf[1] = _TDC_GP21.siganl.vol&0xff;
-	buf[2] = dist>>8;
-	buf[3] = dist&0xff;	
-	buf[4] = _TDC_GP21.pid_resualt>>8;
-	buf[5] = _TDC_GP21.pid_resualt&0xff;	
-  zTF_sendOnceDist(buf,6);	
+	#if TEST_QC
+	buf[0] = DIST_TYPE;
+  buf[1] = _TDC_GP21.siganl.vol>>8;
+	buf[2] = _TDC_GP21.siganl.vol&0xff;
+	buf[3] = dist>>8;
+	buf[4] = dist&0xff;	
+	buf[5] = _TDC_GP21.pid_resualt>>8;
+	buf[6] = _TDC_GP21.pid_resualt&0xff;	
+ // zTF_sendOnceDist(buf,6);	
+	buf[7] = tx_chexkSum(buf,7);    //校验和发送
+	z_serial_write(buf,8);
+	#endif
+//	ret=rx_chexkSum(buf,7);
 }
 
 //标定参数信息
@@ -251,7 +257,7 @@ void qc_param_send(void)
 }
 
 //平均
-uint16_t average=0;
+uint16_t average=0,texr=0;
 uint16_t lk_average(uint16_t *buff,int len)
 {
 		volatile uint8_t minIndex=0;
@@ -276,6 +282,10 @@ uint16_t lk_average(uint16_t *buff,int len)
 		    num += buff[i] ;		
 		}
 	average = num/len;
+		if(average>25000)
+		{
+			texr++;
+		}
 		return average;
 }
 /* USER CODE BEGIN Header_SerialTask */
@@ -292,7 +302,7 @@ int queue_lenth=0;
 #define AVERAGE_SIZE 80U
 
 uint32_t statu_gp21=0;
-
+ int16_t s=0;
 void SerialTask(void  *argument)
 {
   z_tiny_test();
@@ -329,8 +339,9 @@ void SerialTask(void  *argument)
 			 {
 			     _TDC_GP21.siganl.vol=2000;
 			 }
-			 Send_Pose_Data(&_TDC_GP21.siganl.vol,&average,&_TDC_GP21.pid_resualt);
-	     //  Send_Pose_Data(&_TDC_GP21.siganl.vol,&_TDC_GP21.distance,&_TDC_GP21.pid_resualt);
+
+			 //Send_Pose_Data(&_TDC_GP21.siganl.vol,&average,&_TDC_GP21.pid_resualt);
+	       Send_Pose_Data(&_TDC_GP21.siganl.vol,&_TDC_GP21.distance,&_TDC_GP21.pid_resualt);
        #else
 			   buff_distTosend(average);
 			 #endif
@@ -425,7 +436,7 @@ void Gp21TrigTask(void *argument)
   tdc_board_init();   /*初始化激光板*/
 
 	High_Vol_Ctl_on();
-	//gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //开机默认第一档位 SECOND_PARAM
+	gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //开机默认第一档位 SECOND_PARAM
 //	gear_select(&_TDC_GP21.vol_param[SECOND_PARAM]);
 		_TDC_GP21.pid.ifTrunOn =true;  //先关闭pid
 		__HAL_TIM_SET_AUTORELOAD(singhlTim,500);  //设定500us周期
@@ -484,7 +495,7 @@ TDC_TRIGSTATU trigGetData(void)
 	if(gp21_statu_INT & GP21_STATU_CH1)
 	{
 		closeTdc();		
-     reg_index=gp21_statu_INT&0xfff; //取结果寄存器地址
+     reg_index=gp21_statu_INT&0x07; //取结果寄存器地址
 			_TDC_GP21.buff[trigCount++] = gp21_read_diatance(reg_index);//收集激光测量数据		
     if(trigCount == DISTANCE_RCV_SIZE) 	
 		{
@@ -640,9 +651,9 @@ int16_t pid_resualt=0,ad603_resualt=0;
 }
    /* gp21 intn interrupt callback */
 BaseType_t xHigherPriorityTaskWoken = pdTRUE;
-uint16_t vol_signal=0,statu_erro=0,dist_checkLast=0,dist_checkNow;
+uint16_t vol_signal=0,statu_erro=0;
 uint8_t flag=0,erro_count_test=0,reg_index;
-uint32_t gp21_statu_INT_test;
+uint32_t gp21_statu_INT_test,GP21_REG,test_cunt;
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 { 
    
@@ -653,49 +664,53 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     textCount++;  	
 		if(gp21_statu_INT_test & GP21_STATU_CH1)
 		{	
-			reg_index=gp21_statu_INT_test&0xfff; //取结果寄存器地址
-			_TDC_GP21.buff[trigCount++] = gp21_read_diatance(reg_index);//收集激光测量数据	
-     // gp21_write(OPC_START_TOF);
-      gp21_write(OPC_INIT);			
-			if(trigCount == DISTANCE_RCV_SIZE) 	
-			{				
-				trigCount = 0;
-				textCount = 0;
-				trighCount = 0;
-			  //开始采集电压
-			    	z_analog_convert(&_TDC_GP21.siganl.vol); 	
-           dist_checkNow = 	gp21_distance_cal(_TDC_GP21.buff,DISTANCE_RCV_SIZE)-lk_flash.QC[0].qc_stand_dist; //数据处理 //	
-						if(((dist_checkNow - dist_checkLast)< -500)|((dist_checkNow - dist_checkLast)>500))
-						{
-						   ifPick=true;
-						}else ifPick=false;
-				  if(_TDC_GP21.pid.ifTrunOn)
-						{
-									if(ifDMAisComplete)
-									{
-											ifDMAisComplete =false;
-											_TDC_GP21.siganl.vol = z_analog_covertDMA ();
-									}
-									else
-									{
-										_TDC_GP21.siganl.vol = z_analog_covertDMA ();
-											erro_count_test ++;
-									}
-								tdc_rx_voltge_relese();   /*高压信号采集释放*/	
-								_TDC_GP21.pid_resualt= tdc_agc_control(_TDC_GP21.siganl.vol,_TDC_GP21.pid.setpoint); //pid控制峰值电压
-						}
-						dist_checkLast=_TDC_GP21.distance=  gp21_distance_cal(_TDC_GP21.buff,DISTANCE_RCV_SIZE)-dist_offset; //数据处理
-						if( Queue_push(&lk_distQueue,_TDC_GP21.distance) ==Q_ERROR)
-						{
-							 flag = 1; //队列满
-						}
-						_TDC_GP21.ifComplete = true;				//结束						
-		 
-			}
-			else
+			reg_index=gp21_statu_INT_test&0x07; //取结果寄存器地址
+			GP21_REG = gp21_read_diatance(reg_index);//收集激光测量数据
+			if(GP21_REG!=0xffffffff) //无效值
 			{
-			   _TDC_GP21.statu=trig_time_out;		
+				_TDC_GP21.buff[trigCount++]=GP21_REG;
+					gp21_write(OPC_INIT);			
+					if(trigCount == DISTANCE_RCV_SIZE) 	
+					{				
+						trigCount = 0;
+						textCount = 0;
+						trighCount = 0;
+						//开始采集电压
+								z_analog_convert(&_TDC_GP21.siganl.vol); 	          
+							if(_TDC_GP21.pid.ifTrunOn) //是否打开pid控制
+								{
+											if(ifDMAisComplete)
+											{
+													ifDMAisComplete =false;
+													_TDC_GP21.siganl.vol = z_analog_covertDMA ();
+											}
+											else
+											{
+												_TDC_GP21.siganl.vol = z_analog_covertDMA ();
+													erro_count_test ++;
+											}
+										tdc_rx_voltge_relese();   /*高压信号采集释放*/	
+										_TDC_GP21.pid_resualt= tdc_agc_control(_TDC_GP21.siganl.vol,_TDC_GP21.pid.setpoint); //pid控制峰值电压
+								}
+								_TDC_GP21.distance=  gp21_distance_cal(_TDC_GP21.buff,DISTANCE_RCV_SIZE)-dist_offset; //数据处理
+								if( Queue_push(&lk_distQueue,_TDC_GP21.distance) ==Q_ERROR)
+								{
+									 flag = 1; //队列满
+								}
+								_TDC_GP21.ifComplete = true;				//结束						
+				 
+					}
+					else
+					{
+						 _TDC_GP21.statu=trig_time_out;		
+					}		
+			
 			}
+			else  //出现0xfffffff
+			{
+			  test_cunt++;
+			}
+		
 			
 		}		
 	}

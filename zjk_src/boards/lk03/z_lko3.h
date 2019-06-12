@@ -130,14 +130,14 @@ typedef struct
 				.ifBootVolCtl=false}					
 				
 /*≤Œ ˝≈‰÷√*/
-#define AD603_AGC_DEFAULT   500  
+#define AD603_AGC_DEFAULT   600  
 #define AD603_AGC_MIN     100 //0.16V -10DB
 #define AD603_AGC_MAX     700//0.720V 20DB
 
 
 #define PID_KP      0.1
 #define PID_KI      0.05
-#define PID_SETPOINT 1500
+#define PID_SETPOINT 1000
 
 #define Debug_Pid   1
 
