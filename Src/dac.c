@@ -22,7 +22,7 @@
 
 /* USER CODE BEGIN 0 */
 #define  vol(v) (v/3.3)*4096
-#define dac_vol  0.3
+#define dac_vol  0.4
 
 void lk_dac_init(void);
 /* USER CODE END 0 */
@@ -49,7 +49,7 @@ void MX_DAC_Init(void)
   {
     Error_Handler();
   }
-  lk_dac_init(); 
+ // lk_dac_init(); 
 }
 
 void HAL_DAC_MspInit(DAC_HandleTypeDef* dacHandle)

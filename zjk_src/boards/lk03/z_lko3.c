@@ -83,9 +83,8 @@ HIGHL_VOL_GP21 gp21_highVolCrlParm[3]=
 
  }
 
+#define GP22_TNS  500       //gp21 ���� 1000ns 1MHZ
 //#define GP22_TNS  1000       //gp21 ���� 1000ns 1MHZ
- #define GP22_TNS  500       //gp21 ���� 500ns 2MHZ
-// #define GP22_TNS  250       //gp21 ���� 250ns 4MHZ
 float test_dit=0,test_distf=0;
 uint16_t gp21_distance_cal(uint32_t *dit,uint8_t dislens)
 {

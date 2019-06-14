@@ -223,22 +223,22 @@ void send_lk_paramNocheck(void)
 
 	z_serial_write(sendbuf,8);   //发送以\r\n结尾的字符
 }
-uint8_t buf[8]={0},ret;
+uint8_t buf[10]={0};
 void buff_distTosend(uint16_t dist)
 {
-	#if TEST_QC
-	buf[0] = DIST_TYPE;
-  buf[1] = _TDC_GP21.siganl.vol>>8;
-	buf[2] = _TDC_GP21.siganl.vol&0xff;
-	buf[3] = dist>>8;
-	buf[4] = dist&0xff;	
-	buf[5] = _TDC_GP21.pid_resualt>>8;
-	buf[6] = _TDC_GP21.pid_resualt&0xff;	
- // zTF_sendOnceDist(buf,6);	
-	buf[7] = tx_chexkSum(buf,7);    //校验和发送
-	z_serial_write(buf,8);
-	#endif
-//	ret=rx_chexkSum(buf,7);
+
+ 	uint8_t index=0;
+	buf[index++] = 0xFF;
+	buf[index++] = DIST_TYPE;
+  buf[index++] = _TDC_GP21.siganl.vol>>8;
+	buf[index++] = _TDC_GP21.siganl.vol&0xff;
+	buf[index++] = dist>>8;
+	buf[index++] = dist&0xff;	
+	buf[index++] = _TDC_GP21.pid_resualt>>8;
+	buf[index++] = _TDC_GP21.pid_resualt&0xff;	
+	buf[index++] = tx_chexkSum(buf,8);    //校验和发送
+	z_serial_write(buf,index);
+
 }
 
 //标定参数信息
@@ -257,7 +257,7 @@ void qc_param_send(void)
 }
 
 //平均
-uint16_t average=0,texr=0;
+uint16_t average=0;
 uint16_t lk_average(uint16_t *buff,int len)
 {
 		volatile uint8_t minIndex=0;
@@ -282,10 +282,6 @@ uint16_t lk_average(uint16_t *buff,int len)
 		    num += buff[i] ;		
 		}
 	average = num/len;
-		if(average>25000)
-		{
-			texr++;
-		}
 		return average;
 }
 /* USER CODE BEGIN Header_SerialTask */
@@ -300,9 +296,6 @@ uint16_t disPlayDistBufer[100]={0};
 uint8_t counts_index=0,QE_FLASG;
 int queue_lenth=0;
 #define AVERAGE_SIZE 80U
-
-uint32_t statu_gp21=0;
- int16_t s=0;
 void SerialTask(void  *argument)
 {
   z_tiny_test();
@@ -339,14 +332,11 @@ void SerialTask(void  *argument)
 			 {
 			     _TDC_GP21.siganl.vol=2000;
 			 }
-
-			 //Send_Pose_Data(&_TDC_GP21.siganl.vol,&average,&_TDC_GP21.pid_resualt);
-	       Send_Pose_Data(&_TDC_GP21.siganl.vol,&_TDC_GP21.distance,&_TDC_GP21.pid_resualt);
+			 Send_Pose_Data(&_TDC_GP21.siganl.vol,&average,&_TDC_GP21.pid_resualt);
+	     //  Send_Pose_Data(&_TDC_GP21.siganl.vol,&_TDC_GP21.distance,&_TDC_GP21.pid_resualt);
        #else
 			   buff_distTosend(average);
 			 #endif
-			 // buff_distTosend();
-//   send_lk_paramNocheck();
 			 
 		switch(_TDC_GP21.running_statu)
 		 {
@@ -361,9 +351,7 @@ void SerialTask(void  *argument)
         if(lk_flash.QC[THIRD_PARAM].ifHavedStand)
 				{
 				
-				}				
-//			 gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //开机默认第一档位
-	//			 _TDC_GP21.running_statu = FIRST;
+				}
 			 }break;
 			 case FIRST:
 			 {
@@ -410,8 +398,7 @@ void SerialTask(void  *argument)
 			 
   
 		}		 
-		  osDelay(50);	
- statu_gp21=  get_gp21_statu();		
+		  osDelay(50);	 
 	 }
 		
   /* USER CODE END SerialTask */
@@ -436,12 +423,11 @@ void Gp21TrigTask(void *argument)
   tdc_board_init();   /*初始化激光板*/
 
 	High_Vol_Ctl_on();
-	gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //开机默认第一档位 SECOND_PARAM
-//	gear_select(&_TDC_GP21.vol_param[SECOND_PARAM]);
-		_TDC_GP21.pid.ifTrunOn =true;  //先关闭pid
-		__HAL_TIM_SET_AUTORELOAD(singhlTim,500);  //设定500us周期
-		gear_select(&_TDC_GP21.vol_param[THIRD_PARAM]);  //
-		_TDC_GP21.running_statu = STYLE;
+	//gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //开机默认第一档位 SECOND_PARAM
+	__HAL_TIM_SET_AUTORELOAD(singhlTim,500);  //设定500us周期
+	 gear_select(&_TDC_GP21.vol_param[THIRD_PARAM]);  //	
+	_TDC_GP21.pid.ifTrunOn = true;  //先关闭pid
+
   /* Infinite loop */
   for(;;)
   { 
@@ -449,8 +435,7 @@ void Gp21TrigTask(void *argument)
     if(trighCount>10)
 	 {
 	   trighCount = 0;
-		static uint32_t gp21_statu_INT;
-	//	gp21_statu_INT = get_gp21_statu();	
+		static uint32_t gp21_statu_INT;	
 			 gp21_write(OPC_START_TOF);
 			 z_analog_convert(&_TDC_GP21.siganl.vol);
 			 if(ifDMAisComplete)
@@ -489,14 +474,13 @@ void closeTdc(void)
 TDC_TRIGSTATU trigGetData(void)
 {
 	uint32_t gp21_statu_INT;
-  uint8_t reg_index;
+
   gp21_statu_INT = get_gp21_statu();	 
  	
 	if(gp21_statu_INT & GP21_STATU_CH1)
 	{
 		closeTdc();		
-     reg_index=gp21_statu_INT&0x07; //取结果寄存器地址
-			_TDC_GP21.buff[trigCount++] = gp21_read_diatance(reg_index);//收集激光测量数据		
+    _TDC_GP21.buff[trigCount++] = gp21_read_diatance(0);//收集激光测量数据		
     if(trigCount == DISTANCE_RCV_SIZE) 	
 		{
 			trigCount = 0;
@@ -586,26 +570,7 @@ uint16_t tdc_agc_control(uint16_t nowData,int16_t setPoint)
 float ki_sum=0;
 uint16_t tdc_agc_Default_control(uint16_t nowData,int16_t setPoint)
 {
-//	static int pid_resualt=0,ad603_resualt=0;	 
-//   int16_t error_t=0;   //error  setpoint- input
-//	 error_t = setPoint - nowData; 
-//	
-//		//error_t =error_t/10;
-//		ki_sum+=error_t*0.5;
-//	  pid_resualt = error_t*2+ki_sum; // 
-//		 ad603_resualt = AD603_AGC_DEFAULT+pid_resualt;
-//	 
-//		 if((ad603_resualt<200) |(ad603_resualt<0))
-//		 {
-//			pid_resualt=	ad603_resualt= 200;
-//		 }
-//		 else if(ad603_resualt>AD603_AGC_MAX)
-//		 {
-//		   pid_resualt = ad603_resualt= AD603_AGC_MAX;
-//		 }
-//	 #if  Debug_Pid
-//      tlc5618_writeBchannal(ad603_resualt);  
-// 		#endif 
+
 int16_t pid_resualt=0,ad603_resualt=0;
    int16_t error_t=0;   //error  setpoint- input
 	 error_t = setPoint - nowData; 
@@ -653,64 +618,56 @@ int16_t pid_resualt=0,ad603_resualt=0;
 BaseType_t xHigherPriorityTaskWoken = pdTRUE;
 uint16_t vol_signal=0,statu_erro=0;
 uint8_t flag=0,erro_count_test=0,reg_index;
-uint32_t gp21_statu_INT_test,GP21_REG,test_cunt;
+uint32_t GP21_REG;
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 { 
    
   if(GPIO_Pin ==GP21_INTN_Pin )
 	{ 
 			
-		gp21_statu_INT_test = get_gp21_statu();	
-    textCount++;  	
-		if(gp21_statu_INT_test & GP21_STATU_CH1)
+		uint32_t gp21_statu_INT;
+		gp21_statu_INT = get_gp21_statu();	
+    textCount++; 
+    reg_index=gp21_statu_INT&0x03; //取结果寄存器地址
+		GP21_REG = gp21_read_diatance(reg_index);//收集激光测量数据     		
+  	if(GP21_REG!=0xffffffff) //无效值
 		{	
-			reg_index=gp21_statu_INT_test&0x07; //取结果寄存器地址
-			GP21_REG = gp21_read_diatance(reg_index);//收集激光测量数据
-			if(GP21_REG!=0xffffffff) //无效值
-			{
-				_TDC_GP21.buff[trigCount++]=GP21_REG;
-					gp21_write(OPC_INIT);			
-					if(trigCount == DISTANCE_RCV_SIZE) 	
-					{				
-						trigCount = 0;
-						textCount = 0;
-						trighCount = 0;
-						//开始采集电压
-								z_analog_convert(&_TDC_GP21.siganl.vol); 	          
-							if(_TDC_GP21.pid.ifTrunOn) //是否打开pid控制
-								{
-											if(ifDMAisComplete)
-											{
-													ifDMAisComplete =false;
-													_TDC_GP21.siganl.vol = z_analog_covertDMA ();
-											}
-											else
-											{
-												_TDC_GP21.siganl.vol = z_analog_covertDMA ();
-													erro_count_test ++;
-											}
-										tdc_rx_voltge_relese();   /*高压信号采集释放*/	
-										_TDC_GP21.pid_resualt= tdc_agc_control(_TDC_GP21.siganl.vol,_TDC_GP21.pid.setpoint); //pid控制峰值电压
-								}
-								_TDC_GP21.distance=  gp21_distance_cal(_TDC_GP21.buff,DISTANCE_RCV_SIZE)-dist_offset; //数据处理
-								if( Queue_push(&lk_distQueue,_TDC_GP21.distance) ==Q_ERROR)
-								{
-									 flag = 1; //队列满
-								}
-								_TDC_GP21.ifComplete = true;				//结束						
-				 
-					}
-					else
-					{
-						 _TDC_GP21.statu=trig_time_out;		
-					}		
-			
+			_TDC_GP21.buff[trigCount++] = GP21_REG;//收集激光测量数据	
+      gp21_write(OPC_START_TOF);			
+			if(trigCount == DISTANCE_RCV_SIZE) 	
+			{				
+				trigCount = 0;
+				textCount = 0;
+				trighCount = 0;
+			  //开始采集电压
+			    	z_analog_convert(&_TDC_GP21.siganl.vol); 	
+				  if(_TDC_GP21.pid.ifTrunOn)
+						{
+									if(ifDMAisComplete)
+									{
+											ifDMAisComplete =false;
+											_TDC_GP21.siganl.vol = z_analog_covertDMA ();
+									}
+									else
+									{
+										_TDC_GP21.siganl.vol = z_analog_covertDMA ();
+											erro_count_test ++;
+									}
+								tdc_rx_voltge_relese();   /*高压信号采集释放*/	
+								_TDC_GP21.pid_resualt= tdc_agc_control(_TDC_GP21.siganl.vol,_TDC_GP21.pid.setpoint); //pid控制峰值电压
+						}
+						_TDC_GP21.distance=  gp21_distance_cal(_TDC_GP21.buff,DISTANCE_RCV_SIZE)-dist_offset; //数据处理
+						if( Queue_push(&lk_distQueue,_TDC_GP21.distance) ==Q_ERROR)
+						{
+							 flag = 1; //队列满
+						}
+						_TDC_GP21.ifComplete = true;				//结束						
+		 
 			}
-			else  //出现0xfffffff
+			else
 			{
-			  test_cunt++;
+			   _TDC_GP21.statu=trig_time_out;		
 			}
-		
 			
 		}		
 	}

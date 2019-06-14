@@ -59,7 +59,8 @@ uint8_t  gp21_get_reg1Highbyte(void)
 
 void gp21_defaultcofg(void)
 {
-//	gp21_write_cfg(OP_CODE_WR(0x00), 0x00242012);   //4分频,测量范围1	 
+//	gp21_write_cfg(OP_CODE_WR(0x00), 0x00242012);   //4分频
+//	 //gp21_write_cfg(OP_CODE_WR(0x00), 0x00011202);   //不分频,关闭自动校准
 //    gp21_write_cfg(OP_CODE_WR(0x01), 0x01410025);//0x01420023 //STOP通道1个脉冲，stop通道2关闭，快速初始化功能启动,ALU提前数据处理的计算 stop ch1 -start
 //		//bit29 = 1 ALU ok
 //		//bit30 = 1 the received pulse counter is ready
@@ -72,6 +73,7 @@ void gp21_defaultcofg(void)
 //	  HAL_Delay(5);
 //		gp21_write_cfg(OP_CODE_WR(0x06), 0x00000015);  //超声波..关闭			
 //	  gp21_get_id(id);
+
 //测量范围2
 	gp21_write_cfg(OP_CODE_WR(0x00), 0x00142812);   //0分频,测量范围2
 	 
@@ -86,7 +88,7 @@ void gp21_defaultcofg(void)
 		gp21_write_cfg(OP_CODE_WR(0x05), 0x00000014);  //脉冲触发器关闭，噪声单元关闭
 	  HAL_Delay(5);
 		gp21_write_cfg(OP_CODE_WR(0x06), 0x00000015);  //超声波..关闭			
-	  gp21_get_id(id);
+	  gp21_get_id(id);	
 	 
 }
 
@@ -148,20 +150,20 @@ uint32_t gp21_read_dword(uint8_t opcode)
   return result;
 }
 
-uint32_t status_gp2 = 0;
+
 uint16_t  get_gp21_statu(void)
 {
-	
+	uint32_t status_gp2 = 0;
   status_gp2=gp21_read_dword(OP_CODE_RD(0x04));	
   status_gp2>>=16;
   return  status_gp2;
 	
 }
 
-uint32_t   gp21_read_diatance(uint8_t reg_index)
+uint32_t   gp21_read_diatance(uint8_t index)
 {
 
-   return  gp21_read_dword(OP_CODE_RD(reg_index));
+   return  gp21_read_dword(OP_CODE_RD(index));
 }
 
 
