@@ -40,6 +40,7 @@ TaskHandle_t xHandleGp21Trig = NULL;
 static TaskHandle_t xHandleSerialDriver = NULL;
  static TaskHandle_t xHandleSensorParam = NULL;
 /*函数声明*/
+void lk_cmdAck(uint8_t type,uint8_t id,bool ack);
 void qc_param_send(void);
 void swStandSave(_LK03_STAND index);
 void SerialTask(void  * argument);
@@ -146,13 +147,14 @@ void LK_sensorParamTask(void *argument)
 				  _LK03_STAND index =(_LK03_STAND) i;
 					 dist_offset=lk_flash.QC[index].qc_stand_dist-offset_dist[index];
 					 swStandSave(index);
+					lk_cmdAck(QC,index+StandParamFirst,true);
 				}
 				if(lk_param_statu.ifQCgetParmReset[i])  //档位切换后再校准
 				{
 					HIGH_VOL_PARAM index = (HIGH_VOL_PARAM) i;
-					 //lk_flash.QC[i].ifHavedStand=false;
 					lk_param_statu.ifQCgetParmReset[i]=false;
 				   gear_select(&_TDC_GP21.vol_param[index]);   
+					lk_cmdAck(QC,index+StandParamFirstReset,true);
 				}		
 			}
     if(lk_param_statu.ifQCgetParm)  //获取标定参数
@@ -226,10 +228,9 @@ void send_lk_paramNocheck(void)
 uint8_t buf[10]={0};
 void buff_distTosend(uint16_t dist)
 {
-
  	uint8_t index=0;
 	buf[index++] = 0xFF;
-	buf[index++] = DIST_TYPE;
+	buf[index++] = dist_cmd;
   buf[index++] = _TDC_GP21.siganl.vol>>8;
 	buf[index++] = _TDC_GP21.siganl.vol&0xff;
 	buf[index++] = dist>>8;
@@ -239,6 +240,27 @@ void buff_distTosend(uint16_t dist)
 	buf[index++] = tx_chexkSum(buf,8);    //校验和发送
 	z_serial_write(buf,index);
 
+}
+
+
+/*命令应答
+成功应答：0xff+ 对应的类型+ id+ +true/false+校验和 ;
+
+*/
+void lk_cmdAck(uint8_t type,uint8_t id,bool ack)
+{
+	uint8_t buf[10] ={0};
+	uint8_t index=0;
+	buf[index++] = 0xFF;
+	buf[index++] = ack_cmd;	
+	buf[index++] = type;
+  buf[index++] = id;
+	buf[index++] = ack;
+	buf[index++] = 0;	
+	buf[index++] = 0;
+	buf[index++] = 0;		
+	buf[index++] = tx_chexkSum(buf,8);    //校验和发送
+	z_serial_write(buf,index);
 }
 
 //标定参数信息

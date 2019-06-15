@@ -45,7 +45,7 @@ arrayByte_ structToBytes(parm_ *p)
 	  return arraybuff;
 } 
 
-///*激光器保存参数*/
+/*激光器保存参数*/
 parm_ lk_defaultParm ={
 	.product = 0x02,     //产品号lk03
 	.baud_rate = 115200, //波特率
@@ -76,11 +76,27 @@ parm_ lk_flash=
 	 .ifHasConfig = 0,      //第一次烧写flash后会变成0x01
 };
 
-typedef enum  { DataDistSend = 1, ParmsConfig = 2, ParmaSend=3, QC=6,ErroSend }FRAME_TYPE_CMD ;
-typedef enum  { ParamAll=1}FRAME_GetParam_CMD;
-typedef enum  { DistOnce = 1, DistContinue,DistStop}FRAME_GetDataID_CMD;
-typedef enum  { BarudRate = 1, RedLight, FrontOrBase,AutoMel}FRAME_ParmSaveID_CMD;
-typedef enum  { standStart = 1,StandParamFirst,StandParamSecond,StandParamThird,StandParamFirstReset, StandParamSecondReset, StandParamThirdReset,GetParam}FRAME_ParmQC_CMD;
+
+
+const uint8_t distance_setCmd[DistStop][2]=
+{
+  {DataDistSend,DistOnce},{DataDistSend,DistContinue},{DataDistSend,DistStop},//距离
+};
+
+const uint8_t param_getCmd[ParamAll][2]=
+{
+ {ParmsConfig,ParamAll},   //参数获取
+};
+
+const uint8_t param_configCmd[AutoMel][2]=
+{
+	{ParmaSend,BarudRate},{ParmaSend,RedLight},{ParmaSend,FrontOrBase},{ParmaSend,AutoMel},//参数配置
+};
+const uint8_t qc_Cmd[GetParam][2]=  //QC命令
+{
+  {QC,standStart},{QC,StandParamFirst},{QC,StandParamSecond},{QC,StandParamThird},{QC,StandParamFirstReset},{QC,StandParamSecondReset},{QC,StandParamThirdReset},{QC,GetParam},//QC命令
+};
+
 /*数据获取命令*/
 void dataGetCmdSlect(FRAME_GetDataID_CMD  DATA_GET, TF_Msg *msg)
 {

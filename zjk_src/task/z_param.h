@@ -17,7 +17,7 @@
 #endif
 #define LK03_STAND_COUNTS  3     //标定次数3
 typedef enum{LK03_FIRST_STAND=0,LK03_SECOND_STAND,LK03_THIRD_STAND} _LK03_STAND;
-typedef enum{DIST_TYPE=1}TypedSend;  //发送协议功能定义
+typedef enum{dist_cmd=1,ack_cmd=2,}TypedSend;  //发送协议功能定义
 /*参数状态*/
 typedef struct
 {
@@ -61,6 +61,19 @@ typedef struct
 	uint16_t outFreq;
 	QC_TYP QC[LK03_STAND_COUNTS];   //设置3挡标定
 }parm_;
+
+/*发送命令*/
+typedef enum  { DataDistSend = 1, ParmsConfig = 2, ParmaSend=3, QC=6,ErroSend }FRAME_TYPE_CMD ;
+typedef enum  { ParamAll=1}FRAME_GetParam_CMD;
+typedef enum  { DistOnce = 1, DistContinue,DistStop}FRAME_GetDataID_CMD;
+typedef enum  { BarudRate = 1, RedLight, FrontOrBase,AutoMel}FRAME_ParmSaveID_CMD;
+typedef enum  { standStart = 1,StandParamFirst,StandParamSecond,StandParamThird,StandParamFirstReset, StandParamSecondReset, StandParamThirdReset,GetParam}FRAME_ParmQC_CMD;
+
+typedef enum{z_type=0,z_id} z_type_id;
+extern const uint8_t distance_setCmd[DistStop][2];
+extern const uint8_t param_getCmd[ParamAll][2];
+extern const uint8_t param_configCmd[AutoMel][2];
+extern const uint8_t qc_Cmd[GetParam][2];
 
 
 
