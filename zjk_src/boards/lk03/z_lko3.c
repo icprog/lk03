@@ -2,6 +2,7 @@
 
 _TDC_TYP _TDC_GP21;
 TIM_HandleTypeDef *z_tlc_rxHv_pwm= &htim2;
+ uint16_t GP21_TNS_GLOBAL=0;
 HIGHL_VOL_GP21 gp21_highVolCrlParm[3]=
 {
   first_vol_param,
@@ -75,13 +76,16 @@ HIGHL_VOL_GP21 gp21_highVolCrlParm[3]=
 		start_rx_tim();
 		GP21_Init(); 
 		gp21_write(OPC_RESET);		 /*LK  gp21 Init*/	
-		gp21_defaultcofg();		
+				
     
     _TDC_GP21.pid.Kp = PID_KP;
     _TDC_GP21.pid.Ki = PID_KI;	 
 	  _TDC_GP21.pid.setpoint = PID_SETPOINT;
+	 _TDC_GP21.messge_mode=GP21_MESSGE1;
+	 lk_gp21MessgeMode_switch(&_TDC_GP21);
 
  }
+ 
 
 #define GP22_TNS  500       //gp21 ���� 1000ns 1MHZ
 //#define GP22_TNS  1000       //gp21 ���� 1000ns 1MHZ
@@ -111,12 +115,31 @@ uint16_t gp21_distance_cal(uint32_t *dit,uint8_t dislens)
 		    dist_av += dit[i] ;		
 		}
 		dist_av = dist_av/dislens;
-    dist_f = (((float)dist_av)/65536.0) * (GP22_TNS/2) * C_VELOCITY;
+    dist_f = (((float)dist_av)/65536.0) * (GP21_TNS_GLOBAL/2) * C_VELOCITY;
 		test_dit = dist_av;
 		test_distf = dist_f;
 		return test_distf;
   // dist_av = 0;
 }
+
+void  lk_gp21MessgeMode_switch(_TDC_TYP *gp)
+{
+   switch(gp->messge_mode)
+	 {
+		 case GP21_MESSGE1:
+		 {
+			 GP21_TNS_GLOBAL=1000;
+		    gp21_defaultcofg();		 
+		 }break;
+		 case GP21_MESSGE2:
+		 {
+			  GP21_TNS_GLOBAL=500;
+		    gp21_messgeModeTwo();		 
+		 }break;	 
+	 
+	 }
+}
+
 
  /*档位选择*/
 void gear_select(HIGHL_VOL_GP21 *g)

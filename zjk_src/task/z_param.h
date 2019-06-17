@@ -10,14 +10,17 @@
 #if TEST_QC 
 //#define DIST_FIRST_OFFSET   716
 //#define DIST_SECOND_OFFSET   695
-#define DIST_FIRST_OFFSET   798
+#define DIST_FIRST_OFFSET    798
 #define DIST_SECOND_OFFSET   780
+#define DIST_THIED_OFFSET    780
+
 #define first_test   true
 #define second_test   true
 #endif
 #define LK03_STAND_COUNTS  3     //标定次数3
 typedef enum{LK03_FIRST_STAND=0,LK03_SECOND_STAND,LK03_THIRD_STAND} _LK03_STAND;
 typedef enum{dist_cmd=1,ack_cmd=2,}TypedSend;  //发送协议功能定义
+
 /*参数状态*/
 typedef struct
 {

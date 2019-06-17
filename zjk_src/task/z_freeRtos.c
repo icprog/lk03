@@ -119,6 +119,7 @@ void LK_sensorParamTask(void *argument)
 	lk_flash.QC[FIRST_PARAM].ifHavedStand=second_test;
 	lk_flash.QC[SECOND_PARAM].qc_stand_dist=DIST_SECOND_OFFSET;
 	lk_flash.QC[FIRST_PARAM].qc_stand_dist=DIST_FIRST_OFFSET;
+	lk_flash.QC[THIRD_PARAM].qc_stand_dist=DIST_THIED_OFFSET;
 	lk_param_statu.ifContinuDist = true;
 	#else 
 	lk_param_statu.ifContinuDist = false;
@@ -354,6 +355,14 @@ void SerialTask(void  *argument)
 			 {
 			     _TDC_GP21.siganl.vol=2000;
 			 }
+			  else if(_TDC_GP21.running_statu==THIRD)
+			 {
+			     _TDC_GP21.siganl.vol=3000;
+			 }
+			if(_TDC_GP21.distance > 30000)
+			 {
+			     _TDC_GP21.siganl.vol=5000;
+			 }
 			 Send_Pose_Data(&_TDC_GP21.siganl.vol,&average,&_TDC_GP21.pid_resualt);
 	     //  Send_Pose_Data(&_TDC_GP21.siganl.vol,&_TDC_GP21.distance,&_TDC_GP21.pid_resualt);
        #else
@@ -365,7 +374,7 @@ void SerialTask(void  *argument)
 			 case START:
 			 {
 
-        if((lk_flash.QC[FIRST_PARAM].ifHavedStand)&(lk_flash.QC[SECOND_PARAM].ifHavedStand))
+        if((lk_flash.QC[FIRST_PARAM].ifHavedStand)&(lk_flash.QC[SECOND_PARAM].ifHavedStand)&(lk_flash.QC[THIRD_PARAM].ifHavedStand))  //全部标定完才挡位切换
 				{
 					 dist_offset=lk_flash.QC[FIRST_PARAM].qc_stand_dist-offset_dist[FIRST_PARAM];
 					_TDC_GP21.running_statu = FIRST;
@@ -387,13 +396,15 @@ void SerialTask(void  *argument)
 			 }break;
 			 case SECOND:
 			 {
-				 	  if((_TDC_GP21.pid_resualt >600)&(_TDC_GP21.distance>5000))   //第2档增益大于600时切换第三档
+				 	  if((_TDC_GP21.pid_resualt >600)&(_TDC_GP21.distance>4500))   //第2档增益大于600时切换第三档
 					 {
+						 gp21_messgeModeTwo();  //切换远距离模式
 						 __HAL_TIM_SET_AUTORELOAD(singhlTim,500);  //设定500us周期
 						  gear_select(&_TDC_GP21.vol_param[THIRD_PARAM]);  //
-						  _TDC_GP21.running_statu = THIRD;
+						 dist_offset=lk_flash.QC[FIRST_PARAM].qc_stand_dist-offset_dist[THIRD_PARAM];
+						 _TDC_GP21.running_statu = THIRD;
 					 }
-					 else if(_TDC_GP21.pid_resualt <280) //切换第一档((_TDC_GP21.pid_resualt <280)&(_TDC_GP21.distance<3500))
+					 else if((_TDC_GP21.pid_resualt <280)&(_TDC_GP21.distance<4500)) //切换第一档((_TDC_GP21.pid_resualt <280)&(_TDC_GP21.distance<3500))
 					 {
 					 
 						  dist_offset=lk_flash.QC[FIRST_PARAM].qc_stand_dist-offset_dist[FIRST_PARAM];
@@ -404,12 +415,18 @@ void SerialTask(void  *argument)
 			 }break;		 
 			 case THIRD:
 			 {
-						if(_TDC_GP21.pid_resualt <200)  //切换第一档
+						if((_TDC_GP21.distance <10000)&(_TDC_GP21.distance>4500))  //切换第2档
 					 {
 					     __HAL_TIM_SET_AUTORELOAD(singhlTim,100);  //设定100us周期
-					     gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //开机默认第一档位
+					     gear_select(&_TDC_GP21.vol_param[SECOND_PARAM]);  //开机默认第一档位
 						  _TDC_GP21.running_statu = FIRST;
-					 }			
+					 }
+           if(_TDC_GP21.distance > 30000)  //切换远距离模式
+					 {
+					   	 _TDC_GP21.messge_mode=GP21_MESSGE2;
+	             lk_gp21MessgeMode_switch(&_TDC_GP21);	 
+					 }						 
+					 
        
 			 }break;		 	
 			 case STYLE:
@@ -439,17 +456,19 @@ int erroDmaTimeOutAdc=0;
 #define  TrigPluse_off() __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4,0);
 
 void Gp21TrigTask(void *argument)
-{
+{ 
 	
   tdcSignalSemaphore = xSemaphoreCreateBinary();	 //
   tdc_board_init();   /*初始化激光板*/
 
 	High_Vol_Ctl_on();
-	//gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //开机默认第一档位 SECOND_PARAM
-	__HAL_TIM_SET_AUTORELOAD(singhlTim,500);  //设定500us周期
-	 gear_select(&_TDC_GP21.vol_param[THIRD_PARAM]);  //	
+	gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //开机默认第一档位 SECOND_PARAM
 	_TDC_GP21.pid.ifTrunOn = true;  //先关闭pid
-
+// __HAL_TIM_SET_AUTORELOAD(singhlTim,500);  //设定500us周期
+// gear_select(&_TDC_GP21.vol_param[THIRD_PARAM]);  //
+// _TDC_GP21.messge_mode=GP21_MESSGE2;
+//	 lk_gp21MessgeMode_switch(&_TDC_GP21);	
+// _TDC_GP21.running_statu=STYLE;
   /* Infinite loop */
   for(;;)
   { 
@@ -470,7 +489,7 @@ void Gp21TrigTask(void *argument)
 						//erro_count_test ++;
 				}		 
 			tdc_rx_voltge_relese();   /*高压信号采集释放*/
-			_TDC_GP21.pid_resualt= tdc_agc_Default_control(_TDC_GP21.siganl.vol,_TDC_GP21.pid.setpoint); //pid控制峰值电压	 		
+	 	_TDC_GP21.pid_resualt= tdc_agc_Default_control(_TDC_GP21.siganl.vol,_TDC_GP21.pid.setpoint); //pid控制峰值电压	 		
 	 
 	 }
    osDelay(1);
@@ -583,6 +602,7 @@ uint16_t tdc_agc_control(uint16_t nowData,int16_t setPoint)
 		   tesr_1=4;
 		 }
 	 #if  Debug_Pid
+
       tlc5618_writeBchannal(ad603_resualt);  
  		#endif 
    
