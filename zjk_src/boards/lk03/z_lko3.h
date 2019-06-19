@@ -130,7 +130,7 @@ typedef struct
 //Èýµ²500us,2khz
 #define third_vol_param {\
 	      .tx5618_value=600,\
-				.rx_vol_value=110,\
+				.rx_vol_value=120,\
 				.tx_vol_ctl=VOL_CTL1,\
 				.ifBootVolCtl=false}					
 				
@@ -142,7 +142,7 @@ typedef struct
 
 #define PID_KP      0.1
 #define PID_KI      0.05
-#define PID_SETPOINT 750
+#define PID_SETPOINT 800
 
 #define Debug_Pid   1
 void  lk_gp21MessgeMode_switch(_TDC_TYP *gp);

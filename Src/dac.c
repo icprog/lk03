@@ -22,7 +22,7 @@
 
 /* USER CODE BEGIN 0 */
 #define  vol(v) (v/3.3)*4096
-#define dac_vol  0.4
+#define dac_vol  0.45
 
 void lk_dac_init(void);
 /* USER CODE END 0 */

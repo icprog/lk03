@@ -81,7 +81,7 @@ HIGHL_VOL_GP21 gp21_highVolCrlParm[3]=
     _TDC_GP21.pid.Kp = PID_KP;
     _TDC_GP21.pid.Ki = PID_KI;	 
 	  _TDC_GP21.pid.setpoint = PID_SETPOINT;
-	 _TDC_GP21.messge_mode=GP21_MESSGE1;
+	 _TDC_GP21.messge_mode=GP21_MESSGE2;
 	 lk_gp21MessgeMode_switch(&_TDC_GP21);
 
  }

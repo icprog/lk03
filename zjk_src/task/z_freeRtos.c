@@ -114,9 +114,10 @@ void LK_sensorParamTask(void *argument)
 	{
 	   lk_defaultParm = lk_flash;  //将flash内参数付给默认的参数配置  
 	}
-#if TEST_QC 
-	lk_flash.QC[SECOND_PARAM].ifHavedStand=first_test;
-	lk_flash.QC[FIRST_PARAM].ifHavedStand=second_test;
+#if TEST_QC    //模拟校准测试已经通过
+	lk_flash.QC[SECOND_PARAM].ifHavedStand=true;
+	lk_flash.QC[FIRST_PARAM].ifHavedStand=true;
+	lk_flash.QC[THIRD_PARAM].ifHavedStand=true;		
 	lk_flash.QC[SECOND_PARAM].qc_stand_dist=DIST_SECOND_OFFSET;
 	lk_flash.QC[FIRST_PARAM].qc_stand_dist=DIST_FIRST_OFFSET;
 	lk_flash.QC[THIRD_PARAM].qc_stand_dist=DIST_THIED_OFFSET;
@@ -418,8 +419,8 @@ void SerialTask(void  *argument)
 						if((_TDC_GP21.distance <10000)&(_TDC_GP21.distance>4500))  //切换第2档
 					 {
 					     __HAL_TIM_SET_AUTORELOAD(singhlTim,100);  //设定100us周期
-					     gear_select(&_TDC_GP21.vol_param[SECOND_PARAM]);  //开机默认第一档位
-						  _TDC_GP21.running_statu = FIRST;
+					     gear_select(&_TDC_GP21.vol_param[SECOND_PARAM]);  //开机默认第2档位
+						  _TDC_GP21.running_statu = SECOND;
 					 }
            if(_TDC_GP21.distance > 30000)  //切换远距离模式
 					 {
@@ -462,7 +463,7 @@ void Gp21TrigTask(void *argument)
   tdc_board_init();   /*初始化激光板*/
 
 	High_Vol_Ctl_on();
-	gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //开机默认第一档位 SECOND_PARAM
+  gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //开机默认第一档位 SECOND_PARAM
 	_TDC_GP21.pid.ifTrunOn = true;  //先关闭pid
 // __HAL_TIM_SET_AUTORELOAD(singhlTim,500);  //设定500us周期
 // gear_select(&_TDC_GP21.vol_param[THIRD_PARAM]);  //
