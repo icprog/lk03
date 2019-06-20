@@ -455,7 +455,7 @@ int erroDmaTimeOutAdc=0;
 #define OpenTrig() HAL_TIM_PWM_Stop_IT(&htim3, TIM_CHANNEL_4)
 #define  TrigPluse_on() __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4,1);
 #define  TrigPluse_off() __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4,0);
-
+uint16_t text_dist=0;
 void Gp21TrigTask(void *argument)
 { 
 	
@@ -463,13 +463,13 @@ void Gp21TrigTask(void *argument)
   tdc_board_init();   /*初始化激光板*/
 
 	High_Vol_Ctl_on();
-  gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //开机默认第一档位 SECOND_PARAM
+ // gear_select(&_TDC_GP21.vol_param[SECOND_PARAM]);  //开机默认第一档位 SECOND_PARAM
 	_TDC_GP21.pid.ifTrunOn = true;  //先关闭pid
-// __HAL_TIM_SET_AUTORELOAD(singhlTim,500);  //设定500us周期
-// gear_select(&_TDC_GP21.vol_param[THIRD_PARAM]);  //
-// _TDC_GP21.messge_mode=GP21_MESSGE2;
-//	 lk_gp21MessgeMode_switch(&_TDC_GP21);	
-// _TDC_GP21.running_statu=STYLE;
+ __HAL_TIM_SET_AUTORELOAD(singhlTim,500);  //设定500us周期
+ gear_select(&_TDC_GP21.vol_param[THIRD_PARAM]);  //
+ _TDC_GP21.messge_mode=GP21_MESSGE2;
+	 lk_gp21MessgeMode_switch(&_TDC_GP21);	
+ _TDC_GP21.running_statu=STYLE;
   /* Infinite loop */
   for(;;)
   { 
@@ -478,7 +478,9 @@ void Gp21TrigTask(void *argument)
 	 {
 	   trighCount = 0;
 		static uint32_t gp21_statu_INT;	
-			 gp21_write(OPC_START_TOF);
+		//	 gp21_write(OPC_START_TOF);
+		  text_dist= gp21_read_diatance(0);//收集激光测量数据
+		   gp21_write(OPC_START_TOF);
 			 z_analog_convert(&_TDC_GP21.siganl.vol);
 			 if(ifDMAisComplete)
 				{
@@ -662,17 +664,23 @@ BaseType_t xHigherPriorityTaskWoken = pdTRUE;
 uint16_t vol_signal=0,statu_erro=0;
 uint8_t flag=0,erro_count_test=0,reg_index;
 uint32_t GP21_REG;
+uint32_t gp21_statu_INT;
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 { 
    
   if(GPIO_Pin ==GP21_INTN_Pin )
 	{ 
 			
-		uint32_t gp21_statu_INT;
+		
 		gp21_statu_INT = get_gp21_statu();	
     textCount++; 
     reg_index=gp21_statu_INT&0x03; //取结果寄存器地址
-		GP21_REG = gp21_read_diatance(reg_index);//收集激光测量数据     		
+		GP21_REG = gp21_read_diatance(reg_index);//收集激光测量数据   
+//    if(gp21_statu_INT&0x400)
+//		{
+//          gp21_write(OPC_START_TOF);
+//			   _TDC_GP21.statu=trig_time_out;	
+//		}			
   	if(GP21_REG!=0xffffffff) //无效值
 		{	
 			_TDC_GP21.buff[trigCount++] = GP21_REG;//收集激光测量数据	
@@ -682,6 +690,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 				trigCount = 0;
 				textCount = 0;
 				trighCount = 0;
+				erro_count_test=0;
 			  //开始采集电压
 			    	z_analog_convert(&_TDC_GP21.siganl.vol); 	
 				  if(_TDC_GP21.pid.ifTrunOn)
@@ -694,7 +703,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 									else
 									{
 										_TDC_GP21.siganl.vol = z_analog_covertDMA ();
-											erro_count_test ++;
+										
 									}
 								tdc_rx_voltge_relese();   /*高压信号采集释放*/	
 								_TDC_GP21.pid_resualt= tdc_agc_control(_TDC_GP21.siganl.vol,_TDC_GP21.pid.setpoint); //pid控制峰值电压
@@ -706,13 +715,30 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 						}
 						_TDC_GP21.ifComplete = true;				//结束						
 		 
-			}
-			else
+			}	
+		}else
 			{
-			   _TDC_GP21.statu=trig_time_out;		
-			}
-			
-		}		
+					erro_count_test ++;
+				 
+			   _TDC_GP21.statu=trig_time_out;			
+			   z_analog_convert(&_TDC_GP21.siganl.vol); 					  
+				   if(_TDC_GP21.pid.ifTrunOn)
+						{
+									if(ifDMAisComplete)
+									{
+											ifDMAisComplete =false;
+											_TDC_GP21.siganl.vol = z_analog_covertDMA ();
+									}
+									else
+									{
+										_TDC_GP21.siganl.vol = z_analog_covertDMA ();
+											erro_count_test ++;
+									}
+							
+          _TDC_GP21.pid_resualt= tdc_agc_control(_TDC_GP21.siganl.vol,_TDC_GP21.pid.setpoint); //pid控制峰值电压
+						}	//end if		
+     gp21_write(OPC_START_TOF);						
+			}		
 	}
 }  
 
@@ -720,6 +746,6 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 {
 	if(htim == &htim3)
 	{
-	  trighCount++;
+	 // trighCount++;
 	}
 }

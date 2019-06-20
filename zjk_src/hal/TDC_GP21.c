@@ -91,7 +91,7 @@ void gp21_messgeModeTwo(void)
 		//bit30 = 1 the received pulse counter is ready
 		//bit31 = 1 TDC timeout overflow
 		//gp21_write_cfg(OP_CODE_WR(0x02), 0xE0000011); //Timeout End Hits ALU中断触发, 上升或下降沿
-		gp21_write_cfg(OP_CODE_WR(0x02), 0x40000011);
+		gp21_write_cfg(OP_CODE_WR(0x02), 0xC0000011);
 		gp21_write_cfg(OP_CODE_WR(0x03), 0x20000012); //由于timeout 强迫ALU写入0XFFFFFFFF到结果寄存器：关闭		
 		gp21_write_cfg(OP_CODE_WR(0x04), 0x20000013);  //默认配置
 		gp21_write_cfg(OP_CODE_WR(0x05), 0x00000014);  //脉冲触发器关闭，噪声单元关闭

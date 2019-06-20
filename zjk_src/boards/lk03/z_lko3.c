@@ -75,7 +75,7 @@ HIGHL_VOL_GP21 gp21_highVolCrlParm[3]=
 	  tlc5618_writeAchannal(_TDC_GP21.vol_param[FIRST_PARAM].tx5618_value);	  
 		start_rx_tim();
 		GP21_Init(); 
-		gp21_write(OPC_RESET);		 /*LK  gp21 Init*/	
+		gp21_write(OPC_START_TOF);		 /*LK  gp21 Init*/	
 				
     
     _TDC_GP21.pid.Kp = PID_KP;
