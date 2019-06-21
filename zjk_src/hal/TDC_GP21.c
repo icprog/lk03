@@ -59,15 +59,15 @@ uint8_t  gp21_get_reg1Highbyte(void)
 
 void gp21_defaultcofg(void)
 {
-	gp21_write_cfg(OP_CODE_WR(0x00), 0x00242012);   //4分频
+   gp21_write_cfg(OP_CODE_WR(0x00), 0x00242012);   //4分频
 	 //gp21_write_cfg(OP_CODE_WR(0x00), 0x00011202);   //不分频,关闭自动校准
     gp21_write_cfg(OP_CODE_WR(0x01), 0x01410025);//0x01420023 //STOP通道1个脉冲，stop通道2关闭，快速初始化功能启动,ALU提前数据处理的计算 stop ch1 -start
 		//bit29 = 1 ALU ok
 		//bit30 = 1 the received pulse counter is ready
 		//bit31 = 1 TDC timeout overflow
 		//gp21_write_cfg(OP_CODE_WR(0x02), 0xE0000011); //Timeout End Hits ALU中断触发, 上升或下降沿
-		gp21_write_cfg(OP_CODE_WR(0x02), 0x40000011);
-		gp21_write_cfg(OP_CODE_WR(0x03), 0x00000012); //由于timeout 强迫ALU写入0XFFFFFFFF到结果寄存器：关闭		
+		gp21_write_cfg(OP_CODE_WR(0x02), 0x20000011);
+		gp21_write_cfg(OP_CODE_WR(0x03), 0x20000012); //由于timeout 强迫ALU写入0XFFFFFFFF到结果寄存器：关闭		
 		gp21_write_cfg(OP_CODE_WR(0x04), 0x20000013);  //默认配置
 		gp21_write_cfg(OP_CODE_WR(0x05), 0x00000014);  //脉冲触发器关闭，噪声单元关闭
 	  HAL_Delay(5);
@@ -83,9 +83,7 @@ void gp21_defaultcofg(void)
 //测量模式2,远距离
 void gp21_messgeModeTwo(void)
 {
-
-	  gp21_write_cfg(OP_CODE_WR(0x00), 0x00142812);   //0分频,测量范围2
-	 
+	  gp21_write_cfg(OP_CODE_WR(0x00), 0x00042812);   //0分频,测量范围2
     gp21_write_cfg(OP_CODE_WR(0x01), 0x21422025);//0x01420023 //STOP通道1个脉冲，stop通道2关闭，快速初始化功能启动,ALU提前数据处理的计算 stop ch1 -start
 		//bit29 = 1 ALU ok
 		//bit30 = 1 the received pulse counter is ready
@@ -98,7 +96,6 @@ void gp21_messgeModeTwo(void)
 	  HAL_Delay(5);
 		gp21_write_cfg(OP_CODE_WR(0x06), 0x00000015);  //超声波..关闭			
 	  gp21_get_id(id);	
-
 }
 
 
@@ -153,18 +150,21 @@ void gp21_get_id(uint8_t *id_7bytes)
 uint32_t gp21_read_dword(uint8_t opcode)
 {
    uint32_t result=0;
-	uint8_t txcmd[5] ={opcode,opcode,opcode,opcode,opcode};
+	//uint8_t txcmd[5] ={opcode,opcode,opcode,opcode,opcode};
+	uint8_t txcmd[5] ={opcode,0xFF,0xff,0xff,0xff};
 	gp21_select();
 	HAL_SPI_TransmitReceive(gp21_spi,txcmd,rxbuf,5,0xffff);
+//	HAL_SPI_Transmit(gp21_spi,txcmd,1,0xfff);
+//	HAL_SPI_Receive(gp21_spi,rxbuf,5,0xffff);
    gp21_release();
 	 result  = rxbuf[1]<<24 | rxbuf[2] <<16 | rxbuf[3] <<8 | rxbuf[4];   //数据从 下标1开始有效
   return result;
 }
 
-
+uint32_t status_gp2 = 0;
 uint16_t  get_gp21_statu(void)
 {
-	uint32_t status_gp2 = 0;
+	
   status_gp2=gp21_read_dword(OP_CODE_RD(0x04));	
   status_gp2>>=16;
   return  status_gp2;
