@@ -64,6 +64,10 @@ typedef struct
 	bool ifComplete;
 	/*转换好的距离*/
 	uint16_t distance;
+	/*无效信号标记*/
+	bool ifDistanceNull;
+		/*开机正常后才输出*/
+	bool ifMachineFine;
 	/*AD603增益*/
 	uint16_t pid_resualt;
 	/*峰值信号电压*/

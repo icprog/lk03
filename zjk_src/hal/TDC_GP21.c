@@ -181,9 +181,7 @@ uint32_t   gp21_read_diatance(uint8_t index)
   /*delay ns */
  void tdc_delay(uint32_t cval)
  {
-    while(cval--);
- 
-   
+    while(cval--);  
  }
 
 void gp21_startOneSignal(void)
