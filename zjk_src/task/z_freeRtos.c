@@ -484,19 +484,19 @@ void select_mode_ifStart(TypedSelextMode mode)
 	{
 	  case first_mes1:
 		{
- 
-			  if(mes2_have_sighal)
+		    if(ms2_erro>0)
 				{
-					  _TDC_GP21.running_statu=THIRD;
-				}		
-		    if(ms2_erro>100)
-				{
+					ms2_erro = 0;
 					__HAL_TIM_SET_AUTORELOAD(singhlTim,100);  //设定100us周期
 				 gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //开机默认第2档位
 				  _TDC_GP21.messge_mode=GP21_MESSGE1;
 	        lk_gp21MessgeMode_switch(&_TDC_GP21); 
 					 slect_mode=first_mes2;
 				  gp21_write(OPC_START_TOF);
+				}
+				else if(mes2_have_sighal)
+				{
+				  _TDC_GP21.running_statu=THIRD;
 				}
 				
 		}break;
