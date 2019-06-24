@@ -488,7 +488,8 @@ void select_mode_ifStart(TypedSelextMode mode)
 				{
 					ms2_erro = 0;
 					__HAL_TIM_SET_AUTORELOAD(singhlTim,100);  //设定100us周期
-				 gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //开机默认第2档位
+				  gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //开机默认第2档位
+					//gear_select(&_TDC_GP21.vol_param[SECOND_PARAM]);  //开机默认第2档位
 				  _TDC_GP21.messge_mode=GP21_MESSGE1;
 	        lk_gp21MessgeMode_switch(&_TDC_GP21); 
 					 slect_mode=first_mes2;
@@ -532,7 +533,7 @@ void Gp21TrigTask(void *argument)
   tdcSignalSemaphore = xSemaphoreCreateBinary();	 //
   tdc_board_init();   /*初始化激光板*/
 	High_Vol_Ctl_on();
-	_TDC_GP21.pid.ifTrunOn = true;  //先关闭pid
+	_TDC_GP21.pid.ifTrunOn = true;  //先关闭pid	
 	__HAL_TIM_SET_AUTORELOAD(singhlTim,500);  //设定500us周期
 	 gear_select(&_TDC_GP21.vol_param[THIRD_PARAM]);  //			
 	 _TDC_GP21.messge_mode=GP21_MESSGE2;
@@ -547,6 +548,7 @@ void Gp21TrigTask(void *argument)
   { 		
 		  if((ifFirstStart)&(ifStartCplet))
 			 {
+				  osDelay(200);
 				 _TDC_GP21.ifMachineFine=true;
 				  ifFirstStart = false;
 			 }
@@ -601,7 +603,6 @@ if(gp21_statu_INT & GP21_STATU_TIMEOUT)  //超出时间测量
 /*采集到足够数据后开始数据处理*/
 void trigEnough(void)
 {
-
 	tdc_rx_voltge_relese();   /*高压信号采集释放*/
 	gp21_distance_cal(_TDC_GP21.buff,DISTANCE_RCV_SIZE);
 	_TDC_GP21.ifComplete = true;		
