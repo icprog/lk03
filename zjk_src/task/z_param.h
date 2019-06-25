@@ -22,6 +22,7 @@
 typedef enum{LK03_FIRST_STAND=0,LK03_SECOND_STAND,LK03_THIRD_STAND} _LK03_STAND;
 typedef enum{dist_cmd=1,ack_cmd=2,}TypedSend;  //发送协议功能定义
 typedef enum{first_mes1=1,first_mes2=2,}TypedSelextMode;  //
+typedef enum{msg_mode_one=1,msg_mode_second=2}TypedSelextMsgMode;  //
 /*参数状态*/
 typedef struct
 {

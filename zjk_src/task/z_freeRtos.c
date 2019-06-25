@@ -43,6 +43,7 @@ TaskHandle_t xHandleGp21Trig = NULL;
 static TaskHandle_t xHandleSerialDriver = NULL;
  static TaskHandle_t xHandleSensorParam = NULL;
 /*函数声明*/
+void selected_mesg_mode(TypedSelextMsgMode mode);
 void select_mode_ifStart(TypedSelextMode mode);
 void lk_cmdAck(uint8_t type,uint8_t id,bool ack);
 void qc_param_send(void);
@@ -384,7 +385,8 @@ void SerialTask(void  *argument)
        if((_TDC_GP21.ifDistanceNull==false)&(_TDC_GP21.ifMachineFine))
 			 {
 
-			   Send_Pose_Data(&_TDC_GP21.siganl.vol,&average,&_TDC_GP21.pid_resualt);   
+			 //  Send_Pose_Data(&_TDC_GP21.siganl.vol,&average,&_TDC_GP21.pid_resualt); 
+         Send_Pose_Data(&_TDC_GP21.siganl.vol,&_TDC_GP21.distance,&_TDC_GP21.pid_resualt);				 
 			 }else
 			 {
 			   //无效数据
@@ -533,14 +535,8 @@ void Gp21TrigTask(void *argument)
   tdcSignalSemaphore = xSemaphoreCreateBinary();	 //
   tdc_board_init();   /*初始化激光板*/
 	High_Vol_Ctl_on();
-	_TDC_GP21.pid.ifTrunOn = true;  //先关闭pid	
-	__HAL_TIM_SET_AUTORELOAD(singhlTim,500);  //设定500us周期
-	 gear_select(&_TDC_GP21.vol_param[THIRD_PARAM]);  //			
-	 _TDC_GP21.messge_mode=GP21_MESSGE2;
-	lk_gp21MessgeMode_switch(&_TDC_GP21);
- _TDC_GP21.running_statu=STYLE;
-  slect_mode = first_mes1;  
-	ifFirstStart = true;
+	_TDC_GP21.pid.ifTrunOn = true;  //
+	selected_mesg_mode(msg_mode_second);
 	lk_param_statu.ifContinuDist = true;
 	dist_offset=DIST_FIRST_OFFSET-offset_dist[FIRST_PARAM];
   /* Infinite loop */
@@ -557,6 +553,39 @@ void Gp21TrigTask(void *argument)
    
   /* USER CODE END Gp21TrigTask */
 }
+
+//模式选择
+void selected_mesg_mode(TypedSelextMsgMode mode)
+{
+   TypedSelextMsgMode slect_index=mode;
+   switch(slect_index)
+	 {
+		 case msg_mode_one:
+		 {
+			 __HAL_TIM_SET_AUTORELOAD(singhlTim,500);  //设定500us周期
+			 gear_select(&_TDC_GP21.vol_param[THIRD_PARAM]);  //			
+			 _TDC_GP21.messge_mode=GP21_MESSGE2;
+			 lk_gp21MessgeMode_switch(&_TDC_GP21);
+			 _TDC_GP21.running_statu=STYLE;
+			 slect_mode = first_mes1;  
+			 ifFirstStart = true;
+			 ifStartCplet = false;
+		 }break;
+		 case msg_mode_second:
+		 {
+			gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //			
+			_TDC_GP21.messge_mode=GP21_MESSGE1;
+			lk_gp21MessgeMode_switch(&_TDC_GP21);
+			_TDC_GP21.running_statu=FIRST;
+			ifFirstStart = true;
+			ifStartCplet = true; 
+		 }break;	 
+	 }
+
+
+}
+
+
 
 void trigOnce(void)
 {
