@@ -119,7 +119,7 @@ typedef struct
 #define GP21_STATU_TIMEOUT  0x0100U
 	
 #define first_vol_param {\
-				.tx5618_value=1210,\
+				.tx5618_value=1330,\
 				.rx_vol_value=100,\
 				.tx_vol_ctl=VOL_CTL2,\
 				.ifBootVolCtl=true}

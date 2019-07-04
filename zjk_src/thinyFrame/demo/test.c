@@ -209,6 +209,18 @@ void QC_CMD(FRAME_ParmQC_CMD qc, TF_Msg *msg)
 		{
 			lk_param_statu.ifQCgetParmReset[LK03_THIRD_STAND] = true;
 		}break;	
+		case StandFirstSwitch:  //档位1切换
+		{
+			lk_param_statu.ifstandSwitch[LK03_FIRST_STAND] = true;
+		}break;
+		case StandSecondSwitch:  //档位2切换
+		{
+		 	lk_param_statu.ifstandSwitch[LK03_SECOND_STAND] = true;
+		}break;	
+		case StandThirdSwitch:  //档位3切换
+		{
+			lk_param_statu.ifstandSwitch[LK03_THIRD_STAND] = true;
+		}break;			
     case GetParam :  //获取参数
 		{
 			  lk_param_statu.ifQCgetParm = true;

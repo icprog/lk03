@@ -5,22 +5,30 @@
 //799 10mhei
 //#3 f:798,g450;s:780,g450
 //#2 f:716,g389;s:695,g383
-#define TEST_QC 1
-#define DEBUG_DISPLAY 1
+#define TEST_QC 0
+#define DEBUG_DISPLAY 0
 #if TEST_QC 
 //#define DIST_FIRST_OFFSET   716
 //#define DIST_SECOND_OFFSET   695
-#define DIST_FIRST_OFFSET    594
+//2#结构
+#define DIST_FIRST_OFFSET    0
 #define DIST_SECOND_OFFSET   780
 #define DIST_THIED_OFFSET    780
+
+//3#结构
+//#define DIST_FIRST_OFFSET    594
+//#define DIST_SECOND_OFFSET   780
+//#define DIST_THIED_OFFSET    780
 
 #define first_test   true
 #define second_test   true
 	
 #endif
 #define LK03_STAND_COUNTS  3     //标定次数3
+
+#define  PROTECL_HEAD_TAIL_SIZE 3  //0xff+cmd+tail=3
 typedef enum{LK03_FIRST_STAND=0,LK03_SECOND_STAND,LK03_THIRD_STAND} _LK03_STAND;
-typedef enum{dist_cmd=1,ack_cmd=2,}TypedSend;  //发送协议功能定义
+typedef enum{dist_cmd=1,ack_cmd=2,stand_param_cmd}TypedSend;  //发送协议功能定义
 typedef enum{first_mes1=1,first_mes2=2,}TypedSelextMode;  //
 typedef enum{msg_mode_one=1,msg_mode_second=2}TypedSelextMsgMode;  //
 /*参数状态*/
@@ -31,9 +39,10 @@ typedef struct
 	bool ifGetOnceDist;
 	bool ifContinuDist;
 	bool ifStopContinu;
-  bool ifQCStand[LK03_STAND_COUNTS];
+  bool ifQCStand[LK03_STAND_COUNTS];    //保存标定
 	bool ifQCgetParm;
-	bool ifQCgetParmReset[LK03_STAND_COUNTS];
+	bool ifQCgetParmReset[LK03_STAND_COUNTS];  //复位标定
+	bool ifstandSwitch[LK03_STAND_COUNTS];  //档位切换
 }lk_statu_;
 
 /*结构对应数据指针和数据长度*/
@@ -45,7 +54,6 @@ typedef struct
 
 
 /*QC 参数*/
-
 typedef struct{
 	uint16_t qc_stand_dist ;   //校准值
   uint16_t qc_ad603Gain;    //增益值
@@ -64,7 +72,7 @@ typedef struct
 	uint8_t front_or_base;//前后基准
   uint8_t ifHasConfig;     //是否已经配置
 	uint16_t outFreq;
-	QC_TYP QC[LK03_STAND_COUNTS];   //设置3挡标定
+  volatile QC_TYP QC[LK03_STAND_COUNTS];   //设置3挡标定
 }parm_;
 
 /*发送命令*/
@@ -72,7 +80,7 @@ typedef enum  { DataDistSend = 1, ParmsConfig = 2, ParmaSend=3, QC=6,ErroSend }F
 typedef enum  { ParamAll=1}FRAME_GetParam_CMD;
 typedef enum  { DistOnce = 1, DistContinue,DistStop}FRAME_GetDataID_CMD;
 typedef enum  { BarudRate = 1, RedLight, FrontOrBase,AutoMel}FRAME_ParmSaveID_CMD;
-typedef enum  { standStart = 1,StandParamFirst,StandParamSecond,StandParamThird,StandParamFirstReset, StandParamSecondReset, StandParamThirdReset,GetParam}FRAME_ParmQC_CMD;
+typedef enum  { standStart = 1,StandParamFirst,StandParamSecond,StandParamThird,StandParamFirstReset, StandParamSecondReset, StandParamThirdReset,StandFirstSwitch, StandSecondSwitch, StandThirdSwitch,GetParam}FRAME_ParmQC_CMD;
 
 typedef enum{z_type=0,z_id} z_type_id;
 extern const uint8_t distance_setCmd[DistStop][2];

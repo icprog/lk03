@@ -43,6 +43,8 @@ TaskHandle_t xHandleGp21Trig = NULL;
 static TaskHandle_t xHandleSerialDriver = NULL;
  static TaskHandle_t xHandleSensorParam = NULL;
 /*函数声明*/
+//标定信息复位
+void flasStandReset(HIGH_VOL_PARAM index);
 void selected_mesg_mode(TypedSelextMsgMode mode);
 void select_mode_ifStart(TypedSelextMode mode);
 void lk_cmdAck(uint8_t type,uint8_t id,bool ack);
@@ -100,9 +102,6 @@ void z_taskCreate(void)
 }
 arrayByte_ paramBuff;
 arrayByte_ flashParam;
-
-
-
 void LK_sensorParamTask(void *argument)
 {
   flash_SaveInit();
@@ -129,7 +128,7 @@ void LK_sensorParamTask(void *argument)
 //	lk_param_statu.ifContinuDist = true;
 	#else 
 	lk_param_statu.ifContinuDist = false;
-		//lk_flash.QC[SECOND_PARAM].ifHavedStand=true;
+	dist_offset=lk_flash.QC[FIRST_PARAM].qc_stand_dist;//-offset_dist[FIRST_PARAM];
 #endif	
 
 	
@@ -152,17 +151,27 @@ void LK_sensorParamTask(void *argument)
 			  if( lk_param_statu.ifQCStand[i]) //标定
 		    {
 				  _LK03_STAND index =(_LK03_STAND) i;
-					 dist_offset=lk_flash.QC[index].qc_stand_dist-offset_dist[index];
-					 swStandSave(index);
+					swStandSave(index);   //存储标定信息
+					dist_offset=lk_flash.QC[index].qc_stand_dist;//-offset_dist[index];
+					 
 					lk_cmdAck(QC,index+StandParamFirst,true);
 				}
-				if(lk_param_statu.ifQCgetParmReset[i])  //档位切换后再校准
+				if(lk_param_statu.ifQCgetParmReset[i])  //复位标定
 				{
 					HIGH_VOL_PARAM index = (HIGH_VOL_PARAM) i;
+					dist_offset=lk_flash.QC[index].qc_stand_dist=0;
 					lk_param_statu.ifQCgetParmReset[i]=false;
-				   gear_select(&_TDC_GP21.vol_param[index]);   
+				  flasStandReset(index);    
 					lk_cmdAck(QC,index+StandParamFirstReset,true);
-				}		
+				}
+				if(lk_param_statu.ifstandSwitch[i])  //档位切换
+				{
+					_LK03_STAND index =(_LK03_STAND) i;
+          gear_select(&_TDC_GP21.vol_param[index]);
+					lk_param_statu.ifstandSwitch[i]=false;
+					lk_cmdAck(QC,index+StandFirstSwitch,true);
+					dist_offset=lk_flash.QC[index].qc_stand_dist;
+				}						
 			}
     if(lk_param_statu.ifQCgetParm)  //获取标定参数
 		{
@@ -196,7 +205,17 @@ void swStandSave(_LK03_STAND index)
 		/*这里应该有flash保存失败的处理！！！*/
 		lk_param_statu.ifQCStand[_lk_standIndex]= false;
 }
-
+//标定信息复位
+void flasStandReset(HIGH_VOL_PARAM index)
+{
+	 HIGH_VOL_PARAM _lk_standIndex = index;
+		lk_flash.QC[_lk_standIndex].qc_stand_dist= 0;  //
+		lk_flash.QC[_lk_standIndex].qc_ad603Gain=0;
+		lk_flash.QC[_lk_standIndex].ifHavedStand=false;   //标定失败
+		/*在这里保存flash*/
+		flash_writeMoreData( (uint16_t *)(flashParam.point),flashParam.lens/2+1);
+		/*这里应该有flash保存失败的处理！！！*/
+}
 
 void start_singnal(void)
 {
@@ -271,19 +290,27 @@ void lk_cmdAck(uint8_t type,uint8_t id,bool ack)
 }
 
 //标定参数信息
-uint8_t buf_qc[LK03_STAND_COUNTS*5]={0};
+
 void qc_param_send(void)
 {
+	int size=LK03_STAND_COUNTS*5+PROTECL_HEAD_TAIL_SIZE;
+	uint8_t buf_qc[LK03_STAND_COUNTS*5+PROTECL_HEAD_TAIL_SIZE]={0};
+	buf_qc[0]=0xff;
+	buf_qc[1]=stand_param_cmd;
 	for(int i=0;i<LK03_STAND_COUNTS;i++)
 	{
-		buf_qc[0+5*i]=lk_flash.QC[i].qc_stand_dist >>8;
-		buf_qc[1+5*i]=lk_flash.QC[i].qc_stand_dist &0xff;
-		buf_qc[2+5*i]=lk_flash.QC[i].qc_ad603Gain >>8;
-		buf_qc[3+5*i]=lk_flash.QC[i].qc_ad603Gain &0xff;
-		buf_qc[4+5*i]=lk_flash.QC[i].ifHavedStand &0xff;
+		buf_qc[2+5*i]=lk_flash.QC[i].qc_stand_dist >>8;
+		buf_qc[3+5*i]=lk_flash.QC[i].qc_stand_dist &0xff;
+		buf_qc[4+5*i]=lk_flash.QC[i].qc_ad603Gain >>8;
+		buf_qc[5+5*i]=lk_flash.QC[i].qc_ad603Gain &0xff;
+		buf_qc[6+5*i]=lk_flash.QC[i].ifHavedStand &0xff;
 	}
-  QCparmSend(buf_qc,LK03_STAND_COUNTS*5);
+	 buf_qc[size-1]= tx_chexkSum(buf_qc,size-1);    //校验和发送
+  //QCparmSend(buf_qc,LK03_STAND_COUNTS*5);   //tinyframe 协议
+	z_serial_write(buf_qc,size);
 }
+
+
 
 //平均
 uint16_t average=0;
@@ -367,26 +394,26 @@ void SerialTask(void  *argument)
 			
 			 #if DEBUG_DISPLAY
 			 if(_TDC_GP21.running_statu==FIRST)
-			 {
-			   _TDC_GP21.siganl.vol=1000;
-			 }
-			 else if(_TDC_GP21.running_statu==SECOND)
-			 {
-			     _TDC_GP21.siganl.vol=2000;
-			 }
-			  else if(_TDC_GP21.running_statu==THIRD)
-			 {
-			     _TDC_GP21.siganl.vol=3000;
-			 }
-			if(_TDC_GP21.distance > 30000)
-			 {
-			     _TDC_GP21.siganl.vol=5000;
-			 }
+//			 {
+//			   _TDC_GP21.siganl.vol=1000;
+//			 }
+//			 else if(_TDC_GP21.running_statu==SECOND)
+//			 {
+//			     _TDC_GP21.siganl.vol=2000;
+//			 }
+//			  else if(_TDC_GP21.running_statu==THIRD)
+//			 {
+//			     _TDC_GP21.siganl.vol=3000;
+//			 }
+//			if(_TDC_GP21.distance > 30000)
+//			 {
+//			     _TDC_GP21.siganl.vol=5000;
+//			 }
        if((_TDC_GP21.ifDistanceNull==false)&(_TDC_GP21.ifMachineFine))
 			 {
 
-			 //  Send_Pose_Data(&_TDC_GP21.siganl.vol,&average,&_TDC_GP21.pid_resualt); 
-         Send_Pose_Data(&_TDC_GP21.siganl.vol,&_TDC_GP21.distance,&_TDC_GP21.pid_resualt);				 
+			   Send_Pose_Data(&_TDC_GP21.siganl.vol,&average,&_TDC_GP21.pid_resualt); 
+         //Send_Pose_Data(&_TDC_GP21.siganl.vol,&_TDC_GP21.distance,&_TDC_GP21.pid_resualt);				 
 			 }else
 			 {
 			   //无效数据
@@ -491,7 +518,6 @@ void select_mode_ifStart(TypedSelextMode mode)
 					ms2_erro = 0;
 					__HAL_TIM_SET_AUTORELOAD(singhlTim,100);  //设定100us周期
 				  gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //开机默认第2档位
-					//gear_select(&_TDC_GP21.vol_param[SECOND_PARAM]);  //开机默认第2档位
 				  _TDC_GP21.messge_mode=GP21_MESSGE1;
 	        lk_gp21MessgeMode_switch(&_TDC_GP21); 
 					 slect_mode=first_mes2;
@@ -537,8 +563,8 @@ void Gp21TrigTask(void *argument)
 	High_Vol_Ctl_on();
 	_TDC_GP21.pid.ifTrunOn = true;  //
 	selected_mesg_mode(msg_mode_second);
-	lk_param_statu.ifContinuDist = true;
-	dist_offset=DIST_FIRST_OFFSET-offset_dist[FIRST_PARAM];
+	//lk_param_statu.ifContinuDist = true;
+	
   /* Infinite loop */
   for(;;)
   { 		
@@ -693,7 +719,7 @@ float ki_sum=0;
 uint16_t tdc_agc_Default_control(uint16_t nowData,int16_t setPoint)
 {
 
-int16_t pid_resualt=0,ad603_resualt=0;
+   int16_t pid_resualt=0,ad603_resualt=0;
    int16_t error_t=0;   //error  setpoint- input
 	 error_t = setPoint - nowData; 
 
