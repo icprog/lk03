@@ -76,18 +76,21 @@ typedef struct
 }parm_;
 
 /*发送命令*/
-typedef enum  { DataDistSend = 1, ParmsConfig = 2, ParmaSend=3, QC=6,ErroSend }FRAME_TYPE_CMD ;
+typedef enum  { DataDistSend = 1, ParmsConfig = 2, ParmaSend=3, QC=6,lk_debug,ErroSend }FRAME_TYPE_CMD ;
 typedef enum  { ParamAll=1}FRAME_GetParam_CMD;
 typedef enum  { DistOnce = 1, DistContinue,DistStop}FRAME_GetDataID_CMD;
 typedef enum  { BarudRate = 1, RedLight, FrontOrBase,AutoMel}FRAME_ParmSaveID_CMD;
 typedef enum  { standStart = 1,StandParamFirst,StandParamSecond,StandParamThird,StandParamFirstReset, StandParamSecondReset, StandParamThirdReset,StandFirstSwitch, StandSecondSwitch, StandThirdSwitch,GetParam}FRAME_ParmQC_CMD;
+
+//lk debug cmd id  
+typedef enum  { debug_ID=1}FRAME_DEBUG_CMD;
 
 typedef enum{z_type=0,z_id} z_type_id;
 extern const uint8_t distance_setCmd[DistStop][2];
 extern const uint8_t param_getCmd[ParamAll][2];
 extern const uint8_t param_configCmd[AutoMel][2];
 extern const uint8_t qc_Cmd[GetParam][2];
-
+extern bool ifDebug;  //是否调试标记
 
 
 #pragma pack()
@@ -108,4 +111,5 @@ void zTF_sendOnceDist(uint8_t *data,uint8_t lens);   //发送测量距离
 arrayByte_ structToBytes(parm_ *p);       //参数结构转对应数组结构
 extern lk_statu_ lk_param_statu;
 extern EventGroupHandle_t xTinyFrameEventGroup;
+void debugParmSend(uint8_t *data,uint8_t lens);
 #endif

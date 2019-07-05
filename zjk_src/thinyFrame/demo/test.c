@@ -9,6 +9,8 @@
 #include "z_include.h"
 TinyFrame *demo_tf=NULL;
 TinyFrame zjk_tf;	
+
+bool ifDebug=false;  //是否调试标记
 bool do_corrupt = false;
 extern const char *romeo;
 bool isFlashParam;   //是否保存数据
@@ -229,6 +231,29 @@ void QC_CMD(FRAME_ParmQC_CMD qc, TF_Msg *msg)
 	}
  
 }
+
+
+//调试命令
+void debug_cmd(FRAME_DEBUG_CMD cmd,TF_Msg *msg)
+{
+   FRAME_DEBUG_CMD cmd_id=cmd;
+   switch(cmd_id) 
+	 {
+	   case debug_ID:
+		 {
+			  if(msg->data[0]==1)
+				{
+				  ifDebug = true;
+				}
+			  if(msg->data[0]==0)
+				{
+				  ifDebug = false;
+				}		 	  
+		 }break;
+	 
+	 }
+
+}
 /**
  * This function should be defined in the application code.
  * It implements the lowest layer - sending bytes to UART (or other)
@@ -267,7 +292,12 @@ TF_Msg *cmdMsg =NULL;
 		{
 		  FRAME_ParmQC_CMD QCCmd = (FRAME_ParmQC_CMD) (cmdMsg->frame_id);
 		  QC_CMD(QCCmd,msg);
-		}break;		
+		}break;
+		case lk_debug:   /*调试命令*/
+		{
+		  FRAME_DEBUG_CMD debugCmd = (FRAME_DEBUG_CMD) (cmdMsg->frame_id);
+		  debug_cmd(debugCmd,msg);
+		}break;				
 		case ErroSend:
 		{
 		  
@@ -305,7 +335,6 @@ void parmSend(parm_ *parm)
 	  msg.data = arrayBuff.point;
     msg.len = arrayBuff.lens;
   	TF_Respond(demo_tf, &msg);	
-	
 }
 //qc标定参数发送
 void QCparmSend(uint8_t *data,uint8_t lens)
@@ -320,10 +349,23 @@ void QCparmSend(uint8_t *data,uint8_t lens)
 	
 }
 
+//调试debug命令测试
+void debugParmSend(uint8_t *data,uint8_t lens)
+{
+    TF_Msg msg;
+    TF_ClearMsg(&msg);	
+  	msg.type = lk_debug;
+	  msg.frame_id = debug_ID;
+	  msg.data = data;
+    msg.len = lens;
+  	TF_Respond(demo_tf, &msg);	
+}
+
+
 void z_tiny_test(void)
 {
    z_ListenerInit();
-	 parmSend(&lk_defaultParm);
+	 //parmSend(&lk_defaultParm);
 	 if(addUartDmaRevListen(tinyRecFunc)) 
 	 {	 
 		 
