@@ -395,22 +395,22 @@ void SerialTask(void  *argument)
        QE_FLASG ++;
 			 if(ifDebug)  //调试代码
 			 {
-				if(_TDC_GP21.running_statu==FIRST)
-				 {
-					 _TDC_GP21.siganl.vol=1000;
-				 }
-				 else if(_TDC_GP21.running_statu==SECOND)
-				 {
-						 _TDC_GP21.siganl.vol=2000;
-				 }
-					else if(_TDC_GP21.running_statu==THIRD)
-				 {
-						 _TDC_GP21.siganl.vol=3000;
-				 }
-				if(_TDC_GP21.distance > 30000)
-				 {
-						 _TDC_GP21.siganl.vol=5000;
-				 }
+//				if(_TDC_GP21.running_statu==FIRST)
+//				 {
+//					 _TDC_GP21.siganl.vol=1000;
+//				 }
+//				 else if(_TDC_GP21.running_statu==SECOND)
+//				 {
+//						 _TDC_GP21.siganl.vol=2000;
+//				 }
+//					else if(_TDC_GP21.running_statu==THIRD)
+//				 {
+//						 _TDC_GP21.siganl.vol=3000;
+//				 }
+//				if(_TDC_GP21.distance > 30000)
+//				 {
+//						 _TDC_GP21.siganl.vol=5000;
+//				 }
 				 if((_TDC_GP21.ifDistanceNull==false)&(_TDC_GP21.ifMachineFine))
 				 {
 
@@ -453,7 +453,7 @@ void SerialTask(void  *argument)
 			 }break;
 			 case SECOND:
 			 {
-				 	  if((_TDC_GP21.pid_resualt >600)&(_TDC_GP21.distance>4500))   //第2档增益大于600时切换第三档
+				 	  if((_TDC_GP21.pid_resualt >450)&(_TDC_GP21.distance>4500))   //第2档增益大于600时切换第三档
 					 {
 						 gp21_messgeModeTwo();  //切换远距离模式
 						 __HAL_TIM_SET_AUTORELOAD(singhlTim,500);  //设定500us周期
