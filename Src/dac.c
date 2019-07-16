@@ -49,7 +49,7 @@ void MX_DAC_Init(void)
   {
     Error_Handler();
   }
- // lk_dac_init(); 
+
 }
 
 void HAL_DAC_MspInit(DAC_HandleTypeDef* dacHandle)

@@ -71,8 +71,8 @@ HIGHL_VOL_GP21 gp21_highVolCrlParm[3]=
 			_TDC_GP21.vol_param[i] = gp21_highVolCrlParm[i];
 	 
 	 }
-	 	 tlc5618_write(_TDC_GP21.vol_param[FIRST_PARAM].tx5618_value,AD603_AGC_DEFAULT); /*LK  AGC DAC Voltage control*/  
-	  tlc5618_writeAchannal(_TDC_GP21.vol_param[FIRST_PARAM].tx5618_value);	  
+	 	 tlc5618_write(_TDC_GP21.vol_param[lk03_first_gears].tx5618_value,AD603_AGC_DEFAULT); /*LK  AGC DAC Voltage control*/  
+	  tlc5618_writeAchannal(_TDC_GP21.vol_param[lk03_first_gears].tx5618_value);	  
 		start_rx_tim();
 		GP21_Init(); 
 		gp21_write(OPC_START_TOF);		 /*LK  gp21 Init*/	

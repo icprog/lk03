@@ -11,6 +11,7 @@
 #include "z_param.h"
 #include "z_flashParamSave.h"
 #include "z_checksum.h"
+#include "z_sensor_ack.h"
 //
 #include "z_include.h"
 extern TIM_HandleTypeDef htim3;
@@ -20,12 +21,24 @@ TIM_HandleTypeDef *singhlTim=&htim3;
 #define FIRST_OFFSET  4    //根据实验数据在10m黑板标定下，再补一个正4cm
 #define SECOND_OFFSET  0    
 #define THIRD_OFFSET  0  
+struct 
+{
+	#define SENSOR_LENGTH  10     //传感器长度 10cm
+	uint8_t  dist_base;   //当前基准
+   uint16_t qc_offset[3] ;   //标定偏差 ,1,2,3档
+	 uint16_t dist_offset;    //当前运行偏差值
+	 uint16_t front_switch; //前开关量距离
+	 uint16_t back_switch; //后开关量距离
+} sensor_running_vaile;
+
+sensor_runnig_cmd_typEnum sensor_runnig_cmd =sensor_idle;     //当前运行的命令
+extern sensor_struct_ sensor_strct;    //传感器结构
 uint16_t ms2_erro=0,ms1_err0=0;   //超时计数
 uint8_t flag=0,erro_count_test=0,reg_index;
 static uint16_t offset_dist[3]={FIRST_OFFSET,SECOND_OFFSET,THIRD_OFFSET};
 TypedSelextMode slect_mode;   //开机后模式选择
 SqQueue lk_distQueue;  //循环缓存
-int dist_offset=0;  //偏差值
+
  TIM_HandleTypeDef *z_tlc_TxSignl_pwm= &htim3;
  int textCount =0;
 int trighCount=0;
@@ -44,12 +57,13 @@ static TaskHandle_t xHandleSerialDriver = NULL;
  static TaskHandle_t xHandleSensorParam = NULL;
 /*函数声明*/
 //标定信息复位
-void flasStandReset(HIGH_VOL_PARAM index);
+void sensor_distOffset_calculate(_sensor_gesr_enum index);
+void flasStandReset(_sensor_gesr_enum index);
 void selected_mesg_mode(TypedSelextMsgMode mode);
 void select_mode_ifStart(TypedSelextMode mode);
 void lk_cmdAck(uint8_t type,uint8_t id,bool ack);
 void qc_param_send(void);
-void swStandSave(_LK03_STAND index);
+void swStandSave(_sensor_gesr_enum index);
 void SerialTask(void  * argument);
 void Gp21TrigTask(void  * argument);
  void LK_sensorParamTask(void *argument);
@@ -128,102 +142,69 @@ void LK_sensorParamTask(void *argument)
 		lk_flash.QC[THIRD_PARAM].qc_stand_dist=DIST_THIED_OFFSET;	
 	  lk_param_statu.ifContinuDist = true;
 #else 
-	lk_param_statu.ifContinuDist = false;
-	dist_offset=lk_flash.QC[FIRST_PARAM].qc_stand_dist;//-offset_dist[FIRST_PARAM];
-//	debugParmSend(&text_debug,1);
+	sensor_running_vaile.qc_offset[lk03_first_gears]=lk_flash.QC[lk03_first_gears].qc_stand_dist;//
+	sensor_running_vaile.qc_offset[lk03_second_gears]=lk_flash.QC[lk03_second_gears].qc_stand_dist;//
+	sensor_running_vaile.qc_offset[lk03_third_gears]=lk_flash.QC[lk03_third_gears].qc_stand_dist;//
+  sensor_running_vaile.dist_base = lk_flash.front_or_base;
+	sensor_distOffset_calculate(lk03_first_gears);
+  
+	if(lk_flash.autoRunMode == 1)  //自动运行
+	{
+	   sensor_strct.cmd = dist_continue_ack_cmd;
+	}
+	else
+	{
+	   sensor_strct.cmd = sensor_idle;
+	}
 #endif	
-
-	
-	
   for(;;)
 	{
-	  if(lk_param_statu.ifParamSave)
-		{ 
-		 flash_writeMoreData( (uint16_t *)(flashParam.point),flashParam.lens/2+1);
-			/*这里应该有flash保存失败的处理！！！*/
-		 lk_param_statu.ifParamSave = false;
-		}
-		if(lk_param_statu.ifParamGet)
-		{
-			 parmSend(&lk_flash);
-		  lk_param_statu.ifParamGet = false;
-		}
-			for(int i=0;i<LK03_STAND_COUNTS;i++)  //查看需要存储标定的信息
-			{
-			  if( lk_param_statu.ifQCStand[i]) //标定
-		    {
-				  _LK03_STAND index =(_LK03_STAND) i;
-					swStandSave(index);   //存储标定信息
-					dist_offset=lk_flash.QC[index].qc_stand_dist;//-offset_dist[index];
-					 
-					lk_cmdAck(QC,index+StandParamFirst,true);
-				}
-				if(lk_param_statu.ifQCgetParmReset[i])  //复位标定
-				{
-					HIGH_VOL_PARAM index = (HIGH_VOL_PARAM) i;
-					dist_offset=lk_flash.QC[index].qc_stand_dist=0;
-					lk_param_statu.ifQCgetParmReset[i]=false;
-				  flasStandReset(index);    
-					lk_cmdAck(QC,index+StandParamFirstReset,true);
-				}
-				if(lk_param_statu.ifstandSwitch[i])  //档位切换
-				{
-					_LK03_STAND index =(_LK03_STAND) i;
-          gear_select(&_TDC_GP21.vol_param[index]);
-					lk_param_statu.ifstandSwitch[i]=false;
-					lk_cmdAck(QC,index+StandFirstSwitch,true);
-					dist_offset=lk_flash.QC[index].qc_stand_dist;
-				}						
-			}
-    if(lk_param_statu.ifQCgetParm)  //获取标定参数
-		{
-		    qc_param_send();
-			lk_param_statu.ifQCgetParm = false;
-		}
-    if(lk_param_statu.ifGetOnceDist)	//单次测量
-		{
-		
-		}
-    if(lk_param_statu.ifContinuDist)	//连续测量
-		{
-			start_txSignl_Tim();   //开始pwm脉冲发射
-			//HAL_TIM_PWM_Start_IT(&htim3, TIM_CHANNEL_4);	
-			trigOnce();				
-			lk_param_statu.ifContinuDist=false;
-		}	
-
+   sensor_struct_loop(&sensor_strct);
 	 osDelay(500);
 	}
 }
 
-/*标定选项*/
-void swStandSave(_LK03_STAND index)
+/*输出外部开关量*/
+void snesor_ouput_switch(uint16_t dist)
 {
-	 _LK03_STAND _lk_standIndex = index;
-		lk_flash.QC[_lk_standIndex].qc_stand_dist= lk_defaultParm.QC[_lk_standIndex].qc_stand_dist;  //
-		lk_flash.QC[_lk_standIndex].qc_ad603Gain=lk_defaultParm.QC[_lk_standIndex].qc_ad603Gain;
-		lk_flash.QC[_lk_standIndex].ifHavedStand=true;   //标定成功
-		/*在这里保存flash*/
-		flash_writeMoreData( (uint16_t *)(flashParam.point),flashParam.lens/2+1);
-		/*这里应该有flash保存失败的处理！！！*/
-		lk_param_statu.ifQCStand[_lk_standIndex]= false;
+	 if((dist<sensor_running_vaile.front_switch)&&(dist>sensor_running_vaile.back_switch))
+	 {     
+	   sensor_ouput_switch_high();
+	 }
+   else
+	 {
+	   sensor_ouput_switch_low();
+	 }
 }
-//标定信息复位
-void flasStandReset(HIGH_VOL_PARAM index)
+/*偏差值计算*/
+
+void sensor_distOffset_calculate(_sensor_gesr_enum index)
 {
-	 HIGH_VOL_PARAM _lk_standIndex = index;
-		lk_flash.QC[_lk_standIndex].qc_stand_dist= 0;  //
-		lk_flash.QC[_lk_standIndex].qc_ad603Gain=0;
-		lk_flash.QC[_lk_standIndex].ifHavedStand=false;   //标定失败
-		/*在这里保存flash*/
-		flash_writeMoreData( (uint16_t *)(flashParam.point),flashParam.lens/2+1);
-		/*这里应该有flash保存失败的处理！！！*/
+	_sensor_gesr_enum select_stande =index;
+	if(sensor_running_vaile.dist_base == 1)  //前基准
+	{
+	  sensor_running_vaile.dist_offset = sensor_running_vaile.qc_offset[select_stande]-SENSOR_LENGTH;
+	}
+	else
+	{
+	  sensor_running_vaile.dist_offset = sensor_running_vaile.qc_offset[select_stande];
+	}
+	
 }
 
+
+/*加载flash 后 自动配置参数*/
+void sensor_powerOn_flashParamCfg(void)
+{
+	sensor_baudRate_typeEnum baud_selet = (sensor_baudRate_typeEnum )lk_flash.baud_rate;
+  baudRateCfg_select(baud_selet);  //波特率设置
+
+
+}
 void start_singnal(void)
 {
 		start_txSignl_Tim();   //开始pwm脉冲发射
-		HAL_TIM_PWM_Start_IT(&htim3, TIM_CHANNEL_4);	
+	//	HAL_TIM_PWM_Start_IT(&htim3, TIM_CHANNEL_4);	
 		trigOnce();			 
 }
 /*无校验的的数据发送*/
@@ -272,6 +253,7 @@ void buff_distTosend(uint16_t dist)
 }
 
 
+
 /*命令应答
 成功应答：0xff+ 对应的类型+ id+ +true/false+校验和 ;
 
@@ -291,6 +273,8 @@ void lk_cmdAck(uint8_t type,uint8_t id,bool ack)
 	buf[index++] = tx_chexkSum(buf,8);    //校验和发送
 	z_serial_write(buf,index);
 }
+
+
 
 //标定参数信息
 
@@ -395,22 +379,22 @@ void SerialTask(void  *argument)
        QE_FLASG ++;
 			 if(ifDebug)  //调试代码
 			 {
-//				if(_TDC_GP21.running_statu==FIRST)
-//				 {
-//					 _TDC_GP21.siganl.vol=1000;
-//				 }
-//				 else if(_TDC_GP21.running_statu==SECOND)
-//				 {
-//						 _TDC_GP21.siganl.vol=2000;
-//				 }
-//					else if(_TDC_GP21.running_statu==THIRD)
-//				 {
-//						 _TDC_GP21.siganl.vol=3000;
-//				 }
-//				if(_TDC_GP21.distance > 30000)
-//				 {
-//						 _TDC_GP21.siganl.vol=5000;
-//				 }
+				if(_TDC_GP21.running_statu==FIRST)
+				 {
+					 _TDC_GP21.siganl.vol=1000;
+				 }
+				 else if(_TDC_GP21.running_statu==SECOND)
+				 {
+						 _TDC_GP21.siganl.vol=2000;
+				 }
+					else if(_TDC_GP21.running_statu==THIRD)
+				 {
+						 _TDC_GP21.siganl.vol=3000;
+				 }
+				if(_TDC_GP21.distance > 30000)
+				 {
+						 _TDC_GP21.siganl.vol=5000;
+				 }
 				 if((_TDC_GP21.ifDistanceNull==false)&(_TDC_GP21.ifMachineFine))
 				 {
 
@@ -422,50 +406,47 @@ void SerialTask(void  *argument)
 			 {		 
 			  if((_TDC_GP21.ifDistanceNull==false)&(_TDC_GP21.ifMachineFine))
 				 {
-						buff_distTosend(average);   
+						sensor_distContinu_ack(average);   
 				 }			 
 			 }
+			 snesor_ouput_switch(average);  //外部开关量输出
 		} //end _TDC_GP21.ifComplete
 		switch(_TDC_GP21.running_statu)   //档位切换状态
 		 {
 			 case START:
 			 {
 
-        if((lk_flash.QC[FIRST_PARAM].ifHavedStand)&(lk_flash.QC[SECOND_PARAM].ifHavedStand)&(lk_flash.QC[THIRD_PARAM].ifHavedStand))  //全部标定完才挡位切换
+        if((lk_flash.QC[lk03_first_gears].ifHavedStand)&(lk_flash.QC[lk03_second_gears].ifHavedStand)&(lk_flash.QC[lk03_third_gears].ifHavedStand))  //全部标定完才挡位切换
 				{
-					 dist_offset=lk_flash.QC[FIRST_PARAM].qc_stand_dist;//-offset_dist[FIRST_PARAM];
+					 sensor_distOffset_calculate(lk03_first_gears);
 					_TDC_GP21.running_statu = FIRST;
 				}
-        if(lk_flash.QC[THIRD_PARAM].ifHavedStand)
-				{
-				
-				}
+
 			 }break;
 			 case FIRST:
 			 {
 				   if((_TDC_GP21.pid_resualt >600)&(_TDC_GP21.distance>2000) )  //第1档增益大于600时 (_TDC_GP21.pid_resualt >620)&(
 					 {
-						  dist_offset=lk_flash.QC[SECOND_PARAM].qc_stand_dist;//-offset_dist[SECOND_PARAM];
+						   sensor_distOffset_calculate(lk03_second_gears);
 						  _TDC_GP21.running_statu = SECOND;
-						  gear_select(&_TDC_GP21.vol_param[SECOND_PARAM]); 
+						  gear_select(&_TDC_GP21.vol_param[lk03_second_gears]); 
 					 }
 				 
 			 }break;
 			 case SECOND:
 			 {
-				 	  if((_TDC_GP21.pid_resualt >450)&(_TDC_GP21.distance>4500))   //第2档增益大于600时切换第三档
+				 	  if((_TDC_GP21.pid_resualt >600)&(_TDC_GP21.distance>4500))   //第2档增益大于600时切换第三档
 					 {
 						 gp21_messgeModeTwo();  //切换远距离模式
 						 __HAL_TIM_SET_AUTORELOAD(singhlTim,500);  //设定500us周期
-						  gear_select(&_TDC_GP21.vol_param[THIRD_PARAM]);  //
-						 dist_offset=lk_flash.QC[FIRST_PARAM].qc_stand_dist;//-offset_dist[THIRD_PARAM];
+						  gear_select(&_TDC_GP21.vol_param[lk03_third_gears]);  //
+						  sensor_distOffset_calculate(lk03_third_gears);
 						 _TDC_GP21.running_statu = THIRD;
 					 }
 					 else if((_TDC_GP21.pid_resualt <280)&(_TDC_GP21.distance<4500)) //切换第一档((_TDC_GP21.pid_resualt <280)&(_TDC_GP21.distance<3500))
 					 {
-					 
-						  dist_offset=lk_flash.QC[FIRST_PARAM].qc_stand_dist-offset_dist[FIRST_PARAM];
-					     gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //开机默认第一档位
+						   sensor_distOffset_calculate(lk03_first_gears);
+					     gear_select(&_TDC_GP21.vol_param[lk03_first_gears]);  //开机默认第一档位
 						  _TDC_GP21.running_statu = FIRST;
 					 }
 				
@@ -475,7 +456,7 @@ void SerialTask(void  *argument)
 						if((_TDC_GP21.distance <10000)&(_TDC_GP21.distance>4500))  //切换第2档
 					 {
 					     __HAL_TIM_SET_AUTORELOAD(singhlTim,100);  //设定100us周期
-					     gear_select(&_TDC_GP21.vol_param[SECOND_PARAM]);  //开机默认第2档位
+					     gear_select(&_TDC_GP21.vol_param[lk03_second_gears]);  //开机默认第2档位
 						 	 _TDC_GP21.messge_mode=GP21_MESSGE1;
 	             lk_gp21MessgeMode_switch(&_TDC_GP21);
 						  _TDC_GP21.running_statu = SECOND;
@@ -513,7 +494,7 @@ void select_mode_ifStart(TypedSelextMode mode)
 				{
 					ms2_erro = 0;
 					__HAL_TIM_SET_AUTORELOAD(singhlTim,100);  //设定100us周期
-				  gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //开机默认第2档位
+				  gear_select(&_TDC_GP21.vol_param[lk03_first_gears]);  //开机默认第2档位
 				  _TDC_GP21.messge_mode=GP21_MESSGE1;
 	        lk_gp21MessgeMode_switch(&_TDC_GP21); 
 					 slect_mode=first_mes2;
@@ -570,6 +551,7 @@ void Gp21TrigTask(void *argument)
 				 _TDC_GP21.ifMachineFine=true;
 				  ifFirstStart = false;
 			 }
+			
 			 osDelay(100);
 	}
    
@@ -585,7 +567,7 @@ void selected_mesg_mode(TypedSelextMsgMode mode)
 		 case msg_mode_one:
 		 {
 			 __HAL_TIM_SET_AUTORELOAD(singhlTim,500);  //设定500us周期
-			 gear_select(&_TDC_GP21.vol_param[THIRD_PARAM]);  //			
+			 gear_select(&_TDC_GP21.vol_param[lk03_third_gears]);  //			
 			 _TDC_GP21.messge_mode=GP21_MESSGE2;
 			 lk_gp21MessgeMode_switch(&_TDC_GP21);
 			 _TDC_GP21.running_statu=STYLE;
@@ -595,7 +577,7 @@ void selected_mesg_mode(TypedSelextMsgMode mode)
 		 }break;
 		 case msg_mode_second:
 		 {
-			gear_select(&_TDC_GP21.vol_param[FIRST_PARAM]);  //			
+			gear_select(&_TDC_GP21.vol_param[lk03_first_gears]);  //			
 			_TDC_GP21.messge_mode=GP21_MESSGE1;
 			lk_gp21MessgeMode_switch(&_TDC_GP21);
 			_TDC_GP21.running_statu=FIRST;
@@ -833,7 +815,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 							}
 							if(_TDC_GP21.ifMachineFine)  //机器正常运行情况下
 							{
-								distance = gp21_distance_cal(_TDC_GP21.buff,DISTANCE_RCV_SIZE)-dist_offset;
+								distance = gp21_distance_cal(_TDC_GP21.buff,DISTANCE_RCV_SIZE)-sensor_running_vaile.dist_offset;
 								if(distance>=0)
 								{
 									_TDC_GP21.ifDistanceNull=false;

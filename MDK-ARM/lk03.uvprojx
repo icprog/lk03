@@ -184,6 +184,7 @@
             <hadXRAM>0</hadXRAM>
             <uocXRam>0</uocXRam>
             <RvdsVP>0</RvdsVP>
+            <RvdsMve>0</RvdsMve>
             <hadIRAM2>0</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
@@ -337,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xE</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;           ../Drivers/STM32F1xx_HAL_Driver/Inc;           ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;           ../Middlewares/Third_Party/FreeRTOS/Source/include;           ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;           ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3;           ../Drivers/CMSIS/Device/ST/STM32F1xx/Include;           ../Drivers/CMSIS/Include;           ..\zjk_src\boards\lk03;           ..\zjk_src\sensor;           ..\zjk_src\hal;           ..\zjk_src\comToPC;           ..\zjk_src\serial;           ..\zjk_src\thinyFrame;           ..\zjk_src\thinyFrame\demo;           ..\zjk_src\task;           ..\zjk_src\flash;           ..\zjk_src\include;           ..\zjk_src\ringBuffer</IncludePath>
+              <IncludePath>../Inc;            ../Drivers/STM32F1xx_HAL_Driver/Inc;            ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;            ../Middlewares/Third_Party/FreeRTOS/Source/include;            ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;            ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3;            ../Drivers/CMSIS/Device/ST/STM32F1xx/Include;            ../Drivers/CMSIS/Include;            ..\zjk_src\boards\lk03;            ..\zjk_src\sensor;            ..\zjk_src\hal;            ..\zjk_src\comToPC;            ..\zjk_src\serial;            ..\zjk_src\thinyFrame;            ..\zjk_src\thinyFrame\demo;            ..\zjk_src\task;            ..\zjk_src\flash;            ..\zjk_src\include;            ..\zjk_src\ringBuffer</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -715,6 +716,11 @@
               <FileName>z_checksum.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\zjk_src\hal\z_checksum.c</FilePath>
+            </File>
+            <File>
+              <FileName>z_sensor_ack.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\zjk_src\task\z_sensor_ack.c</FilePath>
             </File>
           </Files>
         </Group>

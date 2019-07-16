@@ -133,6 +133,8 @@ void Error_Handler(void);
 #define tlc5618_cs_GPIO_Port GPIOA
 #define High_Vol_Ctl_Pin GPIO_PIN_12
 #define High_Vol_Ctl_GPIO_Port GPIOA
+#define senor_switch_Pin GPIO_PIN_10
+#define senor_switch_GPIO_Port GPIOC
 #define TDC_Sighal_AngleReles_Pin GPIO_PIN_12
 #define TDC_Sighal_AngleReles_GPIO_Port GPIOC
 #define Laser_Light_Pin GPIO_PIN_2

@@ -9,7 +9,7 @@
 #include "z_include.h"
 TinyFrame *demo_tf=NULL;
 TinyFrame zjk_tf;	
-
+extern sensor_runnig_cmd_typEnum sensor_runnig_cmd;
 bool ifDebug=false;  //是否调试标记
 bool do_corrupt = false;
 extern const char *romeo;
@@ -17,17 +17,7 @@ bool isFlashParam;   //是否保存数据
 void z_ListenerInit(void);
 extern TaskHandle_t xHandleGp21Trig;
 typedef bool z_lkParmStatuType;
-
-lk_statu_ lk_param_statu={
-  .ifParamSave =   false,
-	.ifParamGet =    false,
-	.ifGetOnceDist = false,
-	.ifContinuDist = false,
-	.ifStopContinu = false,
-	.ifQCStand = false,
-	.ifQCgetParm = false	
-};
-
+sensor_struct_ sensor_strct;    //传感器结构
 
 void parmSend(parm_ *parm);
 /*字节数组转换对应的结构体*/
@@ -47,15 +37,17 @@ arrayByte_ structToBytes(parm_ *p)
 	  return arraybuff;
 } 
 
+
 /*激光器保存参数*/
 parm_ lk_defaultParm ={
 	.product = 0x02,     //产品号lk03
-	.baud_rate = 115200, //波特率
-	.limit_trigger = 100, //100米触发
-	.red_laser_light = 0x01, //打开:0x01 关闭：0
+	.baud_rate = 5, //波特率0:9600;1:4400;2:19200;3:38400;4:57600;5:115200
+	.front_limit_trigger = 100, //100米触发
+  .back_limit_trigger = 0, //0米触发
   .front_or_base = 0,      //前基准：1 后基准：0
 	.ifHasConfig = 0,      //第一次烧写flash后会变成0x01
-	.outFreq = 100
+  .autoRunMode =0,       //自动运行关闭
+	.outFreq = 1000         //输出频率1000hz   
 };
 
 
@@ -70,163 +62,177 @@ parm_ lk_defaultParm ={
 //};
 parm_ lk_flash=
  { 
-		.product = 0,     //产品号lk03
-		.baud_rate = 0, //波特率
-		.limit_trigger = 0, //100米触发
-		.red_laser_light = 0, //打开:0x01 关闭：0
-		.front_or_base = 0,      //前基准：1 后基准：0
-	 .ifHasConfig = 0,      //第一次烧写flash后会变成0x01
+	.product = 0,     //产品号lk03
+	.baud_rate = 0, //波特率
+	.front_limit_trigger = 0, //100米触发
+  .back_limit_trigger = 0, //0米触发
+  .front_or_base = 0,      //前基准：1 后基准：0
+	.ifHasConfig = 0,      //第一次烧写flash后会变成0x01
+  .autoRunMode =0,       //自动运行关闭
+	.outFreq = 0         //输出频率1000hz   
 };
 
 
-
-const uint8_t distance_setCmd[DistStop][2]=
-{
-  {DataDistSend,DistOnce},{DataDistSend,DistContinue},{DataDistSend,DistStop},//距离
-};
-
-const uint8_t param_getCmd[ParamAll][2]=
-{
- {ParmsConfig,ParamAll},   //参数获取
-};
-
-const uint8_t param_configCmd[AutoMel][2]=
-{
-	{ParmaSend,BarudRate},{ParmaSend,RedLight},{ParmaSend,FrontOrBase},{ParmaSend,AutoMel},//参数配置
-};
-const uint8_t qc_Cmd[GetParam][2]=  //QC命令
-{
-  {QC,standStart},{QC,StandParamFirst},{QC,StandParamSecond},{QC,StandParamThird},{QC,StandParamFirstReset},{QC,StandParamSecondReset},{QC,StandParamThirdReset},{QC,GetParam},//QC命令
-};
-
-/*数据获取命令*/
-void dataGetCmdSlect(FRAME_GetDataID_CMD  DATA_GET, TF_Msg *msg)
+/*通用控制*/
+void dataGetCmdSlect(revFrame_distCtl_id_typEnum  dit_ctrl_cmd, TF_Msg *msg)
 {
 
-	switch(DATA_GET)
+	switch(dit_ctrl_cmd)
 	{
-		case DistOnce :    //单次测量命令
+		case dist_once :    //单次测量命令
 		{
-			 lk_param_statu.ifGetOnceDist = true;
+				sensor_strct.cmd= dist_once_ack_cmd;		 
+			  sensor_strct.msg = msg;
 		}break;
-	  case DistContinue:  //连续测量命令
+	  case dist_continue:  //连续测量命令
 		{
-			  lk_param_statu.ifContinuDist = true;
+			 	sensor_strct.cmd= dist_continue_ack_cmd;		 
+			  sensor_strct.msg = msg;
 		}break;
-		case DistStop:   //停止测量
+		case dist_stop:   //停止测量
 		{
-		    stop_txSignl_Tim();    //停止发射信号
-			  lk_param_statu.ifGetOnceDist = false;		
-        lk_param_statu.ifContinuDist = false;
-				lk_param_statu.ifStopContinu = false;		
+			 	sensor_strct.cmd= dist_stop_ack_cmd;		 
+			  sensor_strct.msg = msg;
 		}break;
 	}
-	 if((lk_param_statu.ifGetOnceDist) || (lk_param_statu.ifContinuDist))
-	 {
-	    // vTaskResume(xHandleGp21Trig);   //恢复任务状态
-	 }
 
 }
 /*参数获取*/
-void paramGetCmdSlect(FRAME_GetParam_CMD Param_GET, TF_Msg *msg)
+void paramGetCmdSlect(revFrame_paramCfg_getId_typEnum Param_GET, TF_Msg *msg)
 {
-  
+  sensor_strct.msg = msg;
    switch(Param_GET)  //参数获取
 	 {
-		 case ParamAll:
+		 case lk_all_get:  //所有参数
 		 {
-		   lk_param_statu.ifParamGet= true; 
+			 	sensor_strct.cmd= get_paramAll_base_cmd;		  
 		 }break;
-	 
+		 case baudRate_get:  //波特率获取
+		 {
+		   	sensor_strct.cmd= getParam_baudRate_ack_cmd;
+		 }break;
+		 case frontSwich_get: 
+		 {
+        sensor_strct.cmd= getParam_frontSwich_ack_cmd;
+		 }break;
+		 case backSwich_get:
+		 {
+		    sensor_strct.cmd= getParam_backSwich_ack_cmd;
+		 }break;
+		 case disBase_get:
+		 {
+        sensor_strct.cmd= getParam_disBase_ack_cmd;
+		 }break;
+		 case powerOn_mode_get:
+		 {
+        sensor_strct.cmd= getParam_powerOn_mode_ack_cmd;
+		 }break;	
+		 case outData_freq_get:
+		 {
+       	sensor_strct.cmd= getParam_outData_freq_ack_cmd;
+		 }break;	
+		 
 	 }
 }
 
 
 /*参数保存命令*/
-void paramDataSaveCMD(FRAME_ParmSaveID_CMD PAMRM_SAVE, TF_Msg *msg)
+void paramDataSaveCMD(revFrame_paramCfg_setId_typEnum PAMRM_SAVE, TF_Msg *msg)
 {
-
+  sensor_strct.msg = msg;
 	switch(PAMRM_SAVE)
 	{
-		case BarudRate:
+		case lk_all_set:
 		{
-        lk_defaultParm.baud_rate = *(int*)(msg->data);
+		    sensor_strct.cmd = cfgParam_all_cmd;
+		}break;
+		case baudRate_set:
+		{
+        sensor_strct.cmd = cfgParam_baudRate_ack_cmd;
 		}break;
 		
-		case RedLight:
+		case frontSwich_set:
 		{
-          lk_defaultParm.red_laser_light = *(uint8_t *)(msg->data);
+         sensor_strct.cmd = cfgParam_frontSwich_ack_cmd;
 		}break;
 		
-		case FrontOrBase:
+		case backSwich_set:
 		{
-         lk_defaultParm.front_or_base =  *(uint8_t *)(msg->data);
+         sensor_strct.cmd = cfgParam_backSwich_ack_cmd;
 		}break;
-		case AutoMel:  //自动测量
+		case disBase_set:  
 		{
-         
+          sensor_strct.cmd = cfgParam_distBase_ack_cmd;
 		}break;		
+		case powerOn_mode_set:  
+		{
+         sensor_strct.cmd = cfgParam_powerOn_mode_ack_cmd;
+		}break;				
+		case outData_freq_set:  
+		{
+          sensor_strct.cmd = cfgParam_outData_freq_ack_cmd;
+		}break;
 	}
-  lk_param_statu.ifParamSave =true;
+	
 }
 
 
 /*QC 检测命令*/
-void QC_CMD(FRAME_ParmQC_CMD qc, TF_Msg *msg)
+void QC_CMD(revFrame_programer_id_typEnum qc, TF_Msg *msg)
 {
-   FRAME_ParmQC_CMD cnd=qc;
+  revFrame_programer_id_typEnum cnd=qc;
+	sensor_strct.msg = msg;
 	switch(cnd)
 	{
-		case standStart:
+
+		case qc_standFirst_save:  //上位机第1档标定值
 		{
-       
+			sensor_strct.cmd = qc_standFirst_save_cmd;
+//        lk_defaultParm.QC[LK03_FIRST_STAND].qc_stand_dist= msg->data[0]<<8|msg->data[1];
+//			  lk_defaultParm.QC[LK03_FIRST_STAND].qc_ad603Gain= msg->data[2]<<8|msg->data[3];
+//			  lk_param_statu.ifQCStand[LK03_FIRST_STAND] =true;
 		}break;
-		case StandParamFirst:  //上位机第1档标定值
+		case qc_standSecond_save:  //上位机第2档标定值
 		{
-        lk_defaultParm.QC[LK03_FIRST_STAND].qc_stand_dist= msg->data[0]<<8|msg->data[1];
-			  lk_defaultParm.QC[LK03_FIRST_STAND].qc_ad603Gain= msg->data[2]<<8|msg->data[3];
-			  lk_param_statu.ifQCStand[LK03_FIRST_STAND] =true;
+				sensor_strct.cmd = qc_standSecond_save_cmd;
+//        lk_defaultParm.QC[LK03_SECOND_STAND].qc_stand_dist= msg->data[0]<<8|msg->data[1];
+//			  lk_defaultParm.QC[LK03_SECOND_STAND].qc_ad603Gain= msg->data[2]<<8|msg->data[3];
+//			  lk_param_statu.ifQCStand[LK03_SECOND_STAND] =true;
+		}break;	
+		case qc_standthird_save:  //上位机第3档标定值
+		{
+				sensor_strct.cmd = qc_standthird_save_cmd;
+//        lk_defaultParm.QC[LK03_THIRD_STAND].qc_stand_dist= msg->data[0]<<8|msg->data[1];
+//			  lk_defaultParm.QC[LK03_THIRD_STAND].qc_ad603Gain= msg->data[2]<<8|msg->data[3];
+//			  lk_param_statu.ifQCStand[LK03_THIRD_STAND] =true;
+		}break;	
+		case qc_standFirst_reset:  //第1档从新校准
+		{
+				sensor_strct.cmd = qc_standFirst_reset_cmd;
 		}break;
-		case StandParamSecond:  //上位机第2档标定值
+		case qc_standSecond_reset:  //第2档从新校准
 		{
-        lk_defaultParm.QC[LK03_SECOND_STAND].qc_stand_dist= msg->data[0]<<8|msg->data[1];
-			  lk_defaultParm.QC[LK03_SECOND_STAND].qc_ad603Gain= msg->data[2]<<8|msg->data[3];
-			  lk_param_statu.ifQCStand[LK03_SECOND_STAND] =true;
+				sensor_strct.cmd = qc_standSecond_reset_cmd;
 		}break;	
-		case StandParamThird:  //上位机第3档标定值
+		case qc_standthird_reset:  //第3档从新校准
 		{
-        lk_defaultParm.QC[LK03_THIRD_STAND].qc_stand_dist= msg->data[0]<<8|msg->data[1];
-			  lk_defaultParm.QC[LK03_THIRD_STAND].qc_ad603Gain= msg->data[2]<<8|msg->data[3];
-			  lk_param_statu.ifQCStand[LK03_THIRD_STAND] =true;
+				sensor_strct.cmd = qc_standthird_reset_cmd;
 		}break;	
-		case StandParamFirstReset:  //第1档从新校准
+		case qc_standFirst_switch:  //档位1切换
 		{
-			lk_param_statu.ifQCgetParmReset[LK03_FIRST_STAND] = true;
+				sensor_strct.cmd = qc_standFirst_switch_cmd;
 		}break;
-		case StandParamSecondReset:  //第2档从新校准
+		case qc_standSecond_switch:  //档位2切换
 		{
-		 	lk_param_statu.ifQCgetParmReset[LK03_SECOND_STAND] = true;
+				sensor_strct.cmd = qc_standSecond_switch_cmd;
 		}break;	
-		case StandParamThirdReset:  //第3档从新校准
+		case qc_standthird_switch:  //档位3切换
 		{
-			lk_param_statu.ifQCgetParmReset[LK03_THIRD_STAND] = true;
-		}break;	
-		case StandFirstSwitch:  //档位1切换
-		{
-			lk_param_statu.ifstandSwitch[LK03_FIRST_STAND] = true;
-		}break;
-		case StandSecondSwitch:  //档位2切换
-		{
-		 	lk_param_statu.ifstandSwitch[LK03_SECOND_STAND] = true;
-		}break;	
-		case StandThirdSwitch:  //档位3切换
-		{
-			lk_param_statu.ifstandSwitch[LK03_THIRD_STAND] = true;
+				sensor_strct.cmd = qc_standthird_switch_cmd;
 		}break;			
-    case GetParam :  //获取参数
+    case qc_get_param :  //获取参数
 		{
-			  lk_param_statu.ifQCgetParm = true;
-		
+				sensor_strct.cmd = qc_get_param_cmd;
 		}break;			
 	}
  
@@ -254,6 +260,21 @@ void debug_cmd(FRAME_DEBUG_CMD cmd,TF_Msg *msg)
 	 }
 
 }
+
+//固件升级命令
+void download_cmd(revFrame_firmware_ctl_id_typEnum cmd,TF_Msg *msg)
+{
+   revFrame_firmware_ctl_id_typEnum cmd_id=cmd;
+   switch(cmd_id) 
+	 {
+	   case firmware_begin:
+		 {
+        
+		 }break;
+	 
+	 }
+
+}
 /**
  * This function should be defined in the application code.
  * It implements the lowest layer - sending bytes to UART (or other)
@@ -270,38 +291,57 @@ TF_Msg *cmdMsg =NULL;
 {
  
 	cmdMsg = msg;
-	FRAME_TYPE_CMD typeCMD = (FRAME_TYPE_CMD) (cmdMsg->type);
-	 switch(typeCMD)
+	revFrame_Type_typEnum recve_type = (revFrame_Type_typEnum) (cmdMsg->type);
+	 switch(recve_type)
 	{
-	  case DataDistSend:/*测量命令*/
+	  case user_dist_ctl:/*测量命令*/
 		{
-			FRAME_GetDataID_CMD getDataCmd =  (FRAME_GetDataID_CMD) (cmdMsg->frame_id);
-		  dataGetCmdSlect(getDataCmd,msg);
+			revFrame_distCtl_id_typEnum dist_ctl_id =  (revFrame_distCtl_id_typEnum) (cmdMsg->frame_id);
+		  dataGetCmdSlect(dist_ctl_id,msg);
 		}break;
-	  case ParmaSend: /*参数获取*/
+	  case usr_paramCfg_get: /*参数获取*/
 		{
-			FRAME_GetParam_CMD getParamCmd =  (FRAME_GetParam_CMD) (cmdMsg->frame_id);
-		  paramGetCmdSlect(getParamCmd,msg);
+			revFrame_paramCfg_getId_typEnum get_param_id =  (revFrame_paramCfg_getId_typEnum) (cmdMsg->frame_id);
+		  paramGetCmdSlect(get_param_id,msg);
 		}break;		
-	  case ParmsConfig: /*参数配置*/
+	  case user_paramCfg_set: /*参数配置*/
 		{
-		  FRAME_ParmSaveID_CMD parmaSaveCmd = (FRAME_ParmSaveID_CMD) (cmdMsg->frame_id);
-		  paramDataSaveCMD(parmaSaveCmd,msg);
+		  revFrame_paramCfg_setId_typEnum set_param_id = (revFrame_paramCfg_setId_typEnum) (cmdMsg->frame_id);
+		  paramDataSaveCMD(set_param_id,msg);
 		}	break;
-		case QC:   /*标定命令*/
+	  case system_boot_firmware_ctl: /*系统固件控制*/
 		{
-		  FRAME_ParmQC_CMD QCCmd = (FRAME_ParmQC_CMD) (cmdMsg->frame_id);
-		  QC_CMD(QCCmd,msg);
-		}break;
-		case lk_debug:   /*调试命令*/
+
+		}break;		
+	  case system_boot_firmware_pakage: /*系统固件包*/
 		{
-		  FRAME_DEBUG_CMD debugCmd = (FRAME_DEBUG_CMD) (cmdMsg->frame_id);
-		  debug_cmd(debugCmd,msg);
-		}break;				
-		case ErroSend:
+
+		}	break;	
+
+	  case system_boot_param: /*系统参数*/
 		{
-		  
-		}break;
+
+		}	break;			
+	  case programer_ctl: /*开发人员控制*/
+		{
+
+		}	break;		
+		
+//		case QC:   /*标定命令*/
+//		{
+//		  FRAME_ParmQC_CMD QCCmd = (FRAME_ParmQC_CMD) (cmdMsg->frame_id);
+//		  QC_CMD(QCCmd,msg);
+//		}break;
+//		case lk_debug:   /*调试命令*/
+//		{
+//		  FRAME_DEBUG_CMD debugCmd = (FRAME_DEBUG_CMD) (cmdMsg->frame_id);
+//		  debug_cmd(debugCmd,msg);
+//		}break;				
+//		case lk_download: /*固件升级命令*/
+//		{
+//		  FRAME_DownLoad_CMD downloadCmd =  (FRAME_DownLoad_CMD) (cmdMsg->frame_id);
+//			
+//		}break;
 		
 	}
 	
@@ -330,8 +370,8 @@ void parmSend(parm_ *parm)
     TF_ClearMsg(&msg);	
  	  arrayByte_ arrayBuff; 
 	  arrayBuff = structToBytes(parm); 
-  	msg.type = ParmaSend;
-	  msg.frame_id = ParamAll;
+  	msg.type = usr_ack;
+	  msg.frame_id = get_paramAll_base;
 	  msg.data = arrayBuff.point;
     msg.len = arrayBuff.lens;
   	TF_Respond(demo_tf, &msg);	
@@ -341,8 +381,8 @@ void QCparmSend(uint8_t *data,uint8_t lens)
 {
     TF_Msg msg;
     TF_ClearMsg(&msg);	
-  	msg.type = QC;
-	  msg.frame_id = GetParam;
+  	msg.type = programer_ack;
+	  msg.frame_id = qc_get_param_ack;
 	  msg.data = data;
     msg.len = lens;
   	TF_Respond(demo_tf, &msg);	
@@ -352,20 +392,29 @@ void QCparmSend(uint8_t *data,uint8_t lens)
 //调试debug命令测试
 void debugParmSend(uint8_t *data,uint8_t lens)
 {
-    TF_Msg msg;
-    TF_ClearMsg(&msg);	
-  	msg.type = lk_debug;
-	  msg.frame_id = debug_ID;
-	  msg.data = data;
-    msg.len = lens;
-  	TF_Respond(demo_tf, &msg);	
+//    TF_Msg msg;
+//    TF_ClearMsg(&msg);	
+//  	msg.type = lk_debug;
+//	  msg.frame_id = debug_ID;
+//	  msg.data = data;
+//    msg.len = lens;
+//  	TF_Respond(demo_tf, &msg);	
 }
+TF_Msg msga;
+void test_send_cmd(void)
+{
+    
+    TF_ClearMsg(&msga);	
+  	msga.type = 0xff;
+	  msga.frame_id = lk_download_ack;
+  	TF_Respond(demo_tf, &msga);
 
+}
 
 void z_tiny_test(void)
 {
    z_ListenerInit();
-	 //parmSend(&lk_defaultParm);
+	 test_send_cmd();
 	 if(addUartDmaRevListen(tinyRecFunc)) 
 	 {	 
 		 
@@ -376,23 +425,160 @@ void z_tiny_test(void)
 	 }
  
 }
+/***********************************************
+   user_dist_ctl 应答 列表
+***********************************************/
+//单次测量应答数据
+void zTF_sendOnceDistAck(uint8_t *data,uint8_t lens)
+{
+   lk_user_ack(dist_once_ack,data,lens);
+}
+//停止测量应答
+void zTF_StopDistAck(void)
+{
+  lk_user_ack(dist_stop_ack,NULL,NULL);
+}
 
-void zTF_sendOnceDist(uint8_t *data,uint8_t lens)
+
+//连续测量应答数据
+TF_Msg dist_continue_msg;
+void zTF_sendContinueDistAck(uint8_t *data,uint8_t lens)
+{
+    dist_continue_msg.data = data;
+    dist_continue_msg.len = lens;
+  	TF_Respond(demo_tf, &dist_continue_msg);
+}
+
+/*========获取参数应答================*/
+void zTF_paramCfg_getAll_Ack(uint8_t *data,uint8_t lens)
+{
+  lk_user_ack(get_paramAll_base,data,lens);
+}
+
+void zTF_paramCfg_getBaudRate_Ack(uint8_t *data,uint8_t lens)
+{
+  lk_user_ack(getParam_baudRate_ack,data,lens);
+}
+
+void zTF_paramCfg_getFrontSwich_Ack(uint8_t *data,uint8_t lens)
+{
+  lk_user_ack(getParam_frontSwich_ack,data,lens);
+}
+
+void zTF_paramCfg_getBackSwich_Ack(uint8_t *data,uint8_t lens)
+{
+  lk_user_ack(getParam_backSwich_ack,data,lens);
+}
+
+void zTF_paramCfg_getDisBase_Ack(uint8_t *data,uint8_t lens)
+{
+  lk_user_ack(getParam_disBase_ack,data,lens);
+}
+
+void zTF_paramCfg_getPowerOnMode_Ack(uint8_t *data,uint8_t lens)
+{
+  lk_user_ack(getParam_powerOn_mode_ack,data,lens);
+}
+void zTF_paramCfg_getOutDataFreq_Ack(uint8_t *data,uint8_t lens)
+{
+  lk_user_ack(getParam_outData_freq_ack,data,lens);
+}
+/*========参数配置应答================*/
+void zTF_paramCfg_setAll_Ack(void)
+{
+  lk_user_ack(cfgParam_all,NULL,NULL);
+}
+
+void zTF_paramCfg_setBaudRate_Ack(void)
+{
+  lk_user_ack(cfgParam_baudRate_ack,NULL,NULL);
+}
+
+void zTF_paramCfg_setFrontSwich_Ack(void)
+{
+  lk_user_ack(cfgParam_frontSwich_ack,NULL,NULL);
+}
+
+void zTF_paramCfg_setBackSwich_Ack(void)
+{
+  lk_user_ack(cfgParam_backSwich_ack,NULL,NULL);
+}
+
+void zTF_paramCfg_setDisBase_Ack(void)
+{
+  lk_user_ack(cfgParam_distBase_ack,NULL,NULL);
+}
+
+void zTF_paramCfg_setPowerOnMode_Ack(void)
+{
+  lk_user_ack(cfgParam_powerOn_mode_ack,NULL,NULL);
+}
+
+void zTF_paramCfg_setOutDataFreq_Ack(void)
+{
+  lk_user_ack(cfgParam_outData_freq_ack,NULL,NULL);
+}
+
+/*========system应答================*/
+void zTF_system_boot_paramReset_Ack(void)
+{
+  lk_user_ack(system_boot_paramReset_ack,NULL,NULL);
+}
+
+void zTF_system_firmware_ctl_Ack(void)
+{
+  lk_user_ack(system_boot_firmware_ctl_ack,NULL,NULL);
+}
+
+void zTF_system_firmware_pakage_Ack(void)
+{
+  lk_user_ack(system_boot_firmware_pakage_ack,NULL,NULL);
+}
+
+
+/***********************************************
+   用户通用 应答
+***********************************************/
+void lk_user_ack(sendframe_user_ackId_typEnum id,uint8_t *data,uint8_t lens)
 {
     TF_Msg msg;
     TF_ClearMsg(&msg);
-    msg.type = DataDistSend;
-	  msg.frame_id = DistOnce;
-    msg.data = data;
+    msg.type = usr_ack;
+	  msg.frame_id = id;                          
+	  msg.data = data;
     msg.len = lens;
-  //  TF_Send(demo_tf, &msg);
   	TF_Respond(demo_tf, &msg);
 }
 
+/***********************************************
+   开发人员应答
+***********************************************/
+void lk_programer_ack(sendframe_programer_ackId_typEnum id,uint8_t *data,uint8_t lens)
+{
+    TF_Msg msg;
+    TF_ClearMsg(&msg);
+    msg.type = programer_ack;
+	  msg.frame_id = id;                          
+	  msg.data = data;
+    msg.len = lens;
+  	TF_Respond(demo_tf, &msg);
+}
+
+
+
+void dist_continu_msgInit(void)
+{
+	
+    TF_ClearMsg(&dist_continue_msg);
+    dist_continue_msg.type = usr_ack;
+	  dist_continue_msg.frame_id = dist_continue_ack;
+
+}
 /*id listener add*/
 void z_ListenerInit(void)
 {
     demo_tf = &zjk_tf;
     TF_InitStatic(demo_tf, TF_MASTER);
     TF_AddGenericListener(demo_tf, myGenericListener); 
+	  dist_continu_msgInit();
 }

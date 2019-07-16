@@ -13,7 +13,7 @@
 typedef enum{ trig_onece_complete =1,trig_enough_complete,trig_time_out} TDC_TRIGSTATU;
 typedef enum  {VOL_CTL1,VOL_CTL2,VOL_CTL3}TX_VOL_ENUM_TYP;
 typedef enum  {START,FIRST,SECOND,THIRD,STYLE}RUN_STATU;
-typedef enum  {FIRST_PARAM=0,SECOND_PARAM,THIRD_PARAM}HIGH_VOL_PARAM;
+typedef enum{lk03_first_gears=0,lk03_second_gears,lk03_third_gears} _sensor_gesr_enum;
 typedef enum{GP21_MESSGE1=1,GP21_MESSGE2=2,}GP21_MESSAGE_MODE;  //GP21²âÁ¿Ä£Ê½
 typedef struct {
 
@@ -106,7 +106,10 @@ typedef struct
 #define High_Vol_Ctl_on()      HAL_GPIO_WritePin(High_Vol_Ctl_GPIO_Port,High_Vol_Ctl_Pin,GPIO_PIN_RESET)
 #define High_Vol_Ctl_off()     HAL_GPIO_WritePin(High_Vol_Ctl_GPIO_Port,High_Vol_Ctl_Pin,GPIO_PIN_SET)
 
- void tdc_rx_voltge_relese(void);
+
+#define sensor_ouput_switch_high()    HAL_GPIO_WritePin(senor_switch_GPIO_Port,senor_switch_Pin,GPIO_PIN_SET)
+#define sensor_ouput_switch_low()     HAL_GPIO_WritePin(senor_switch_GPIO_Port,senor_switch_Pin,GPIO_PIN_RESET)
+void tdc_rx_voltge_relese(void);
 /*
 #define  TX_HIGH_VOL_TLC5618 1200  //50.1v
 #define  TX_HIGH_VOL_TLC5618 400  //60v

@@ -16,6 +16,7 @@ typedef struct
 }_dma_listen;
 
 SERIAL_TYPE_BOOL addUartDmaRevListen(_listenFunc func);
+void z_serial_baudRateCfg(uint32_t baudRate);
 #endif
 
 
