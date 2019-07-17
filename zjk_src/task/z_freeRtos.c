@@ -21,16 +21,8 @@ TIM_HandleTypeDef *singhlTim=&htim3;
 #define FIRST_OFFSET  4    //根据实验数据在10m黑板标定下，再补一个正4cm
 #define SECOND_OFFSET  0    
 #define THIRD_OFFSET  0  
-struct 
-{
-	#define SENSOR_LENGTH  10     //传感器长度 10cm
-	uint8_t  dist_base;   //当前基准
-   uint16_t qc_offset[3] ;   //标定偏差 ,1,2,3档
-	 uint16_t dist_offset;    //当前运行偏差值
-	 uint16_t front_switch; //前开关量距离
-	 uint16_t back_switch; //后开关量距离
-} sensor_running_vaile;
 
+sensor_struct_typ sensor_running_vaile;
 sensor_runnig_cmd_typEnum sensor_runnig_cmd =sensor_idle;     //当前运行的命令
 extern sensor_struct_ sensor_strct;    //传感器结构
 uint16_t ms2_erro=0,ms1_err0=0;   //超时计数
@@ -55,8 +47,10 @@ static TaskHandle_t xHandleSerial = NULL;
 TaskHandle_t xHandleGp21Trig = NULL;
 static TaskHandle_t xHandleSerialDriver = NULL;
  static TaskHandle_t xHandleSensorParam = NULL;
+ TaskHandle_t xHandleDataOutFeq = NULL;
 /*函数声明*/
 //标定信息复位
+void sensor_powerOn_flashParamCfg(void);
 void sensor_distOffset_calculate(_sensor_gesr_enum index);
 void flasStandReset(_sensor_gesr_enum index);
 void selected_mesg_mode(TypedSelextMsgMode mode);
@@ -67,6 +61,7 @@ void swStandSave(_sensor_gesr_enum index);
 void SerialTask(void  * argument);
 void Gp21TrigTask(void  * argument);
  void LK_sensorParamTask(void *argument);
+ void lk_sensor_outData_Task(void *argument);
 extern void z_serialDriverTask(void  * argument);
 extern void z_tiny_test(void);
  uint16_t tdc_agc_Default_control(uint16_t nowData,int16_t setPoint);
@@ -95,11 +90,20 @@ void z_taskCreate(void)
 	            );	
 	
 	xTaskCreate(
+	              lk_sensor_outData_Task,    //任务函数
+	              "lk_outData_freq",  //任务名
+								128,          //任务栈大小，也就是4个字节
+	              NULL,
+								3,            //任务优先级
+								&xHandleDataOutFeq
+	            );		
+	
+	xTaskCreate(
 	             z_serialDriverTask,  //任务函数
 	             "serialDriverTask",  //任务名
 								128,                //任务栈大小，也就是4个字节
 	              NULL,
-								3,                  //任务优先级
+								4,                  //任务优先级
 								&xHandleSerialDriver
 	            );
 
@@ -108,7 +112,7 @@ void z_taskCreate(void)
 	             "Gp21TrigTask",  //任务名
 								512,            //任务栈大小，也就是4个字节
 	              NULL, 
-								4,                //任务优先级
+								5,                //任务优先级
 								&xHandleGp21Trig
 	            );
 
@@ -142,20 +146,9 @@ void LK_sensorParamTask(void *argument)
 		lk_flash.QC[THIRD_PARAM].qc_stand_dist=DIST_THIED_OFFSET;	
 	  lk_param_statu.ifContinuDist = true;
 #else 
-	sensor_running_vaile.qc_offset[lk03_first_gears]=lk_flash.QC[lk03_first_gears].qc_stand_dist;//
-	sensor_running_vaile.qc_offset[lk03_second_gears]=lk_flash.QC[lk03_second_gears].qc_stand_dist;//
-	sensor_running_vaile.qc_offset[lk03_third_gears]=lk_flash.QC[lk03_third_gears].qc_stand_dist;//
-  sensor_running_vaile.dist_base = lk_flash.front_or_base;
-	sensor_distOffset_calculate(lk03_first_gears);
-  
-	if(lk_flash.autoRunMode == 1)  //自动运行
-	{
-	   sensor_strct.cmd = dist_continue_ack_cmd;
-	}
-	else
-	{
-	   sensor_strct.cmd = sensor_idle;
-	}
+
+    sensor_powerOn_flashParamCfg();
+
 #endif	
   for(;;)
 	{
@@ -180,6 +173,7 @@ void snesor_ouput_switch(uint16_t dist)
 
 void sensor_distOffset_calculate(_sensor_gesr_enum index)
 {
+	
 	_sensor_gesr_enum select_stande =index;
 	if(sensor_running_vaile.dist_base == 1)  //前基准
 	{
@@ -191,14 +185,38 @@ void sensor_distOffset_calculate(_sensor_gesr_enum index)
 	}
 	
 }
-
-
 /*加载flash 后 自动配置参数*/
 void sensor_powerOn_flashParamCfg(void)
 {
 	sensor_baudRate_typeEnum baud_selet = (sensor_baudRate_typeEnum )lk_flash.baud_rate;
   baudRateCfg_select(baud_selet);  //波特率设置
 
+  for(int i=0;i<3;i++)
+	{
+	   sensor_running_vaile.qc_offset[i]=lk_flash.QC[i].qc_stand_dist;//
+		 sensor_running_vaile.qc_ifStand[i] = lk_flash.QC[i].ifHavedStand; 
+	}
+	
+	sensor_running_vaile.dist_base = lk_flash.front_or_base;
+	if(lk_flash.outFreq !=0)
+	{
+		sensor_running_vaile.output_freq = (1000/lk_flash.outFreq);   //hz
+	}
+	else 
+	{
+	  sensor_running_vaile.output_freq = 1000;
+	}
+	sensor_distOffset_calculate(lk03_first_gears);	//偏差值计算
+	if(lk_flash.autoRunMode == 1)  //自动运行
+	{
+	   sensor_strct.cmd = dist_continue_ack_cmd;
+	}
+	else
+	{
+	   sensor_strct.cmd = sensor_idle;
+	}
+	
+	
 
 }
 void start_singnal(void)
@@ -299,6 +317,8 @@ void qc_param_send(void)
 
 
 
+
+
 //平均
 uint16_t average=0;
 uint32_t tem=0,num=0;
@@ -349,8 +369,8 @@ void SerialTask(void  *argument)
 
   /* Infinite loop */
   for(;;)
-  {
-     if(_TDC_GP21.ifComplete)
+  { 
+    if(_TDC_GP21.ifComplete)
 		 {
 			 _TDC_GP21.ifComplete = false;
 			 queue_lenth = QueueLength(&lk_distQueue);
@@ -398,7 +418,7 @@ void SerialTask(void  *argument)
 				 if((_TDC_GP21.ifDistanceNull==false)&(_TDC_GP21.ifMachineFine))
 				 {
 
-					 Send_Pose_Data(&_TDC_GP21.siganl.vol,&average,&_TDC_GP21.pid_resualt); 
+					// Send_Pose_Data(&_TDC_GP21.siganl.vol,&average,&_TDC_GP21.pid_resualt); 
 					 //Send_Pose_Data(&_TDC_GP21.siganl.vol,&_TDC_GP21.distance,&_TDC_GP21.pid_resualt);				 
 				 }				 
 			 }
@@ -406,11 +426,11 @@ void SerialTask(void  *argument)
 			 {		 
 			  if((_TDC_GP21.ifDistanceNull==false)&(_TDC_GP21.ifMachineFine))
 				 {
-						sensor_distContinu_ack(average);   
+					//	sensor_distContinu_ack(average);   
 				 }			 
 			 }
 			 snesor_ouput_switch(average);  //外部开关量输出
-		} //end _TDC_GP21.ifComplete
+		} //end _TDC_GP21.ifComplete			
 		switch(_TDC_GP21.running_statu)   //档位切换状态
 		 {
 			 case START:
@@ -482,6 +502,29 @@ void SerialTask(void  *argument)
 		
   /* USER CODE END SerialTask */
 }
+
+extern bool ifContinueDist;
+/*数据输出任务*/
+void lk_sensor_outData_Task(void *argument)
+{
+
+  vTaskSuspend(xHandleDataOutFeq);   //挂起任务
+	for(;;)
+	{
+		if((_TDC_GP21.ifDistanceNull==false)&(_TDC_GP21.ifMachineFine))
+		 {
+				//sensor_distContinu_ack(_TDC_GP21.distance);   
+			 sensor_distContinu_ack(average);   
+		 } 
+		 
+		osDelay(sensor_running_vaile.output_freq);
+	}
+}
+
+
+
+
+
 bool ifStartCplet=false;
 void select_mode_ifStart(TypedSelextMode mode)
 {
@@ -539,7 +582,7 @@ void Gp21TrigTask(void *argument)
   tdc_board_init();   /*初始化激光板*/
 	High_Vol_Ctl_on();
 	_TDC_GP21.pid.ifTrunOn = true;  //
-	selected_mesg_mode(msg_mode_second);
+	selected_mesg_mode(msg_qcStard);
 	//lk_param_statu.ifContinuDist = true;
 	
   /* Infinite loop */
@@ -564,7 +607,7 @@ void selected_mesg_mode(TypedSelextMsgMode mode)
    TypedSelextMsgMode slect_index=mode;
    switch(slect_index)
 	 {
-		 case msg_mode_one:
+		 case msg_thirdStard:
 		 {
 			 __HAL_TIM_SET_AUTORELOAD(singhlTim,500);  //设定500us周期
 			 gear_select(&_TDC_GP21.vol_param[lk03_third_gears]);  //			
@@ -575,7 +618,7 @@ void selected_mesg_mode(TypedSelextMsgMode mode)
 			 ifFirstStart = true;
 			 ifStartCplet = false;
 		 }break;
-		 case msg_mode_second:
+		 case msg_firstStard:
 		 {
 			gear_select(&_TDC_GP21.vol_param[lk03_first_gears]);  //			
 			_TDC_GP21.messge_mode=GP21_MESSGE1;
@@ -583,7 +626,16 @@ void selected_mesg_mode(TypedSelextMsgMode mode)
 			_TDC_GP21.running_statu=FIRST;
 			ifFirstStart = true;
 			ifStartCplet = true; 
-		 }break;	 
+		 }break;
+		 case msg_qcStard:
+		 {
+			gear_select(&_TDC_GP21.vol_param[lk03_first_gears]);  //			
+			_TDC_GP21.messge_mode=GP21_MESSGE1;
+			lk_gp21MessgeMode_switch(&_TDC_GP21);
+			_TDC_GP21.running_statu=START;
+			ifFirstStart = true;
+			ifStartCplet = true; 
+		 }break;			 
 	 }
 
 

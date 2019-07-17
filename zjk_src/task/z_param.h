@@ -31,7 +31,7 @@
 
 typedef enum{dist_cmd=1,ack_cmd=2,stand_param_cmd}TypedSend;  //发送协议功能定义
 typedef enum{first_mes1=1,first_mes2=2,}TypedSelextMode;  //
-typedef enum{msg_mode_one=1,msg_mode_second=2}TypedSelextMsgMode;  //
+typedef enum{msg_thirdStard=1,msg_firstStard=2,msg_qcStard}TypedSelextMsgMode;  //
 /*参数状态*/
 //typedef struct
 //{
@@ -172,6 +172,21 @@ void zTF_paramCfg_setOutDataFreq_Ack(void);
 void zTF_system_boot_paramReset_Ack(void);
 void zTF_system_firmware_ctl_Ack(void);
 void zTF_system_firmware_pakage_Ack(void);
+
+/*========programer应答================*/
+void zTF_programer_qc_getParam_Ack(uint8_t *data,uint8_t lens);
+//切换
+void zTF_programer_qc_standFirst_switch_ack(void);
+void zTF_programer_qc_standSecond_switch_ack(void);
+void zTF_programer_qc_standthird_switch_ack(void);
+//复位
+void zTF_programer_qc_standFirst_reset_ack(void);
+void zTF_programer_qc_standSecond_reset_ack(void);
+void zTF_programer_qc_standthird_reset_ack(void);
+//存储
+void zTF_programer_qc_standFirst_save_ack(void);
+void zTF_programer_qc_standSecond_save_ack(void);
+void zTF_programer_qc_standthird_save_ack(void);
 
 
 //qc标定参数发送

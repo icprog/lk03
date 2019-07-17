@@ -32,6 +32,20 @@ typedef struct {
   bool ifTrunOn;
 }_tdc_pid ;
 
+//传感器运行参数
+typedef  struct  
+{
+	#define SENSOR_LENGTH  10     //传感器长度 10cm
+	uint8_t  dist_base;   //当前基准
+   uint16_t qc_offset[3] ;   //标定偏差 ,1,2,3档
+	 uint16_t dist_offset;    //当前运行偏差值
+	 uint16_t front_switch; //前开关量距离
+	 uint16_t back_switch; //后开关量距离
+	 uint16_t output_freq; // 数据输出频率 ms
+	 bool  qc_ifStand[3]; //1,2,3档是否标定	
+}sensor_struct_typ;           
+
+
 /*硬件电压参数*/
 typedef struct{
 	uint16_t  tx5618_value;  //发送高压参数

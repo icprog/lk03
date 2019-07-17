@@ -1,7 +1,10 @@
 #include "z_sensor_ack.h"
 
 extern arrayByte_ flashParam;
+extern TaskHandle_t xHandleDataOutFeq;
 extern void sensor_distOffset_calculate(_sensor_gesr_enum index);
+extern sensor_struct_typ sensor_running_vaile;
+
 void sensor_distContinu_ack(uint16_t dist)
 {
   uint8_t dist_buf[2] = {0};
@@ -114,6 +117,15 @@ void sensor_setPowerOnMode_ack(TF_Msg *msg)
 void sensor_setOutDataFreq_ack(TF_Msg *msg)
 {
 	   lk_flash.outFreq = BigtoLittle16(msg->data);
+	   if(lk_flash.outFreq>1000)
+		 {
+		   lk_flash.outFreq = 1000;
+		 }
+		 else if(lk_flash.outFreq ==0)
+		 {
+		   lk_flash.outFreq = 1;
+		 }
+		 sensor_running_vaile.output_freq = (1000/lk_flash.outFreq);
 	   flash_writeMoreData( (uint16_t *)(flashParam.point),flashParam.lens/2+1);
       zTF_paramCfg_setOutDataFreq_Ack();
 }
@@ -163,53 +175,55 @@ void flasStandReset(_sensor_gesr_enum index)
 void sensor_qc_get_param_ack(void)
 {
 
-
+ // zTF_programer_qc_getParam_Ack();
 }
 void sensor_qc_standFirst_switch_ack(void)
 {
 		gear_select(&_TDC_GP21.vol_param[lk03_first_gears]);
-		 sensor_distOffset_calculate(lk03_first_gears);
-
+	  zTF_programer_qc_standFirst_switch_ack();
 }
 void sensor_qc_standSecond_switch_ack(void)
 {
 		gear_select(&_TDC_GP21.vol_param[lk03_second_gears]);
-		sensor_distOffset_calculate(lk03_second_gears);
-
+	  zTF_programer_qc_standSecond_switch_ack();
 }
 void sensor_qc_standthird_switch_ack(void)
 {
 		gear_select(&_TDC_GP21.vol_param[lk03_third_gears]);
-		sensor_distOffset_calculate(lk03_third_gears);
+	  zTF_programer_qc_standthird_switch_ack();
 }
 void sensor_qc_standFirst_reset_ack(void)
 {	
 		flasStandReset(lk03_first_gears);    
+	  zTF_programer_qc_standFirst_reset_ack();
 }
 void sensor_qc_standSecond_reset_ack(void)
 {
     flasStandReset(lk03_second_gears);
+	  zTF_programer_qc_standSecond_reset_ack();
 }
 void sensor_qc_standthird_reset_ack(void)
 {
     flasStandReset(lk03_third_gears);
+	  zTF_programer_qc_standthird_reset_ack();
 }
 
 
 void sensor_qc_standFirst_save_ack(void)
 {
      sensor_qc_struct_Save(lk03_first_gears);   //存储标定信息
+  	zTF_programer_qc_standFirst_save_ack();    
 }
 void sensor_qc_standSecond_save_ack(void)
 {
      sensor_qc_struct_Save(lk03_second_gears);
-    
+    zTF_programer_qc_standSecond_save_ack();
 }
 void sensor_qc_standthird_save_ack(void)
 {
    sensor_qc_struct_Save(lk03_third_gears);
+	zTF_programer_qc_standthird_save_ack();
 }
-
 
 extern void start_singnal(void);
  void sensor_struct_loop(sensor_struct_ * p)
@@ -224,6 +238,7 @@ extern void start_singnal(void);
 		  case dist_continue_ack_cmd:
 			{
 				start_singnal();
+				vTaskResume(xHandleDataOutFeq);  //恢复数据输出任务
 			}break;		
 		  case dist_once_ack_cmd:
 			{
@@ -231,6 +246,7 @@ extern void start_singnal(void);
 			}break;			
 		  case dist_stop_ack_cmd:
 			{
+				  vTaskSuspend(xHandleDataOutFeq);   //挂起任务
 			    sensor_distStop_ack();   //停止测量
 			}break;			
 		  case get_paramAll_base_cmd:
@@ -295,39 +311,39 @@ extern void start_singnal(void);
 			}break;			
 		  case qc_standFirst_switch_cmd:
 			{
-			
+			   sensor_qc_standFirst_switch_ack();
 			}break;			
 		  case qc_standSecond_switch_cmd:
 			{
-			
+			  sensor_qc_standSecond_switch_ack();
 			}break;			
 		  case qc_standthird_switch_cmd:
 			{
-			
+			  sensor_qc_standthird_switch_ack();
 			}break;			
 		  case qc_standFirst_reset_cmd:
 			{
-			
+				sensor_qc_standFirst_reset_ack();
 			}break;	
 		  case qc_standSecond_reset_cmd:
 			{
-			
+				sensor_qc_standSecond_reset_ack();
 			}break;	
 		  case qc_standthird_reset_cmd:
 			{
-			
+				sensor_qc_standthird_reset_ack();
 			}break;	
 		  case qc_standFirst_save_cmd:
 			{
-			
+				sensor_qc_standFirst_save_ack();
 			}break;	
 		  case qc_standSecond_save_cmd:
 			{
-			
+			   sensor_qc_standSecond_save_ack();
 			}break;				
 		  case qc_standthird_save_cmd:
 			{
-			
+			  sensor_qc_standthird_save_ack();
 			}break;				
 		  case system_boot_paramReset_ack_cmd:
 			{

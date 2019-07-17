@@ -5,6 +5,7 @@
 #include "z_param.h"
 #include "z_flashParamSave.h"
 #include "z_lko3.h"
+#include "FreeRTOS.h"
 #define BigtoLittle16(A)   (( (*(uint16_t*)A & 0xff00) >> 8)  | (( (*(uint16_t*)A & 0x00ff) << 8)))
 /*dist ack*/
 void sensor_distContinu_ack(uint16_t dist);

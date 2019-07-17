@@ -145,32 +145,39 @@ void paramDataSaveCMD(revFrame_paramCfg_setId_typEnum PAMRM_SAVE, TF_Msg *msg)
 		case lk_all_set:
 		{
 		    sensor_strct.cmd = cfgParam_all_cmd;
+
 		}break;
 		case baudRate_set:
 		{
-        sensor_strct.cmd = cfgParam_baudRate_ack_cmd;
+      sensor_strct.cmd = cfgParam_baudRate_ack_cmd;
+
 		}break;
 		
 		case frontSwich_set:
 		{
-         sensor_strct.cmd = cfgParam_frontSwich_ack_cmd;
+      sensor_strct.cmd = cfgParam_frontSwich_ack_cmd;
+
 		}break;
 		
 		case backSwich_set:
 		{
-         sensor_strct.cmd = cfgParam_backSwich_ack_cmd;
+        sensor_strct.cmd = cfgParam_backSwich_ack_cmd;
+
 		}break;
 		case disBase_set:  
 		{
           sensor_strct.cmd = cfgParam_distBase_ack_cmd;
+		
 		}break;		
 		case powerOn_mode_set:  
 		{
          sensor_strct.cmd = cfgParam_powerOn_mode_ack_cmd;
+		
 		}break;				
 		case outData_freq_set:  
 		{
           sensor_strct.cmd = cfgParam_outData_freq_ack_cmd;
+		
 		}break;
 	}
 	
@@ -178,7 +185,7 @@ void paramDataSaveCMD(revFrame_paramCfg_setId_typEnum PAMRM_SAVE, TF_Msg *msg)
 
 
 /*QC 检测命令*/
-void QC_CMD(revFrame_programer_id_typEnum qc, TF_Msg *msg)
+void programer_cmd(revFrame_programer_id_typEnum qc, TF_Msg *msg)
 {
   revFrame_programer_id_typEnum cnd=qc;
 	sensor_strct.msg = msg;
@@ -188,23 +195,17 @@ void QC_CMD(revFrame_programer_id_typEnum qc, TF_Msg *msg)
 		case qc_standFirst_save:  //上位机第1档标定值
 		{
 			sensor_strct.cmd = qc_standFirst_save_cmd;
-//        lk_defaultParm.QC[LK03_FIRST_STAND].qc_stand_dist= msg->data[0]<<8|msg->data[1];
-//			  lk_defaultParm.QC[LK03_FIRST_STAND].qc_ad603Gain= msg->data[2]<<8|msg->data[3];
-//			  lk_param_statu.ifQCStand[LK03_FIRST_STAND] =true;
+
 		}break;
 		case qc_standSecond_save:  //上位机第2档标定值
 		{
 				sensor_strct.cmd = qc_standSecond_save_cmd;
-//        lk_defaultParm.QC[LK03_SECOND_STAND].qc_stand_dist= msg->data[0]<<8|msg->data[1];
-//			  lk_defaultParm.QC[LK03_SECOND_STAND].qc_ad603Gain= msg->data[2]<<8|msg->data[3];
-//			  lk_param_statu.ifQCStand[LK03_SECOND_STAND] =true;
+
 		}break;	
 		case qc_standthird_save:  //上位机第3档标定值
 		{
 				sensor_strct.cmd = qc_standthird_save_cmd;
-//        lk_defaultParm.QC[LK03_THIRD_STAND].qc_stand_dist= msg->data[0]<<8|msg->data[1];
-//			  lk_defaultParm.QC[LK03_THIRD_STAND].qc_ad603Gain= msg->data[2]<<8|msg->data[3];
-//			  lk_param_statu.ifQCStand[LK03_THIRD_STAND] =true;
+	
 		}break;	
 		case qc_standFirst_reset:  //第1档从新校准
 		{
@@ -323,36 +324,21 @@ TF_Msg *cmdMsg =NULL;
 
 		}	break;			
 	  case programer_ctl: /*开发人员控制*/
-		{
-
+		{ 
+			revFrame_programer_id_typEnum cmd_id = (revFrame_programer_id_typEnum) cmdMsg->frame_id;
+      programer_cmd(cmd_id,msg);
 		}	break;		
-		
-//		case QC:   /*标定命令*/
-//		{
-//		  FRAME_ParmQC_CMD QCCmd = (FRAME_ParmQC_CMD) (cmdMsg->frame_id);
-//		  QC_CMD(QCCmd,msg);
-//		}break;
-//		case lk_debug:   /*调试命令*/
-//		{
-//		  FRAME_DEBUG_CMD debugCmd = (FRAME_DEBUG_CMD) (cmdMsg->frame_id);
-//		  debug_cmd(debugCmd,msg);
-//		}break;				
-//		case lk_download: /*固件升级命令*/
-//		{
-//		  FRAME_DownLoad_CMD downloadCmd =  (FRAME_DownLoad_CMD) (cmdMsg->frame_id);
-//			
-//		}break;
-		
+				
 	}
 	
     return TF_STAY;
 }
 
-
+uint8_t testbuf[50] = {0};
 void tinyRecFunc(uint8_t *buf)
 {
 		 uint16_t lens =0;
-     uint8_t testbuf[50] = {0};
+     
 		 get_revLens(&lens);
 		 for(int i=0;i<lens;i++)
 		{
@@ -535,6 +521,62 @@ void zTF_system_firmware_pakage_Ack(void)
   lk_user_ack(system_boot_firmware_pakage_ack,NULL,NULL);
 }
 
+/*========programer应答================*/
+
+void zTF_programer_qc_getParam_Ack(uint8_t *data,uint8_t lens)
+{
+  lk_programer_ack(qc_get_param_ack,data,lens);
+}
+//切换
+void zTF_programer_qc_standFirst_switch_ack(void)
+{
+  lk_programer_ack(qc_standFirst_switch_ack,NULL,NULL);
+}
+
+void zTF_programer_qc_standSecond_switch_ack(void)
+{
+  lk_programer_ack(qc_standSecond_switch_ack,NULL,NULL);
+}
+
+void zTF_programer_qc_standthird_switch_ack(void)
+{
+  lk_programer_ack(qc_standthird_switch_ack,NULL,NULL);
+}
+
+//复位
+void zTF_programer_qc_standFirst_reset_ack(void)
+{
+  lk_programer_ack(qc_standFirst_reset_ack,NULL,NULL);
+}
+
+
+void zTF_programer_qc_standSecond_reset_ack(void)
+{
+  lk_programer_ack(qc_standSecond_reset_ack,NULL,NULL);
+}
+
+void zTF_programer_qc_standthird_reset_ack(void)
+{
+  lk_programer_ack(qc_standthird_reset_ack,NULL,NULL);
+}
+
+//存储
+void zTF_programer_qc_standFirst_save_ack(void)
+{
+  lk_programer_ack(qc_standFirst_save_ack,NULL,NULL);
+}
+
+
+void zTF_programer_qc_standSecond_save_ack(void)
+{
+  lk_programer_ack(qc_standSecond_save_ack,NULL,NULL);
+}
+
+
+void zTF_programer_qc_standthird_save_ack(void)
+{
+  lk_programer_ack(qc_standthird_save_ack,NULL,NULL);
+}
 
 /***********************************************
    用户通用 应答
