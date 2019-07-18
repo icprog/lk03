@@ -169,21 +169,21 @@ void snesor_ouput_switch(uint16_t dist)
 	   sensor_ouput_switch_low();
 	 }
 }
-/*偏差值计算*/
+
 
 void sensor_distOffset_calculate(_sensor_gesr_enum index)
 {
-	
 	_sensor_gesr_enum select_stande =index;
+	
 	if(sensor_running_vaile.dist_base == 1)  //前基准
 	{
-	  sensor_running_vaile.dist_offset = sensor_running_vaile.qc_offset[select_stande]-SENSOR_LENGTH;
+		sensor_running_vaile.dist_sensor_lenth = SENSOR_LENGTH;
 	}
 	else
 	{
-	  sensor_running_vaile.dist_offset = sensor_running_vaile.qc_offset[select_stande];
+		sensor_running_vaile.dist_sensor_lenth = 0;
 	}
-	
+ sensor_running_vaile.dist_offset = lk_flash.QC[select_stande].qc_stand_dist;	
 }
 /*加载flash 后 自动配置参数*/
 void sensor_powerOn_flashParamCfg(void)
@@ -867,7 +867,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 							}
 							if(_TDC_GP21.ifMachineFine)  //机器正常运行情况下
 							{
-								distance = gp21_distance_cal(_TDC_GP21.buff,DISTANCE_RCV_SIZE)-sensor_running_vaile.dist_offset;
+								distance = gp21_distance_cal(_TDC_GP21.buff,DISTANCE_RCV_SIZE)-sensor_running_vaile.dist_offset-sensor_running_vaile.dist_sensor_lenth;
 								if(distance>=0)
 								{
 									_TDC_GP21.ifDistanceNull=false;

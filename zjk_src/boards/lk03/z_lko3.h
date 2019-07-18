@@ -35,7 +35,8 @@ typedef struct {
 //传感器运行参数
 typedef  struct  
 {
-	#define SENSOR_LENGTH  10     //传感器长度 10cm
+	#define SENSOR_LENGTH  12     //传感器长度 12cm
+	uint8_t dist_sensor_lenth; //传感器长度
 	uint8_t  dist_base;   //当前基准
    uint16_t qc_offset[3] ;   //标定偏差 ,1,2,3档
 	 uint16_t dist_offset;    //当前运行偏差值

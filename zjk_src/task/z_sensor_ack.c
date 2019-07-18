@@ -5,6 +5,7 @@ extern TaskHandle_t xHandleDataOutFeq;
 extern void sensor_distOffset_calculate(_sensor_gesr_enum index);
 extern sensor_struct_typ sensor_running_vaile;
 
+
 void sensor_distContinu_ack(uint16_t dist)
 {
   uint8_t dist_buf[2] = {0};
@@ -65,6 +66,7 @@ void sensor_getPowerOnMode_ack(void)
 {
       zTF_paramCfg_getPowerOnMode_Ack(&lk_flash.autoRunMode,1);
 }
+
 void sensor_getOutDataFreq_ack(void)
 {
    uint8_t sensor_data[2] ={0};		 
@@ -76,6 +78,7 @@ void sensor_setAllParam_ack(TF_Msg *msg)
 {
 	    
       zTF_paramCfg_setAll_Ack();
+	     clear_msgData(msg);
 }
 
 
@@ -83,6 +86,7 @@ void sensor_setBaudRate_ack(TF_Msg *msg)
 {
 	
 	 lk_flash.baud_rate = *(uint8_t *)msg->data;
+	  clear_msgData(msg);
 	 sensor_baudRate_typeEnum baud_selet = (sensor_baudRate_typeEnum )lk_flash.baud_rate;
 	 flash_writeMoreData( (uint16_t *)(flashParam.point),flashParam.lens/2+1);
    zTF_paramCfg_setBaudRate_Ack();
@@ -91,25 +95,37 @@ void sensor_setBaudRate_ack(TF_Msg *msg)
 void sensor_setFrontSwich_ack(TF_Msg *msg)
 {
 	 lk_flash.front_limit_trigger =BigtoLittle16(msg->data);
+	  clear_msgData(msg);
 	 flash_writeMoreData( (uint16_t *)(flashParam.point),flashParam.lens/2+1);
    zTF_paramCfg_setFrontSwich_Ack();
 }
 void sensor_setBackSwich_ack(TF_Msg *msg)
 {
 	  lk_flash.back_limit_trigger = BigtoLittle16(msg->data);
+	   clear_msgData(msg);
 	  flash_writeMoreData( (uint16_t *)(flashParam.point),flashParam.lens/2+1);
       zTF_paramCfg_setBackSwich_Ack();
+	  
 }
+
 void sensor_setDisBase_ack(TF_Msg *msg)
 {
-	  lk_flash.front_or_base = *(uint8_t *)msg->data;
-	  flash_writeMoreData( (uint16_t *)(flashParam.point),flashParam.lens/2+1);
+	   lk_flash.front_or_base = *(uint8_t *)msg->data;
+	   clear_msgData(msg);
+	   flash_writeMoreData( (uint16_t *)(flashParam.point),flashParam.lens/2+1);
+	   if(lk_flash.front_or_base==1)
+		 {
+			 sensor_running_vaile.dist_sensor_lenth =SENSOR_LENGTH;
+		 }
+		 else {sensor_running_vaile.dist_sensor_lenth = 0;}
+
       zTF_paramCfg_setDisBase_Ack();
 }
 
 void sensor_setPowerOnMode_ack(TF_Msg *msg)
 {
 	   lk_flash.autoRunMode = *(uint8_t *)msg->data;
+	   clear_msgData(msg);
 	   flash_writeMoreData( (uint16_t *)(flashParam.point),flashParam.lens/2+1);
       zTF_paramCfg_setPowerOnMode_Ack();
 }
@@ -148,15 +164,30 @@ void sensor_system_firmware_pakage_ack(void)
 
 //////////////
 /*标定选项*/
-void sensor_qc_struct_Save(_sensor_gesr_enum index)
+void sensor_qc_getParam(void)
+{
+   uint8_t sensor_data[3*5] ={0};
+	 for(int i=0;i<3;i++)
+	 {
+	   sensor_data[i*5+0] = lk_flash.QC[i].qc_stand_dist>>8;
+	   sensor_data[i*5+1] = lk_flash.QC[i].qc_stand_dist&0xff;
+	   sensor_data[i*5+2] = lk_flash.QC[i].qc_ad603Gain>>8;
+	   sensor_data[i*5+3] = lk_flash.QC[i].qc_ad603Gain&0xff;		 
+	   sensor_data[i*5+4] = lk_flash.QC[i].ifHavedStand;		 
+	 }
+  zTF_programer_qc_getParam_Ack(sensor_data,15);
+}
+
+void sensor_qc_struct_Save(_sensor_gesr_enum index,TF_Msg *msg)
 {
 	 _sensor_gesr_enum _lk_standIndex = index;
-		lk_flash.QC[_lk_standIndex].qc_stand_dist= lk_flash.QC[_lk_standIndex].qc_stand_dist;  //
-		lk_flash.QC[_lk_standIndex].qc_ad603Gain=lk_flash.QC[_lk_standIndex].qc_ad603Gain;
+		lk_flash.QC[_lk_standIndex].qc_stand_dist=BigtoLittle16(msg->data);  //
+		lk_flash.QC[_lk_standIndex].qc_ad603Gain=BigtoLittle16(&msg->data[2]);
 		lk_flash.QC[_lk_standIndex].ifHavedStand=true;   //标定成功
+	   clear_msgData(msg);
 		/*在这里保存flash*/
 		flash_writeMoreData( (uint16_t *)(flashParam.point),flashParam.lens/2+1);
-	 sensor_distOffset_calculate(_lk_standIndex);
+	  sensor_distOffset_calculate(_lk_standIndex);
 }
 
 //标定信息复位
@@ -174,8 +205,7 @@ void flasStandReset(_sensor_gesr_enum index)
 
 void sensor_qc_get_param_ack(void)
 {
-
- // zTF_programer_qc_getParam_Ack();
+  
 }
 void sensor_qc_standFirst_switch_ack(void)
 {
@@ -209,19 +239,19 @@ void sensor_qc_standthird_reset_ack(void)
 }
 
 
-void sensor_qc_standFirst_save_ack(void)
+void sensor_qc_standFirst_save_ack(TF_Msg *msg)
 {
-     sensor_qc_struct_Save(lk03_first_gears);   //存储标定信息
+     sensor_qc_struct_Save(lk03_first_gears,msg);   //存储标定信息
   	zTF_programer_qc_standFirst_save_ack();    
 }
-void sensor_qc_standSecond_save_ack(void)
+void sensor_qc_standSecond_save_ack(TF_Msg *msg)
 {
-     sensor_qc_struct_Save(lk03_second_gears);
+     sensor_qc_struct_Save(lk03_second_gears,msg);
     zTF_programer_qc_standSecond_save_ack();
 }
-void sensor_qc_standthird_save_ack(void)
+void sensor_qc_standthird_save_ack(TF_Msg *msg)
 {
-   sensor_qc_struct_Save(lk03_third_gears);
+   sensor_qc_struct_Save(lk03_third_gears,msg);
 	zTF_programer_qc_standthird_save_ack();
 }
 
@@ -307,7 +337,7 @@ extern void start_singnal(void);
 			}break;
 		  case qc_get_param_cmd:
 			{
-			
+			    sensor_qc_getParam();
 			}break;			
 		  case qc_standFirst_switch_cmd:
 			{
@@ -335,15 +365,15 @@ extern void start_singnal(void);
 			}break;	
 		  case qc_standFirst_save_cmd:
 			{
-				sensor_qc_standFirst_save_ack();
+				sensor_qc_standFirst_save_ack(p->msg);
 			}break;	
 		  case qc_standSecond_save_cmd:
 			{
-			   sensor_qc_standSecond_save_ack();
+			   sensor_qc_standSecond_save_ack(p->msg);
 			}break;				
 		  case qc_standthird_save_cmd:
 			{
-			  sensor_qc_standthird_save_ack();
+			  sensor_qc_standthird_save_ack(p->msg);
 			}break;				
 		  case system_boot_paramReset_ack_cmd:
 			{

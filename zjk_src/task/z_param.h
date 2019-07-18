@@ -187,7 +187,7 @@ void zTF_programer_qc_standthird_reset_ack(void);
 void zTF_programer_qc_standFirst_save_ack(void);
 void zTF_programer_qc_standSecond_save_ack(void);
 void zTF_programer_qc_standthird_save_ack(void);
-
+void clear_msgData(TF_Msg *msg);
 
 //qc标定参数发送
 void QCparmSend(uint8_t *data,uint8_t lens);

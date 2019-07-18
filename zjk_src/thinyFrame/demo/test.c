@@ -287,28 +287,44 @@ void TF_WriteImpl(TinyFrame *tf, const uint8_t *buff, uint32_t len)
 }
 
 /*通用监听回调函数*/
-TF_Msg *cmdMsg =NULL;
+TF_Msg cmdMsg ; uint8_t msg_data[50] = {0};
+
+void clear_msgData(TF_Msg *msg)
+{
+   for(int i=0;i<msg->len;i++)
+	{
+	  msg_data[i] = 0;
+	}
+}
+
  TF_Result myGenericListener(TinyFrame *tf, TF_Msg *msg)
 {
- 
-	cmdMsg = msg;
-	revFrame_Type_typEnum recve_type = (revFrame_Type_typEnum) (cmdMsg->type);
+  TF_Msg *sensorMsg ;                   
+  for(int i=0;i<msg->len;i++)
+	{
+	   msg_data[i] = msg->data[i];
+	}
+	cmdMsg.frame_id = msg->frame_id;
+	cmdMsg.type = msg->type;
+	cmdMsg.data = msg_data;
+	sensorMsg = &cmdMsg;
+	revFrame_Type_typEnum recve_type = (revFrame_Type_typEnum) (sensorMsg->type);
 	 switch(recve_type)
 	{
 	  case user_dist_ctl:/*测量命令*/
 		{
-			revFrame_distCtl_id_typEnum dist_ctl_id =  (revFrame_distCtl_id_typEnum) (cmdMsg->frame_id);
-		  dataGetCmdSlect(dist_ctl_id,msg);
+			revFrame_distCtl_id_typEnum dist_ctl_id =  (revFrame_distCtl_id_typEnum) (sensorMsg->frame_id);
+		  dataGetCmdSlect(dist_ctl_id,sensorMsg);
 		}break;
 	  case usr_paramCfg_get: /*参数获取*/
 		{
-			revFrame_paramCfg_getId_typEnum get_param_id =  (revFrame_paramCfg_getId_typEnum) (cmdMsg->frame_id);
-		  paramGetCmdSlect(get_param_id,msg);
+			revFrame_paramCfg_getId_typEnum get_param_id =  (revFrame_paramCfg_getId_typEnum) (sensorMsg->frame_id);
+		  paramGetCmdSlect(get_param_id,sensorMsg);
 		}break;		
 	  case user_paramCfg_set: /*参数配置*/
 		{
-		  revFrame_paramCfg_setId_typEnum set_param_id = (revFrame_paramCfg_setId_typEnum) (cmdMsg->frame_id);
-		  paramDataSaveCMD(set_param_id,msg);
+		  revFrame_paramCfg_setId_typEnum set_param_id = (revFrame_paramCfg_setId_typEnum) (sensorMsg->frame_id);
+		  paramDataSaveCMD(set_param_id,sensorMsg);
 		}	break;
 	  case system_boot_firmware_ctl: /*系统固件控制*/
 		{
@@ -325,8 +341,8 @@ TF_Msg *cmdMsg =NULL;
 		}	break;			
 	  case programer_ctl: /*开发人员控制*/
 		{ 
-			revFrame_programer_id_typEnum cmd_id = (revFrame_programer_id_typEnum) cmdMsg->frame_id;
-      programer_cmd(cmd_id,msg);
+			revFrame_programer_id_typEnum cmd_id = (revFrame_programer_id_typEnum) sensorMsg->frame_id;
+      programer_cmd(cmd_id,sensorMsg);
 		}	break;		
 				
 	}
