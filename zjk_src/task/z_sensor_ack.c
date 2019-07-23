@@ -5,7 +5,8 @@ extern TaskHandle_t xHandleDataOutFeq;
 extern void sensor_distOffset_calculate(_sensor_gesr_enum index);
 extern sensor_struct_typ sensor_running_vaile;
 
-
+bool if_debug=false;
+bool cureent_qcStandmode=false;
 void sensor_distContinu_ack(uint16_t dist)
 {
   uint8_t dist_buf[2] = {0};
@@ -40,10 +41,12 @@ void sensor_getAllParam_ack(void)
 			sensor_data[8] = lk_flash.outFreq &0xff;				
       zTF_paramCfg_getAll_Ack(sensor_data,9);
 }
+
 void sensor_getBaudRate_ack(void)
 {
       zTF_paramCfg_getBaudRate_Ack(&lk_flash.baud_rate,1);
 }
+
 void sensor_getFrontSwich_ack(void)
 {
      uint8_t sensor_data[2] ={0};		 
@@ -51,10 +54,12 @@ void sensor_getFrontSwich_ack(void)
 		sensor_data[1] = lk_flash.front_limit_trigger &0xff;	
 	 zTF_paramCfg_getFrontSwich_Ack(sensor_data,2);
 }
+
 void sensor_getDisBase_ack(void)
 {
 	 zTF_paramCfg_getDisBase_Ack(&lk_flash.front_or_base,1);
 }
+
 void sensor_getBackSwich_ack(void)
 {
      uint8_t sensor_data[2] ={0};		 
@@ -62,6 +67,7 @@ void sensor_getBackSwich_ack(void)
 		sensor_data[1] = lk_flash.front_limit_trigger &0xff;  
 	 zTF_paramCfg_getBackSwich_Ack(sensor_data,2);	      
 }
+
 void sensor_getPowerOnMode_ack(void)
 {
       zTF_paramCfg_getPowerOnMode_Ack(&lk_flash.autoRunMode,1);
@@ -95,6 +101,7 @@ void sensor_setBaudRate_ack(TF_Msg *msg)
 void sensor_setFrontSwich_ack(TF_Msg *msg)
 {
 	 lk_flash.front_limit_trigger =BigtoLittle16(msg->data);
+	 sensor_running_vaile.front_switch = lk_flash.front_limit_trigger;
 	  clear_msgData(msg);
 	 flash_writeMoreData( (uint16_t *)(flashParam.point),flashParam.lens/2+1);
    zTF_paramCfg_setFrontSwich_Ack();
@@ -102,7 +109,8 @@ void sensor_setFrontSwich_ack(TF_Msg *msg)
 void sensor_setBackSwich_ack(TF_Msg *msg)
 {
 	  lk_flash.back_limit_trigger = BigtoLittle16(msg->data);
-	   clear_msgData(msg);
+	  sensor_running_vaile.back_switch = lk_flash.back_limit_trigger;
+	  clear_msgData(msg);
 	  flash_writeMoreData( (uint16_t *)(flashParam.point),flashParam.lens/2+1);
       zTF_paramCfg_setBackSwich_Ack();
 	  
@@ -146,10 +154,19 @@ void sensor_setOutDataFreq_ack(TF_Msg *msg)
       zTF_paramCfg_setOutDataFreq_Ack();
 }
 
-
+extern void sensor_powerOn_flashParamCfg(void);
 void sensor_system_boot_paramReset_ack(void)
 {
-      zTF_system_boot_paramReset_Ack();
+	   lk_flash.baud_rate = lk_defaultParm.baud_rate;
+	   lk_flash.autoRunMode = lk_defaultParm.autoRunMode;
+	   lk_flash.front_limit_trigger = lk_defaultParm.front_limit_trigger;
+	   lk_flash.back_limit_trigger = lk_defaultParm.back_limit_trigger;
+	   lk_flash.outFreq = lk_defaultParm.outFreq;
+	   lk_flash.front_or_base = lk_defaultParm.front_or_base;
+	   flash_writeMoreData( (uint16_t *)(flashParam.point),flashParam.lens/2+1);
+	
+	   sensor_powerOn_flashParamCfg();
+     zTF_system_boot_paramReset_Ack();
 }
 
 void sensor_system_firmware_ctl_ack(void)
@@ -210,16 +227,19 @@ void sensor_qc_get_param_ack(void)
 void sensor_qc_standFirst_switch_ack(void)
 {
 		gear_select(&_TDC_GP21.vol_param[lk03_first_gears]);
+	  sensor_distOffset_calculate(lk03_first_gears);
 	  zTF_programer_qc_standFirst_switch_ack();
 }
 void sensor_qc_standSecond_switch_ack(void)
 {
 		gear_select(&_TDC_GP21.vol_param[lk03_second_gears]);
+	 sensor_distOffset_calculate(lk03_second_gears);
 	  zTF_programer_qc_standSecond_switch_ack();
 }
 void sensor_qc_standthird_switch_ack(void)
 {
 		gear_select(&_TDC_GP21.vol_param[lk03_third_gears]);
+	 sensor_distOffset_calculate(lk03_third_gears);
 	  zTF_programer_qc_standthird_switch_ack();
 }
 void sensor_qc_standFirst_reset_ack(void)
@@ -255,6 +275,21 @@ void sensor_qc_standthird_save_ack(TF_Msg *msg)
 	zTF_programer_qc_standthird_save_ack();
 }
 
+
+void sensor_debug_data(uint16_t dist, uint16_t agc, uint16_t sighal, uint8_t gears)
+{
+  	uint8_t sensor_data[7] ={0};
+		sensor_data[0] = dist>>8; 
+    sensor_data[1] = dist&0xff;
+		sensor_data[2] = agc>>8; 
+    sensor_data[3] = agc&0xff;
+		sensor_data[4] = sighal>>8; 
+    sensor_data[5] = sighal&0xff;		
+    sensor_data[6] = gears;
+		zTF_programer_debug_sensorParam_ack(sensor_data,7);
+}
+
+
 extern void start_singnal(void);
  void sensor_struct_loop(sensor_struct_ * p)
  {
@@ -267,6 +302,8 @@ extern void start_singnal(void);
 			}break;
 		  case dist_continue_ack_cmd:
 			{
+				lk_bsp_power_on();
+				if_debug = false;
 				start_singnal();
 				vTaskResume(xHandleDataOutFeq);  //恢复数据输出任务
 			}break;		
@@ -276,8 +313,13 @@ extern void start_singnal(void);
 			}break;			
 		  case dist_stop_ack_cmd:
 			{
+				 lk_bsp_power_off();
 				  vTaskSuspend(xHandleDataOutFeq);   //挂起任务
 			    sensor_distStop_ack();   //停止测量
+			}break;
+		  case dist_null_cmd:
+			{
+				 zTF_NullDistAck();  //无效数据应答
 			}break;			
 		  case get_paramAll_base_cmd:
 			{
@@ -377,7 +419,7 @@ extern void start_singnal(void);
 			}break;				
 		  case system_boot_paramReset_ack_cmd:
 			{
-			
+			   sensor_system_boot_paramReset_ack();
 			}break;
 		  case system_boot_firmware_ctl_ack_cmd:
 			{
@@ -387,7 +429,19 @@ extern void start_singnal(void);
 			{
 			
 			}break;
-     
+		  case programer_debugMode_cmd:
+			{
+			  if_debug = true;
+				lk_bsp_power_on();
+        start_singnal();
+				vTaskResume(xHandleDataOutFeq);  //恢复数据输出任务				 
+			}break;
+		  case programer_qcStamdMode_cmd:  //标定模式
+			{
+	       cureent_qcStandmode =true;
+				_TDC_GP21.running_statu = IDLE;
+				zTF_programer_standMode_switch_ack();
+			}break; 			
 		}
     p->cmd = sensor_idle;
  

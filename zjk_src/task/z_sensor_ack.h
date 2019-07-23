@@ -7,6 +7,10 @@
 #include "z_lko3.h"
 #include "FreeRTOS.h"
 #define BigtoLittle16(A)   (( (*(uint16_t*)A & 0xff00) >> 8)  | (( (*(uint16_t*)A & 0x00ff) << 8)))
+
+extern bool if_debug;
+extern bool cureent_qcStandmode;
+
 /*dist ack*/
 void sensor_distContinu_ack(uint16_t dist);
 void sensor_distOnce_ack(uint16_t dist);
@@ -32,8 +36,8 @@ void sensor_system_firmware_pakage_ack(void);
 
 void sensor_struct_loop(sensor_struct_ * p);
 
-
-
+//debug
+void sensor_debug_data(uint16_t dist, uint16_t agc, uint16_t sighal, uint8_t gears);
 ////
 void baudRateCfg_select(sensor_baudRate_typeEnum cmd);
 #endif

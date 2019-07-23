@@ -139,6 +139,8 @@ void Error_Handler(void);
 #define TDC_Sighal_AngleReles_GPIO_Port GPIOC
 #define Laser_Light_Pin GPIO_PIN_2
 #define Laser_Light_GPIO_Port GPIOD
+#define sensor_rs485_dir_Pin GPIO_PIN_8
+#define sensor_rs485_dir_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

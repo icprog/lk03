@@ -64,8 +64,27 @@ HIGHL_VOL_GP21 gp21_highVolCrlParm[3]=
    tdc_rx_voltge_low();
 
 }
+/*bsp 电源打开**/
+
+void lk_bsp_power_on(void)
+{
+	tdc_5v_power_on();
+	tdc_txHigh_power_on();
+	tdc_rxHigh_power_on();
+}
+
+/*bsp 电源关闭**/
+
+void lk_bsp_power_off(void)
+{
+	tdc_5v_power_off();
+	tdc_txHigh_power_off();
+	tdc_rxHigh_power_off();
+}
+/*初始化**/
  void tdc_board_init(void)
  {  
+	lk_bsp_power_off(); 
 	 for(int i=0;i<3;i++)
 	 {
 			_TDC_GP21.vol_param[i] = gp21_highVolCrlParm[i];
@@ -76,8 +95,7 @@ HIGHL_VOL_GP21 gp21_highVolCrlParm[3]=
 		start_rx_tim();
 		GP21_Init(); 
 		gp21_write(OPC_START_TOF);		 /*LK  gp21 Init*/	
-				
-    
+
     _TDC_GP21.pid.Kp = PID_KP;
     _TDC_GP21.pid.Ki = PID_KI;	 
 	  _TDC_GP21.pid.setpoint = PID_SETPOINT;
@@ -156,4 +174,42 @@ void gear_select(HIGHL_VOL_GP21 *g)
   {
 	    tdc_boot_vol_low();
 	}		
+}
+
+extern void sensor_distOffset_calculate(_sensor_gesr_enum index);
+
+void gear_select_switch(_sensor_gesr_enum gear_index)
+{
+  _sensor_gesr_enum index = gear_index;
+	HIGHL_VOL_GP21 *p=NULL;
+	p=&_TDC_GP21.vol_param[index];
+	 sensor_distOffset_calculate(index);
+	switch(index)
+	{
+		case lk03_first_gears:
+		{
+//			 _TDC_GP21.messge_mode=GP21_MESSGE1;
+//			 lk_gp21MessgeMode_switch(&_TDC_GP21);				
+			_TDC_GP21.pid.setpoint = 1000;
+			_TDC_GP21.cureent_gear = 1;
+		    __HAL_TIM_SET_AUTORELOAD(&htim3,100);  //设定100us周期
+		}break;
+		case lk03_second_gears:
+		{
+//			 _TDC_GP21.messge_mode=GP21_MESSGE1;
+//			 lk_gp21MessgeMode_switch(&_TDC_GP21);				
+		  _TDC_GP21.pid.setpoint = 1000;
+			_TDC_GP21.cureent_gear = 2;
+       __HAL_TIM_SET_AUTORELOAD(&htim3,100);  //设定100us周期				
+		}break;
+		case lk03_third_gears:
+		{
+//			 _TDC_GP21.messge_mode=GP21_MESSGE2;
+//			 lk_gp21MessgeMode_switch(&_TDC_GP21);			
+			_TDC_GP21.pid.setpoint = 800;
+			_TDC_GP21.cureent_gear = 3;
+		   __HAL_TIM_SET_AUTORELOAD(&htim3,500);  //设定500us周期
+		}break;		
+	}
+  gear_select(p);
 }

@@ -12,7 +12,7 @@
 
 typedef enum{ trig_onece_complete =1,trig_enough_complete,trig_time_out} TDC_TRIGSTATU;
 typedef enum  {VOL_CTL1,VOL_CTL2,VOL_CTL3}TX_VOL_ENUM_TYP;
-typedef enum  {START,FIRST,SECOND,THIRD,STYLE}RUN_STATU;
+typedef enum  {IDLE,START,FIRST,SECOND,THIRD,STYLE}RUN_STATU;
 typedef enum{lk03_first_gears=0,lk03_second_gears,lk03_third_gears} _sensor_gesr_enum;
 typedef enum{GP21_MESSGE1=1,GP21_MESSGE2=2,}GP21_MESSAGE_MODE;  //GP21测量模式
 typedef struct {
@@ -67,7 +67,9 @@ typedef struct
 {
 	HIGHL_VOL_GP21  vol_param[3];
 	/*当前运行状态*/
-	RUN_STATU  running_statu; 
+	RUN_STATU  running_statu;
+  /*当前的档位*/	
+	 uint8_t cureent_gear; //1,2,3
 	/*GP21获取数据状态*/
 	TDC_TRIGSTATU statu;
 	/*当前GP21测量模式*/
@@ -124,6 +126,16 @@ typedef struct
 
 #define sensor_ouput_switch_high()    HAL_GPIO_WritePin(senor_switch_GPIO_Port,senor_switch_Pin,GPIO_PIN_SET)
 #define sensor_ouput_switch_low()     HAL_GPIO_WritePin(senor_switch_GPIO_Port,senor_switch_Pin,GPIO_PIN_RESET)
+
+#define tdc_5v_power_off()    HAL_GPIO_WritePin(TDC_Power_Ctl_GPIO_Port,TDC_Power_Ctl_Pin,GPIO_PIN_SET)
+#define tdc_5v_power_on()     HAL_GPIO_WritePin(TDC_Power_Ctl_GPIO_Port,TDC_Power_Ctl_Pin,GPIO_PIN_RESET)
+
+#define tdc_txHigh_power_off()    HAL_GPIO_WritePin(High_Vol_Ctl_GPIO_Port,High_Vol_Ctl_Pin,GPIO_PIN_SET)
+#define tdc_txHigh_power_on()     HAL_GPIO_WritePin(High_Vol_Ctl_GPIO_Port,High_Vol_Ctl_Pin,GPIO_PIN_RESET)
+
+#define tdc_rxHigh_power_off()    HAL_GPIO_WritePin(Rx_Power_Ctl_GPIO_Port,Rx_Power_Ctl_Pin,GPIO_PIN_SET)
+#define tdc_rxHigh_power_on()     HAL_GPIO_WritePin(Rx_Power_Ctl_GPIO_Port,Rx_Power_Ctl_Pin,GPIO_PIN_RESET)
+
 void tdc_rx_voltge_relese(void);
 /*
 #define  TX_HIGH_VOL_TLC5618 1200  //50.1v
@@ -163,14 +175,16 @@ void tdc_rx_voltge_relese(void);
 
 #define PID_KP      0.1
 #define PID_KI      0.05
-#define PID_SETPOINT 800
+#define PID_SETPOINT 1000
 
 #define Debug_Pid   1
+void lk_bsp_power_on(void);   //开始连续测量时候打开
+void lk_bsp_power_off(void);	//停止测量测量关闭			
 void  lk_gp21MessgeMode_switch(_TDC_TYP *gp);
 extern _TDC_TYP _TDC_GP21;
 void tdc_board_init(void);
 void gear_select(HIGHL_VOL_GP21 *g);
 uint16_t gp21_distance_cal(uint32_t *dit,uint8_t dislens);
-
+void gear_select_switch(_sensor_gesr_enum gear_index);
 #endif
 

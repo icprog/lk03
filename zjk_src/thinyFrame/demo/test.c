@@ -47,7 +47,7 @@ parm_ lk_defaultParm ={
   .front_or_base = 0,      //前基准：1 后基准：0
 	.ifHasConfig = 0,      //第一次烧写flash后会变成0x01
   .autoRunMode =0,       //自动运行关闭
-	.outFreq = 1000         //输出频率1000hz   
+	.outFreq = 10,         //输出频率10hz   
 };
 
 
@@ -235,9 +235,35 @@ void programer_cmd(revFrame_programer_id_typEnum qc, TF_Msg *msg)
 		{
 				sensor_strct.cmd = qc_get_param_cmd;
 		}break;			
+    case debug_dist_continue :  //开始调试
+		{
+				sensor_strct.cmd = programer_debugMode_cmd;
+		}break;	
+    case sensor_dist_standMode_switch :  //标定模式
+		{
+				sensor_strct.cmd = programer_qcStamdMode_cmd;
+		}break;						
 	}
  
 }
+
+void system_ctl_cmd(revFrame_system_ctl_id_typEnum id, TF_Msg *msg)
+{
+		sensor_strct.msg = msg;
+    revFrame_system_ctl_id_typEnum cmd = id;
+	  switch(cmd)
+		{
+			case system_param_reset:
+			{
+			  sensor_strct.cmd = system_boot_paramReset_ack_cmd;
+			
+			}break;
+		
+		}
+
+}
+
+
 
 
 //调试命令
@@ -337,7 +363,8 @@ void clear_msgData(TF_Msg *msg)
 
 	  case system_boot_param: /*系统参数*/
 		{
-
+      revFrame_system_ctl_id_typEnum system_id = (revFrame_system_ctl_id_typEnum) sensorMsg->frame_id;   
+	    system_ctl_cmd(system_id,sensorMsg); 
 		}	break;			
 	  case programer_ctl: /*开发人员控制*/
 		{ 
@@ -415,6 +442,7 @@ void test_send_cmd(void)
 
 void z_tiny_test(void)
 {
+
    z_ListenerInit();
 	 test_send_cmd();
 	 if(addUartDmaRevListen(tinyRecFunc)) 
@@ -441,7 +469,11 @@ void zTF_StopDistAck(void)
   lk_user_ack(dist_stop_ack,NULL,NULL);
 }
 
-
+//无效数据发生
+void zTF_NullDistAck(void)
+{
+  lk_user_ack(dist_null_ack,NULL,NULL);
+}
 //连续测量应答数据
 TF_Msg dist_continue_msg;
 void zTF_sendContinueDistAck(uint8_t *data,uint8_t lens)
@@ -593,6 +625,19 @@ void zTF_programer_qc_standthird_save_ack(void)
 {
   lk_programer_ack(qc_standthird_save_ack,NULL,NULL);
 }
+
+
+//调试应答
+void zTF_programer_debug_sensorParam_ack(uint8_t *data,uint8_t lens)
+{
+  lk_programer_ack(sensor_debugMode_switch_ack,data,lens);
+}
+
+void zTF_programer_standMode_switch_ack(void)
+{
+  lk_programer_ack(sensor_dist_standMode_switch_ack,NULL,NULL);
+}
+
 
 /***********************************************
    用户通用 应答

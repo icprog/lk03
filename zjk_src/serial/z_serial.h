@@ -9,6 +9,8 @@ void z_serial_write(uint8_t *ch, uint32_t lens);
 void z_serial_init(void);
 void get_revLens(uint16_t *data);
 void usartIdleInt(void);
+#define sensor_rs485_dir_ouput()     HAL_GPIO_WritePin(sensor_rs485_dir_GPIO_Port,sensor_rs485_dir_Pin,GPIO_PIN_SET)
+#define sensor_rs485_dir_input()     HAL_GPIO_WritePin(sensor_rs485_dir_GPIO_Port,sensor_rs485_dir_Pin,GPIO_PIN_RESET)
 typedef void (* _listenFunc)(uint8_t *buf);
 typedef struct 
 {

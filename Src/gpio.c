@@ -56,7 +56,7 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, Rx_Power_Ctl_Pin|boot_vol_ctl_Pin|tlc5618_cs_Pin|High_Vol_Ctl_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, GP21_EN_Start_Pin|GP21_RSTN_Pin|GP21_EN_Stop2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, GP21_EN_Start_Pin|GP21_RSTN_Pin|GP21_EN_Stop2_Pin|sensor_rs485_dir_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GP21_NSS_GPIO_Port, GP21_NSS_Pin, GPIO_PIN_SET);
@@ -64,24 +64,15 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(Laser_Light_GPIO_Port, Laser_Light_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : PCPin PCPin PCPin PCPin 
-                           PCPin PCPin */
-  GPIO_InitStruct.Pin = TDC_Power_Ctl_Pin|GP21_EN_Stop1_Pin|TX_Vol_Ctrl3_Pin|TX_Vol_Ctrl2_Pin 
-                          |TX_Vol_Ctrl1_Pin|TDC_Sighal_AngleReles_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  /*Configure GPIO pin : PtPin */
+  GPIO_InitStruct.Pin = TDC_Power_Ctl_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  HAL_GPIO_Init(TDC_Power_Ctl_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PAPin PAPin */
-  GPIO_InitStruct.Pin = Rx_Power_Ctl_Pin|tlc5618_cs_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : PAPin PAPin */
-  GPIO_InitStruct.Pin = boot_vol_ctl_Pin|High_Vol_Ctl_Pin;
+  /*Configure GPIO pins : PAPin PAPin PAPin */
+  GPIO_InitStruct.Pin = Rx_Power_Ctl_Pin|boot_vol_ctl_Pin|High_Vol_Ctl_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -93,12 +84,30 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GP21_INTN_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PBPin PBPin PBPin PBPin */
-  GPIO_InitStruct.Pin = GP21_EN_Start_Pin|GP21_RSTN_Pin|GP21_EN_Stop2_Pin|GP21_NSS_Pin;
+  /*Configure GPIO pins : PCPin PCPin PCPin PCPin 
+                           PCPin */
+  GPIO_InitStruct.Pin = GP21_EN_Stop1_Pin|TX_Vol_Ctrl3_Pin|TX_Vol_Ctrl2_Pin|TX_Vol_Ctrl1_Pin 
+                          |TDC_Sighal_AngleReles_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PBPin PBPin PBPin PBPin 
+                           PBPin */
+  GPIO_InitStruct.Pin = GP21_EN_Start_Pin|GP21_RSTN_Pin|GP21_EN_Stop2_Pin|GP21_NSS_Pin 
+                          |sensor_rs485_dir_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PtPin */
+  GPIO_InitStruct.Pin = tlc5618_cs_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(tlc5618_cs_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PtPin */
   GPIO_InitStruct.Pin = senor_switch_Pin;

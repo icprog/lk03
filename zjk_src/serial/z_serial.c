@@ -18,6 +18,7 @@ void z_serialDriverTask(void const * argument)
 {
    	 BaseType_t xResult;
 	   z_serial_init();    //dma start
+	
    for(;;)
 	  {
 			xResult = xSemaphoreTake(serialSemaphore,portMAX_DELAY);
@@ -86,8 +87,9 @@ static void z_serial_dma_start(void)
 
 void z_serial_write( uint8_t *ch, uint32_t lens)
 {
-
+   sensor_rs485_dir_ouput();
    HAL_UART_Transmit(z_serial,ch,lens,0xff);
+	 sensor_rs485_dir_input();
 }
 
 int fputc(int ch, FILE* stream)
