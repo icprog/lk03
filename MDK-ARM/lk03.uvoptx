@@ -120,6 +120,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGUARM</Key>
+          <Name>阿??騰阿??騰阿?</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -203,6 +204,16 @@
           <count>8</count>
           <WinNumber>1</WinNumber>
           <ItemText>dist</ItemText>
+        </Ww>
+        <Ww>
+          <count>9</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>testbuf</ItemText>
+        </Ww>
+        <Ww>
+          <count>10</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>erro_count_test</ItemText>
         </Ww>
       </WatchWindow1>
       <MemoryWindow1>

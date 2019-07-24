@@ -171,7 +171,7 @@ void tdc_rx_voltge_relese(void);
 /*≤Œ ˝≈‰÷√*/
 #define AD603_AGC_DEFAULT   500  
 #define AD603_AGC_MIN     100 //0.16V -10DB
-#define AD603_AGC_MAX     700//0.720V 20DB
+#define AD603_AGC_MAX     650//0.720V 20DB
 
 #define PID_KP      0.1
 #define PID_KI      0.05

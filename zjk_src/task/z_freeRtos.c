@@ -149,7 +149,7 @@ void LK_sensorParamTask(void *argument)
 #else 
  
     sensor_powerOn_flashParamCfg();
-  //sensor_strct.cmd = dist_continue_ack_cmd;  
+ sensor_strct.cmd = dist_continue_ack_cmd;  
 	//sensor_ouput_switch_high();
 #endif	
   for(;;)
@@ -453,10 +453,10 @@ void SerialTask(void  *argument)
 			 }break;
 			 case FIRST:
 			 {
-				   if(_TDC_GP21.pid_resualt >600)  //第1档增益大于600时 (_TDC_GP21.pid_resualt >620)&(
+				   if((_TDC_GP21.pid_resualt >600)&&(_TDC_GP21.distance>4500) ) //第1档增益大于600时 (_TDC_GP21.pid_resualt >620)&(
 					 {
-						   gear_select_switch(lk03_second_gears);
-						  _TDC_GP21.running_statu = SECOND;
+//						   gear_select_switch(lk03_second_gears);
+//						  _TDC_GP21.running_statu = SECOND;
 					 }
 				 
 			 }break;
@@ -467,7 +467,7 @@ void SerialTask(void  *argument)
 						  gear_select_switch(lk03_third_gears);
 						 _TDC_GP21.running_statu = THIRD;
 					 }
-					 else if(_TDC_GP21.pid_resualt <280) //切换第一档((_TDC_GP21.pid_resualt <280)&(_TDC_GP21.distance<3500))
+					 else if((_TDC_GP21.pid_resualt <280)&&(_TDC_GP21.distance<2000)) //切换第一档((_TDC_GP21.pid_resualt <280)&(_TDC_GP21.distance<3500))
 					 {
 						   gear_select_switch(lk03_first_gears);
 						  _TDC_GP21.running_statu = FIRST;
@@ -521,8 +521,8 @@ void lk_sensor_outData_Task(void *argument)
 			 }
 			 else
 			 {
-				  //Send_Pose_Data(&_TDC_GP21.siganl.vol,&average,&_TDC_GP21.pid_resualt);
-         sensor_distContinu_ack(average); 				 
+				  Send_Pose_Data(&_TDC_GP21.siganl.vol,&average,&_TDC_GP21.pid_resualt);
+        // sensor_distContinu_ack(average); 				 
 			 }
 				//sensor_distContinu_ack(_TDC_GP21.distance);   
 			// sensor_distContinu_ack(average);   
@@ -826,9 +826,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		{
 		   ms1_err0++;
 		}
+		trigCount++;
   if(((gp21_statu_INT &0x400)==false)&&((gp21_statu_INT &0x200)==false)&&(gp21_statu_INT!=0)) //无效值
-			{	
-				trigCount++;
+			{		
 				if(_TDC_GP21.ifMachineFine)  //机器正常运行情况下
 				{
 				  _TDC_GP21.buff[trigCount-1] = GP21_REG;//收集激光测量数据
@@ -852,14 +852,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 								mes2_have_sighal=true;
 							}							
 					}
-//						if(_TDC_GP21.messge_mode==GP21_MESSGE1)
-//							{
-//								ms1_err0 = 0;
-//							}
-//							if(_TDC_GP21.messge_mode==GP21_MESSGE2)
-//							{
-//								ms2_erro = 0;
-//							}				
 					//开始采集电压
 							z_analog_convert(&_TDC_GP21.siganl.vol); 	
 						if(_TDC_GP21.pid.ifTrunOn)
@@ -912,8 +904,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 						{
 							_TDC_GP21.siganl.vol = z_analog_covertDMA ();
 								erro_count_test ++;
-						}				
-				_TDC_GP21.pid_resualt= tdc_agc_control(_TDC_GP21.siganl.vol,_TDC_GP21.pid.setpoint); //pid控制峰值电压
+						}	
+						if(trigCount == DISTANCE_RCV_SIZE) 	
+					{				
+						  trigCount = 0;
+							tdc_rx_voltge_relese();   /*高压信号采集释放*/	
+							_TDC_GP21.pid_resualt= tdc_agc_control(_TDC_GP21.siganl.vol,_TDC_GP21.pid.setpoint); //pid控制峰值电压
+					}
 					}	//endif _TDC_GP21.pid.ifTrunOn
 	   gp21_write(OPC_INIT);						
 		}				
