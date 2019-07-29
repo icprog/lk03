@@ -6,3 +6,4 @@ void flash_paramRead(uint8_t *buff, uint16_t lens);
 void flash_SaveInit(void);
 void flash_writeMoreData( uint16_t *toWriteData, uint16_t toSize);
 #endif
+

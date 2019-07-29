@@ -3,7 +3,7 @@
 _TDC_TYP _TDC_GP21;
 TIM_HandleTypeDef *z_tlc_rxHv_pwm= &htim2;
  uint16_t GP21_TNS_GLOBAL=0;
-HIGHL_VOL_GP21 gp21_highVolCrlParm[3]=
+high_value_control_ gp21_highVolCrlParm[3]=
 {
   first_vol_param,
   second_vol_param,	
@@ -87,20 +87,19 @@ void lk_bsp_power_off(void)
 	lk_bsp_power_off(); 
 	 for(int i=0;i<3;i++)
 	 {
-			_TDC_GP21.vol_param[i] = gp21_highVolCrlParm[i];
+			_TDC_GP21.system_statu.high_value_defconfg[i] = gp21_highVolCrlParm[i];
 	 
 	 }
-	 	 tlc5618_write(_TDC_GP21.vol_param[lk03_first_gears].tx5618_value,AD603_AGC_DEFAULT); /*LK  AGC DAC Voltage control*/  
-	  tlc5618_writeAchannal(_TDC_GP21.vol_param[lk03_first_gears].tx5618_value);	  
+	 	tlc5618_write(_TDC_GP21.system_statu.high_value_defconfg[lk03_first_gears].tx5618_value,AD603_AGC_DEFAULT); /*LK  AGC DAC Voltage control*/  
+	   tlc5618_writeAchannal(_TDC_GP21.system_statu.high_value_defconfg[lk03_first_gears].tx5618_value);	  
 		start_rx_tim();
-		GP21_Init(); 
-		gp21_write(OPC_START_TOF);		 /*LK  gp21 Init*/	
+		lk_gp2x_init(); 
+	//	
+(OPC_START_TOF);		 /*LK  gp21 Init*/	
 
     _TDC_GP21.pid.Kp = PID_KP;
     _TDC_GP21.pid.Ki = PID_KI;	 
 	  _TDC_GP21.pid.setpoint = PID_SETPOINT;
-//	 _TDC_GP21.messge_mode=GP21_MESSGE1;
-//	 lk_gp21MessgeMode_switch(&_TDC_GP21);
 
  }
  
@@ -140,19 +139,22 @@ uint16_t gp21_distance_cal(uint32_t *dit,uint8_t dislens)
   // dist_av = 0;
 }
 
-void  lk_gp21MessgeMode_switch(_TDC_TYP *gp)
+void  lk_gp21MessgeMode_switch(GP21_MESSAGE_MODE messge_mode)
 {
-   switch(gp->messge_mode)
+	_TDC_GP21.tdc_gp2x.measure_mode=messge_mode;
+   switch(_TDC_GP21.tdc_gp2x.measure_mode)
 	 {
 		 case GP21_MESSGE1:
 		 {
-			 GP21_TNS_GLOBAL=1000;
-		    gp21_defaultcofg();		 
+			GP21_TNS_GLOBAL=1000;
+		   gp21_defaultcofg();	
+           gp21_write_reg(OPC_INIT);			 
 		 }break;
 		 case GP21_MESSGE2:
 		 {
 			  GP21_TNS_GLOBAL=250;
-		    gp21_messgeModeTwo();		 
+		    gp21_messgeModeTwo();
+        gp21_write_reg(OPC_INIT);			 
 		 }break;	 
 	 
 	 }
@@ -160,10 +162,10 @@ void  lk_gp21MessgeMode_switch(_TDC_TYP *gp)
 
 
  /*档位选择*/
-void gear_select(HIGHL_VOL_GP21 *g)
+void gear_select(high_value_control_ *g)
 {
 	
-	HIGHL_VOL_GP21 *p=g; 
+	high_value_control_ *p=g; 
 	tlc5618_writeAchannal(p->tx5618_value);	  	/*LK  AGC DAC Voltage control*/  
 	rx_pwmHv (p->rx_vol_value);   //接收高压
   tx_VolCtl(p->tx_vol_ctl);    /*tx high voltage control*/ 
@@ -181,8 +183,8 @@ extern void sensor_distOffset_calculate(_sensor_gesr_enum index);
 void gear_select_switch(_sensor_gesr_enum gear_index)
 {
   _sensor_gesr_enum index = gear_index;
-	HIGHL_VOL_GP21 *p=NULL;
-	p=&_TDC_GP21.vol_param[index];
+	high_value_control_ *p=NULL;
+	p=&_TDC_GP21.system_statu.high_value_defconfg[index];
 	 sensor_distOffset_calculate(index);
 	switch(index)
 	{
@@ -191,7 +193,7 @@ void gear_select_switch(_sensor_gesr_enum gear_index)
 //			 _TDC_GP21.messge_mode=GP21_MESSGE1;
 //			 lk_gp21MessgeMode_switch(&_TDC_GP21);				
 			_TDC_GP21.pid.setpoint = 1000;
-			_TDC_GP21.cureent_gear = 1;
+			_TDC_GP21.system_statu.cureent_gear = 1;
 		    __HAL_TIM_SET_AUTORELOAD(&htim3,100);  //设定100us周期
 		}break;
 		case lk03_second_gears:
@@ -199,7 +201,7 @@ void gear_select_switch(_sensor_gesr_enum gear_index)
 //			 _TDC_GP21.messge_mode=GP21_MESSGE1;
 //			 lk_gp21MessgeMode_switch(&_TDC_GP21);				
 		  _TDC_GP21.pid.setpoint = 1000;
-			_TDC_GP21.cureent_gear = 2;
+			_TDC_GP21.system_statu.cureent_gear = 2;
        __HAL_TIM_SET_AUTORELOAD(&htim3,100);  //设定100us周期				
 		}break;
 		case lk03_third_gears:
@@ -207,9 +209,10 @@ void gear_select_switch(_sensor_gesr_enum gear_index)
 //			 _TDC_GP21.messge_mode=GP21_MESSGE2;
 //			 lk_gp21MessgeMode_switch(&_TDC_GP21);			
 			_TDC_GP21.pid.setpoint = 800;
-			_TDC_GP21.cureent_gear = 3;
+			_TDC_GP21.system_statu.cureent_gear = 3;
 		   __HAL_TIM_SET_AUTORELOAD(&htim3,500);  //设定500us周期
 		}break;		
 	}
   gear_select(p);
 }
+

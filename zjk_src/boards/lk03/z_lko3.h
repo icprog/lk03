@@ -12,7 +12,7 @@
 
 typedef enum{ trig_onece_complete =1,trig_enough_complete,trig_time_out} TDC_TRIGSTATU;
 typedef enum  {VOL_CTL1,VOL_CTL2,VOL_CTL3}TX_VOL_ENUM_TYP;
-typedef enum  {IDLE,START,FIRST,SECOND,THIRD,STYLE}RUN_STATU;
+typedef enum  {IDLE,START,FIRST,SECOND,THIRD,LONG_DISTANCE_MODE,STYLE}RUN_STATU;
 typedef enum{lk03_first_gears=0,lk03_second_gears,lk03_third_gears} _sensor_gesr_enum;
 typedef enum{GP21_MESSGE1=1,GP21_MESSGE2=2,}GP21_MESSAGE_MODE;  //GP21测量模式
 typedef struct {
@@ -53,7 +53,7 @@ typedef struct{
 	uint16_t  rx_vol_value;  //接收高压参数	
 	TX_VOL_ENUM_TYP tx_vol_ctl;
 	bool ifBootVolCtl;
-} HIGHL_VOL_GP21;
+} high_value_control_;
 
 
 /*档位距离*/
@@ -63,18 +63,24 @@ typedef struct{
 	uint16_t  third_distance;  //第3档距离
 } gear_distance_typ;
 
+typedef struct{
+	 GP21_MESSAGE_MODE measure_mode;
+	 TDC_TRIGSTATU     status;
+	 uint32_t          erro_cnt;
+} tdc_gp2x_statu_;
+
+
+typedef struct{
+	high_value_control_  high_value_defconfg[3];   //高压控制参数
+  uint8_t cureent_gear;     /*当前的档位*/
+	RUN_STATU  running_statu;  /*当前运行状态*/
+} system_statu_;
+
 typedef struct   
 {
-	HIGHL_VOL_GP21  vol_param[3];
-	/*当前运行状态*/
-	RUN_STATU  running_statu;
-  /*当前的档位*/	
-	 uint8_t cureent_gear; //1,2,3
-	/*GP21获取数据状态*/
-	TDC_TRIGSTATU statu;
-	/*当前GP21测量模式*/
-	GP21_MESSAGE_MODE messge_mode;
-	
+	system_statu_  system_statu;  
+	/*s时间转换芯片gp21状态*/
+	tdc_gp2x_statu_ tdc_gp2x;
 	/*数据缓存*/
 	uint32_t buff[DISTANCE_RCV_SIZE];
 	/*是否完成数据转换*/
@@ -180,11 +186,12 @@ void tdc_rx_voltge_relese(void);
 #define Debug_Pid   1
 void lk_bsp_power_on(void);   //开始连续测量时候打开
 void lk_bsp_power_off(void);	//停止测量测量关闭			
-void  lk_gp21MessgeMode_switch(_TDC_TYP *gp);
+void  lk_gp21MessgeMode_switch(GP21_MESSAGE_MODE messge_mode);
 extern _TDC_TYP _TDC_GP21;
 void tdc_board_init(void);
-void gear_select(HIGHL_VOL_GP21 *g);
+void gear_select(high_value_control_ *g);
 uint16_t gp21_distance_cal(uint32_t *dit,uint8_t dislens);
 void gear_select_switch(_sensor_gesr_enum gear_index);
+				
 #endif
 

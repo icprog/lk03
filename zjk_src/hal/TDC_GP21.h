@@ -1,25 +1,26 @@
 #ifndef _TDC_GP21_H
 #define _TDC_GP21_H
 #include "stm32f1xx_hal.h"
+#include "stdbool.h"
 #include "main.h"
 #include "spi.h"
 
 //REGISTER 0
-#define RER0_ANZ_FIRE(x)      ((uint32_t)x)<<28
-#define RER0_DIV_FIRE(x)      ((uint32_t)x)<<24
-#define RER0_ANZ_PER_CALRES(x)((uint32_t)x)<<22
-#define RER0_DIV_CLKHS(x)     ((uint32_t)x)<<20
-#define RER0_START_CLKHS(x)   ((uint32_t)x)<<18
-#define RER0_ANZ_PORT(x)      ((uint32_t)x)<<17
-#define RER0_TCYCLE(x)        ((uint32_t)x)<<16
-#define RER0_ANZ_FAKE(x)      ((uint32_t)x)<<15
-#define RER0_SEL_ECLK_TEMP(x) ((uint32_t)x)<<14
-#define RER0_CALIBRATE(x)     ((uint32_t)x)<<13
-#define RER0_NO_CAL_AUTO(x)   ((uint32_t)x)<<12
-#define RER0_MESSB2(x)        ((uint32_t)x)<<11
-#define RER0_NEG_STOP2(x)     ((uint32_t)x)<<10
-#define RER0_NEG_STOP1(x)     ((uint32_t)x)<<9
-#define RER0_NEG_START(x)     ((uint32_t)x)<<8
+#define REG0_ANZ_FIRE(x)      ((uint32_t)x)<<28
+#define REG0_DIV_FIRE(x)      ((uint32_t)x)<<24
+#define REG0_ANZ_PER_CALRES(x)((uint32_t)x)<<22
+#define REG0_DIV_CLKHS(x)     ((uint32_t)x)<<20
+#define REG0_START_CLKHS(x)   ((uint32_t)x)<<18
+#define REG0_ANZ_PORT(x)      ((uint32_t)x)<<17
+#define REG0_TCYCLE(x)        ((uint32_t)x)<<16
+#define REG0_ANZ_FAKE(x)      ((uint32_t)x)<<15
+#define REG0_SEL_ECLK_TEMP(x) ((uint32_t)x)<<14
+#define REG0_CALIBRATE(x)     ((uint32_t)x)<<13
+#define REG0_NO_CAL_AUTO(x)   ((uint32_t)x)<<12
+#define REG0_MESSB2(x)        ((uint32_t)x)<<11
+#define REG0_NEG_STOP2(x)     ((uint32_t)x)<<10
+#define REG0_NEG_STOP1(x)     ((uint32_t)x)<<9
+#define REG0_NEG_START(x)     ((uint32_t)x)<<8
 
 
 
@@ -44,7 +45,7 @@
 #define REG3_EN_AUTOCALC_MB2(x)    ((uint32_t)x)<<31
 #define REG3_EN_EN_FIRST_WAVE(x)   ((uint32_t)x)<<30
 #define REG3_EN_EN_ERR_VAL(x)      ((uint32_t)x)<<29
-#define REG3_EN_SEL_TIMO_MB2(x)    ((uint32_t)x)<<27
+#define REG3_EN_SEL_TIMO_MB2_2bits(x)    ((uint32_t)x)<<27
 #define REG3_EN_DELVAL2(x)         ((uint32_t)x)<<8
 
 //REGISTER 3 - EN_FIRST_WAVE = 1
@@ -88,13 +89,12 @@
 #define REG6_TEMP_PORTDIR(x)  ((uint32_t)x)<<11
 #define REG6_ANZ_FIRE(x)      ((uint32_t)x)<<8
 
-
-///
+/* Opcodes -------------------------------------------------------------------*/  
 #define OPC_START_TOF            0x01
 #define OPC_INIT                 0x70
 #define OPC_RESET                0x50
 #define OPC_ID                   0xB7
-#define OPC_Reg1highByte          0xB5
+#define OPC_Reg1highByte         0xB5
 #define OP_CODE_WR(addr)         (0x80 | (addr))
 #define OP_CODE_RD(addr)         (0xB0 | (addr))
 ////
@@ -107,8 +107,8 @@
 #define C_VELOCITY            29.9792458 // velocity of light (cm/ns)
 
 
-#define gp21_select()    HAL_GPIO_WritePin(GP21_NSS_GPIO_Port,GP21_NSS_Pin,GPIO_PIN_RESET)
-#define gp21_release()   HAL_GPIO_WritePin(GP21_NSS_GPIO_Port,GP21_NSS_Pin,GPIO_PIN_SET)
+#define lk_gp2x_select()    HAL_GPIO_WritePin(GP21_NSS_GPIO_Port,GP21_NSS_Pin,GPIO_PIN_RESET)
+#define lk_gp2x_release()   HAL_GPIO_WritePin(GP21_NSS_GPIO_Port,GP21_NSS_Pin,GPIO_PIN_SET)
 
 #define gp21_rstn_idle()  HAL_GPIO_WritePin(GP21_RSTN_GPIO_Port,GP21_RSTN_Pin,GPIO_PIN_SET)
 #define gp21_rstn_rsow()  HAL_GPIO_WritePin(GP21_RSTN_GPIO_Port,GP21_RSTN_Pin,GPIO_PIN_RESET)
@@ -123,18 +123,12 @@
 
 #define gp21_read_intn()     HAL_GPIO_ReadPin(GP21_INTN_GPIO_Port,GP21_INTN_Pin)
 
-#define TDC_Signal_high()    tx_signalGpio->BSRR = TDC_Signal_Pin;
-#define TDC_Signal_low()     tx_signalGpio->BSRR = (uint32_t)TDC_Signal_Pin << 16U;
-
-
-
-void GP21_Init(void);
-void gp21_write(uint8_t reg);
-void gp21_write_cfg(uint8_t op_code, uint32_t cfg32);
-void gp21_get_id(uint8_t *id);
+void lk_gp2x_init(void);
+void gp21_write_reg(uint8_t reg);
+uint64_t lk_gp2x_get_id(void);
 uint16_t  get_gp21_statu(void);
 void gp21_hard_rst(void);
-void gp21_defaultcofg(void);
+bool gp21_defaultcofg(void);
 void gp21_startOneSignal(void);
 uint32_t   gp21_read_diatance(uint8_t index);
  void tdc_delay(uint32_t cval);

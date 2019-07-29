@@ -71,3 +71,4 @@ void tlc5618_write(uint16_t tlc_a,uint16_t tlc_b)
     tlc5618_write_reg(ACHANNELCODE|tlc_a);	  
 
 }
+

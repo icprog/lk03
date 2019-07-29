@@ -226,19 +226,19 @@ void sensor_qc_get_param_ack(void)
 }
 void sensor_qc_standFirst_switch_ack(void)
 {
-		gear_select(&_TDC_GP21.vol_param[lk03_first_gears]);
+		gear_select(&_TDC_GP21.system_statu.high_value_defconfg[lk03_first_gears]);
 	  sensor_distOffset_calculate(lk03_first_gears);
 	  zTF_programer_qc_standFirst_switch_ack();
 }
 void sensor_qc_standSecond_switch_ack(void)
 {
-		gear_select(&_TDC_GP21.vol_param[lk03_second_gears]);
+		gear_select(&_TDC_GP21.system_statu.high_value_defconfg[lk03_second_gears]);
 	 sensor_distOffset_calculate(lk03_second_gears);
 	  zTF_programer_qc_standSecond_switch_ack();
 }
 void sensor_qc_standthird_switch_ack(void)
 {
-		gear_select(&_TDC_GP21.vol_param[lk03_third_gears]);
+		gear_select(&_TDC_GP21.system_statu.high_value_defconfg[lk03_third_gears]);
 	 sensor_distOffset_calculate(lk03_third_gears);
 	  zTF_programer_qc_standthird_switch_ack();
 }
@@ -276,24 +276,10 @@ void sensor_qc_standthird_save_ack(TF_Msg *msg)
 }
 
 
-void sensor_debug_data(uint16_t dist, uint16_t agc, uint16_t sighal, uint8_t gears)
-{
-  	uint8_t sensor_data[7] ={0};
-		sensor_data[0] = dist>>8; 
-    sensor_data[1] = dist&0xff;
-		sensor_data[2] = agc>>8; 
-    sensor_data[3] = agc&0xff;
-		sensor_data[4] = sighal>>8; 
-    sensor_data[5] = sighal&0xff;		
-    sensor_data[6] = gears;
-		zTF_programer_debug_sensorParam_ack(sensor_data,7);
-}
-
 
 extern void start_singnal(void);
  void sensor_struct_loop(sensor_struct_ * p)
  {
-	 sensor_struct_ *lp =p;
  	  switch(p->cmd)
 		{
 		  case sensor_idle:
@@ -439,7 +425,7 @@ extern void start_singnal(void);
 		  case programer_qcStamdMode_cmd:  //标定模式
 			{
 	       cureent_qcStandmode =true;
-				_TDC_GP21.running_statu = IDLE;
+				_TDC_GP21.system_statu.running_statu = IDLE;
 				zTF_programer_standMode_switch_ack();
 			}break; 			
 		}
@@ -481,3 +467,5 @@ extern void start_singnal(void);
 		}
  
  }
+ 
+ 

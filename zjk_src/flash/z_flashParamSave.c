@@ -37,6 +37,5 @@ void flash_SaveInit(void)
 void flash_paramRead(uint8_t *buff, uint16_t lens)
 {
 	uint8_t *poitBuff = (uint8_t *)PARAM_FLASH_ADDRESS;
-	  memcpy(buff,poitBuff,lens);
-    
+	  memcpy(buff,poitBuff,lens);  
 }

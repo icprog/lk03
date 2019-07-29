@@ -34,7 +34,7 @@ bool z_analog_convert(uint16_t *value)
 //	  erro_count ++;
 //		return false;
 //	}
-	 
+	 return true;
 }
 
 
@@ -66,7 +66,6 @@ float test_valuenum=0;
 uint16_t test_adc=0;
 uint16_t z_analog_covertDMA (void)
 {
-	 float num =0;
   	volatile uint8_t minIndex=0;
    volatile	uint32_t tem=0;	
 	  for( int i=0;i<BUF_SIZE-1;i++)    // selection sort 
