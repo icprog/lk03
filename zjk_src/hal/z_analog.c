@@ -4,8 +4,8 @@
 ADC_HandleTypeDef  *z_anlog = &hadc1;
 
 uint16_t adc_buf[BUF_SIZE]= {0};
-uint16_t adc_value_DMA =0;   //DMA »ñÈ¡Æ½¾ùÖµ
-bool ifDMAisComplete =false;   //DMAÊÇ·ñ×ª»»Íê³É
+uint16_t adc_value_DMA =0;   //DMA è·å–å¹³å‡å€¼
+bool ifDMAisComplete =false;   //DMAæ˜¯å¦è½¬æ¢å®Œæˆ
 
 
   /*delay ns */
@@ -21,7 +21,7 @@ bool z_analog_convert(uint16_t *value)
   HAL_ADCEx_Calibration_Start(z_anlog);  //Need to calibrate,Otherwise it's not accurate 
   HAL_ADC_Start_DMA(z_anlog,(uint32_t*)adc_buf,BUF_SIZE);
   // z_analog_convertNorml();
-	//analog_delay(1000);  //ÑÓÊ±µÈ´ıDMA×ª»»Íê³É
+	//analog_delay(1000);  //å»¶æ—¶ç­‰å¾…DMAè½¬æ¢å®Œæˆ
 //	if(ifDMAisComplete)
 //	{
 //		ifDMAisComplete =false;

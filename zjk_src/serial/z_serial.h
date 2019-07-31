@@ -25,8 +25,7 @@ typedef struct
 SERIAL_TYPE_BOOL addUartDmaRevListen(_listenFunc func);
 void z_serial_baudRateCfg(uint32_t baudRate);
 
-void zt_printf(const char *fmt, ...);
-void zt_protecl_printf(const char *fmt, ...);
+
 #endif
 
 

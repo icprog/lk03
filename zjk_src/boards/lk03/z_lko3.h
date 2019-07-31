@@ -14,7 +14,7 @@ typedef enum{ trig_onece_complete =1,trig_enough_complete,trig_time_out} TDC_TRI
 typedef enum  {VOL_CTL1,VOL_CTL2,VOL_CTL3}TX_VOL_ENUM_TYP;
 typedef enum  {IDLE,START,FIRST,SECOND,THIRD,LONG_DISTANCE_MODE,STYLE}RUN_STATU;
 typedef enum{lk03_first_gears=0,lk03_second_gears,lk03_third_gears} _sensor_gesr_enum;
-typedef enum{GP21_MESSGE1=1,GP21_MESSGE2=2,}GP21_MESSAGE_MODE;  //GP21²âÁ¿Ä£Ê½
+typedef enum{GP21_MESSGE1=1,GP21_MESSGE2=2,}GP21_MESSAGE_MODE;  //GP21æµ‹é‡æ¨¡å¼
 typedef struct {
 
 	uint16_t vol;
@@ -32,35 +32,35 @@ typedef struct {
   bool ifTrunOn;
 }_tdc_pid ;
 
-//´«¸ĞÆ÷ÔËĞĞ²ÎÊı
+//ä¼ æ„Ÿå™¨è¿è¡Œå‚æ•°
 typedef  struct  
 {
-	#define SENSOR_LENGTH  12     //´«¸ĞÆ÷³¤¶È 12cm
-	uint8_t dist_sensor_lenth; //´«¸ĞÆ÷³¤¶È
-	uint8_t  dist_base;   //µ±Ç°»ù×¼
-   uint16_t qc_offset[3] ;   //±ê¶¨Æ«²î ,1,2,3µµ
-	 uint16_t dist_offset;    //µ±Ç°ÔËĞĞÆ«²îÖµ
-	 uint16_t front_switch; //Ç°¿ª¹ØÁ¿¾àÀë
-	 uint16_t back_switch; //ºó¿ª¹ØÁ¿¾àÀë
-	 uint16_t output_freq; // Êı¾İÊä³öÆµÂÊ ms
-	 bool  qc_ifStand[3]; //1,2,3µµÊÇ·ñ±ê¶¨	
+	#define SENSOR_LENGTH  12     //ä¼ æ„Ÿå™¨é•¿åº¦ 12cm
+	uint8_t dist_sensor_lenth; //ä¼ æ„Ÿå™¨é•¿åº¦
+	uint8_t  dist_base;   //å½“å‰åŸºå‡†
+   uint16_t qc_offset[3] ;   //æ ‡å®šåå·® ,1,2,3æ¡£
+	 uint16_t dist_offset;    //å½“å‰è¿è¡Œåå·®å€¼
+	 uint16_t front_switch; //å‰å¼€å…³é‡è·ç¦»
+	 uint16_t back_switch; //åå¼€å…³é‡è·ç¦»
+	 uint16_t output_freq; // æ•°æ®è¾“å‡ºé¢‘ç‡ ms
+	 bool  qc_ifStand[3]; //1,2,3æ¡£æ˜¯å¦æ ‡å®š	
 }sensor_struct_typ;           
 
 
-/*Ó²¼şµçÑ¹²ÎÊı*/
+/*ç¡¬ä»¶ç”µå‹å‚æ•°*/
 typedef struct{
-	uint16_t  tx5618_value;  //·¢ËÍ¸ßÑ¹²ÎÊı
-	uint16_t  rx_vol_value;  //½ÓÊÕ¸ßÑ¹²ÎÊı	
+	uint16_t  tx5618_value;  //å‘é€é«˜å‹å‚æ•°
+	uint16_t  rx_vol_value;  //æ¥æ”¶é«˜å‹å‚æ•°	
 	TX_VOL_ENUM_TYP tx_vol_ctl;
 	bool ifBootVolCtl;
 } high_value_control_;
 
 
-/*µµÎ»¾àÀë*/
+/*æ¡£ä½è·ç¦»*/
 typedef struct{
-	uint16_t  first_distance;  //µÚ1µµ¾àÀë
-	uint16_t  second_distance;  //µÚ2µµ¾àÀë
-	uint16_t  third_distance;  //µÚ3µµ¾àÀë
+	uint16_t  first_distance;  //ç¬¬1æ¡£è·ç¦»
+	uint16_t  second_distance;  //ç¬¬2æ¡£è·ç¦»
+	uint16_t  third_distance;  //ç¬¬3æ¡£è·ç¦»
 } gear_distance_typ;
 
 typedef struct{
@@ -71,31 +71,31 @@ typedef struct{
 
 
 typedef struct{
-	high_value_control_  high_value_defconfg[3];   //¸ßÑ¹¿ØÖÆ²ÎÊı
-  uint8_t cureent_gear;     /*µ±Ç°µÄµµÎ»*/
-	RUN_STATU  running_statu;  /*µ±Ç°ÔËĞĞ×´Ì¬*/
+	high_value_control_  high_value_defconfg[3];   //é«˜å‹æ§åˆ¶å‚æ•°
+  uint8_t cureent_gear;     /*å½“å‰çš„æ¡£ä½*/
+	RUN_STATU  running_statu;  /*å½“å‰è¿è¡ŒçŠ¶æ€*/
 } system_statu_;
 
 typedef struct   
 {
 	system_statu_  system_statu;  
-	/*sÊ±¼ä×ª»»Ğ¾Æ¬gp21×´Ì¬*/
+	/*sæ—¶é—´è½¬æ¢èŠ¯ç‰‡gp21çŠ¶æ€*/
 	tdc_gp2x_statu_ tdc_gp2x;
-	/*Êı¾İ»º´æ*/
+	/*æ•°æ®ç¼“å­˜*/
 	uint32_t buff[DISTANCE_RCV_SIZE];
-	/*ÊÇ·ñÍê³ÉÊı¾İ×ª»»*/
+	/*æ˜¯å¦å®Œæˆæ•°æ®è½¬æ¢*/
 	bool ifComplete;
-	/*×ª»»ºÃµÄ¾àÀë*/
+	/*è½¬æ¢å¥½çš„è·ç¦»*/
 	uint16_t distance;
-	/*ÎŞĞ§ĞÅºÅ±ê¼Ç*/
+	/*æ— æ•ˆä¿¡å·æ ‡è®°*/
 	bool ifDistanceNull;
-		/*¿ª»úÕı³£ºó²ÅÊä³ö*/
+		/*å¼€æœºæ­£å¸¸åæ‰è¾“å‡º*/
 	bool ifMachineFine;
-	/*AD603ÔöÒæ*/
+	/*AD603å¢ç›Š*/
 	uint16_t pid_resualt;
-	/*·åÖµĞÅºÅµçÑ¹*/
+	/*å³°å€¼ä¿¡å·ç”µå‹*/
  _tdc_voltage siganl;
-	/*pid ²ÎÊı*/
+	/*pid å‚æ•°*/
 	_tdc_pid pid;
 	
 	
@@ -167,14 +167,14 @@ void tdc_rx_voltge_relese(void);
 				.tx_vol_ctl=VOL_CTL1,\
 				.ifBootVolCtl=false}
 
-//Èıµ²500us,2khz
+//ä¸‰æŒ¡500us,2khz
 #define third_vol_param {\
 	      .tx5618_value=600,\
 				.rx_vol_value=120,\
 				.tx_vol_ctl=VOL_CTL1,\
 				.ifBootVolCtl=false}					
 				
-/*²ÎÊıÅäÖÃ*/
+/*å‚æ•°é…ç½®*/
 #define AD603_AGC_DEFAULT   500  
 #define AD603_AGC_MIN     100 //0.16V -10DB
 #define AD603_AGC_MAX     650//0.720V 20DB
@@ -184,8 +184,8 @@ void tdc_rx_voltge_relese(void);
 #define PID_SETPOINT 1000
 
 #define Debug_Pid   1
-void lk_bsp_power_on(void);   //¿ªÊ¼Á¬Ğø²âÁ¿Ê±ºò´ò¿ª
-void lk_bsp_power_off(void);	//Í£Ö¹²âÁ¿²âÁ¿¹Ø±Õ			
+void lk_bsp_power_on(void);   //å¼€å§‹è¿ç»­æµ‹é‡æ—¶å€™æ‰“å¼€
+void lk_bsp_power_off(void);	//åœæ­¢æµ‹é‡æµ‹é‡å…³é—­			
 void  lk_gp21MessgeMode_switch(GP21_MESSAGE_MODE messge_mode);
 extern _TDC_TYP _TDC_GP21;
 void tdc_board_init(void);

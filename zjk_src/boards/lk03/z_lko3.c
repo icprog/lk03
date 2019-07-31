@@ -147,14 +147,14 @@ void  lk_gp21MessgeMode_switch(GP21_MESSAGE_MODE messge_mode)
 		 case GP21_MESSGE1:
 		 {
 			GP21_TNS_GLOBAL=1000;
-		   gp21_defaultcofg();	
-           gp21_write_reg(OPC_INIT);			 
+		   lk_gp2x_messgeMode1();	
+           lk_gp2x_write(OPC_INIT);			 
 		 }break;
 		 case GP21_MESSGE2:
 		 {
-			  GP21_TNS_GLOBAL=250;
-		    gp21_messgeModeTwo();
-        gp21_write_reg(OPC_INIT);			 
+			GP21_TNS_GLOBAL=250;
+		    lk_gp2x_messgeMode2();
+        lk_gp2x_write(OPC_INIT);			 
 		 }break;	 
 	 
 	 }

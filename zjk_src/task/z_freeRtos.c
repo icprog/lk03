@@ -14,42 +14,45 @@
 #include "z_sensor_ack.h"
 //
 #include "z_include.h"
+
+//
+#include "z_os.h"
 extern TIM_HandleTypeDef htim3;
 
 TIM_HandleTypeDef *singhlTim=&htim3;
-/*È«¾Ö±äÁ¿¶¨Òå*/ 
-#define FIRST_OFFSET  4    //¸ù¾İÊµÑéÊı¾İÔÚ10mºÚ°å±ê¶¨ÏÂ£¬ÔÙ²¹Ò»¸öÕı4cm
+/*å…¨å±€å˜é‡å®šä¹‰*/ 
+#define FIRST_OFFSET  4    //æ ¹æ®å®éªŒæ•°æ®åœ¨10mé»‘æ¿æ ‡å®šä¸‹ï¼Œå†è¡¥ä¸€ä¸ªæ­£4cm
 #define SECOND_OFFSET  0    
 #define THIRD_OFFSET  0  
 
 sensor_struct_typ sensor_running_vaile;
-sensor_runnig_cmd_typEnum sensor_runnig_cmd =sensor_idle;     //µ±Ç°ÔËĞĞµÄÃüÁî
-extern sensor_struct_ sensor_strct;    //´«¸ĞÆ÷½á¹¹
-uint16_t ms2_erro=0,ms1_err0=0;   //³¬Ê±¼ÆÊı
+sensor_runnig_cmd_typEnum sensor_runnig_cmd =sensor_idle;     //å½“å‰è¿è¡Œçš„å‘½ä»¤
+extern sensor_struct_ sensor_strct;    //ä¼ æ„Ÿå™¨ç»“æ„
+uint16_t ms2_erro=0,ms1_err0=0;   //è¶…æ—¶è®¡æ•°
 uint8_t flag=0,erro_count_test=0,reg_index;
 static uint16_t offset_dist[3]={FIRST_OFFSET,SECOND_OFFSET,THIRD_OFFSET};
-TypedSelextMode slect_mode;   //¿ª»úºóÄ£Ê½Ñ¡Ôñ
-SqQueue lk_distQueue;  //Ñ­»·»º´æ
+TypedSelextMode slect_mode;   //å¼€æœºåæ¨¡å¼é€‰æ‹©
+SqQueue lk_distQueue;  //å¾ªç¯ç¼“å­˜
 
  TIM_HandleTypeDef *z_tlc_TxSignl_pwm= &htim3;
  int textCount =0;
 int trighCount=0;
-int trigCount = 0;  //´¥·¢²É¼¯µ½µÄ´ÎÊı¼ÆÊı
-int erroTimeOutCount = 0;  //tdc Ê±¼ä³¬Ê±ÖĞ¶Ï´íÎó±ê¼Ç
-bool ifEnoughTrigComplete = false; //²É¼¯Ò»´Î²âÁ¿Êı¾İÊÇ·ñÍê³É
-bool ifPick=false;    //ÊÇ·ñÔÊĞí±ä»¯,±ä»¯³¬¹ı50cm¾ÍÎªtrue
+int trigCount = 0;  //è§¦å‘é‡‡é›†åˆ°çš„æ¬¡æ•°è®¡æ•°
+int erroTimeOutCount = 0;  //tdc æ—¶é—´è¶…æ—¶ä¸­æ–­é”™è¯¯æ ‡è®°
+bool ifEnoughTrigComplete = false; //é‡‡é›†ä¸€æ¬¡æµ‹é‡æ•°æ®æ˜¯å¦å®Œæˆ
+bool ifPick=false;    //æ˜¯å¦å…è®¸å˜åŒ–,å˜åŒ–è¶…è¿‡50cmå°±ä¸ºtrue
  TDC_TRIGSTATU tdc_statu;
 bool mes1_have_sighal=false,mes2_have_sighal=false,ifFirstStart=false;
- //ĞÅºÅÁ¿
- SemaphoreHandle_t  tdcSignalSemaphore =NULL;  //´´½¨ĞÅºÅÁ¿£¬ÓÃÓÚ´®¿ÚTDC½ÓÊÕÍêÉè¶¨µÄ´ÎÊıºó´¥·¢¿ØÖÆ·åÖµµçÑ¹¼°´¦ÀíÊı¾İ
-/*ÈÎÎñ¾ä±ú´´½¨*/
+ //ä¿¡å·é‡
+ SemaphoreHandle_t  tdcSignalSemaphore =NULL;  //åˆ›å»ºä¿¡å·é‡ï¼Œç”¨äºä¸²å£TDCæ¥æ”¶å®Œè®¾å®šçš„æ¬¡æ•°åè§¦å‘æ§åˆ¶å³°å€¼ç”µå‹åŠå¤„ç†æ•°æ®
+/*ä»»åŠ¡å¥æŸ„åˆ›å»º*/
 static TaskHandle_t xHandleSerial = NULL;
 TaskHandle_t xHandleGp21Trig = NULL;
 static TaskHandle_t xHandleSerialDriver = NULL;
  static TaskHandle_t xHandleSensorParam = NULL;
  TaskHandle_t xHandleDataOutFeq = NULL;
-/*º¯ÊıÉùÃ÷*/
-//±ê¶¨ĞÅÏ¢¸´Î»
+/*å‡½æ•°å£°æ˜*/
+//æ ‡å®šä¿¡æ¯å¤ä½
 void sensor_powerOn_flashParamCfg(void);
 void sensor_distOffset_calculate(_sensor_gesr_enum index);
 void flasStandReset(_sensor_gesr_enum index);
@@ -73,46 +76,46 @@ void start_singnal(void);
 void z_taskCreate(void)
 {
 	xTaskCreate(
-	              LK_sensorParamTask,    //ÈÎÎñº¯Êı
-	              "LK_sensorParamTask",  //ÈÎÎñÃû
-								128,          //ÈÎÎñÕ»´óĞ¡£¬Ò²¾ÍÊÇ4¸ö×Ö½Ú
+	              LK_sensorParamTask,    //ä»»åŠ¡å‡½æ•°
+	              "LK_sensorParamTask",  //ä»»åŠ¡å
+								128,          //ä»»åŠ¡æ ˆå¤§å°ï¼Œä¹Ÿå°±æ˜¯4ä¸ªå­—èŠ‚
 	              NULL,
-								1,            //ÈÎÎñÓÅÏÈ¼¶
+								1,            //ä»»åŠ¡ä¼˜å…ˆçº§
 								&xHandleSensorParam
 	            );	
 	xTaskCreate(
-	             SerialTask,    //ÈÎÎñº¯Êı
-	             "SerialTask",  //ÈÎÎñÃû
-								128,          //ÈÎÎñÕ»´óĞ¡£¬Ò²¾ÍÊÇ4¸ö×Ö½Ú
+	             SerialTask,    //ä»»åŠ¡å‡½æ•°
+	             "SerialTask",  //ä»»åŠ¡å
+								128,          //ä»»åŠ¡æ ˆå¤§å°ï¼Œä¹Ÿå°±æ˜¯4ä¸ªå­—èŠ‚
 	              NULL,
-								2,            //ÈÎÎñÓÅÏÈ¼¶
+								2,            //ä»»åŠ¡ä¼˜å…ˆçº§
 								&xHandleSerial
 	            );	
 	
 	xTaskCreate(
-	              lk_sensor_outData_Task,    //ÈÎÎñº¯Êı
-	              "lk_outData_freq",  //ÈÎÎñÃû
-								128,          //ÈÎÎñÕ»´óĞ¡£¬Ò²¾ÍÊÇ4¸ö×Ö½Ú
+	              lk_sensor_outData_Task,    //ä»»åŠ¡å‡½æ•°
+	              "lk_outData_freq",  //ä»»åŠ¡å
+								128,          //ä»»åŠ¡æ ˆå¤§å°ï¼Œä¹Ÿå°±æ˜¯4ä¸ªå­—èŠ‚
 	              NULL,
-								3,            //ÈÎÎñÓÅÏÈ¼¶
+								3,            //ä»»åŠ¡ä¼˜å…ˆçº§
 								&xHandleDataOutFeq
 	            );		
 	
 	xTaskCreate(
-	             z_serialDriverTask,  //ÈÎÎñº¯Êı
-	             "serialDriverTask",  //ÈÎÎñÃû
-								128,                //ÈÎÎñÕ»´óĞ¡£¬Ò²¾ÍÊÇ4¸ö×Ö½Ú
+	             z_serialDriverTask,  //ä»»åŠ¡å‡½æ•°
+	             "serialDriverTask",  //ä»»åŠ¡å
+								128,                //ä»»åŠ¡æ ˆå¤§å°ï¼Œä¹Ÿå°±æ˜¯4ä¸ªå­—èŠ‚
 	              NULL,
-								4,                  //ÈÎÎñÓÅÏÈ¼¶
+								4,                  //ä»»åŠ¡ä¼˜å…ˆçº§
 								&xHandleSerialDriver
 	            );
 
 	xTaskCreate(
-	             Gp21TrigTask,    //ÈÎÎñº¯Êı
-	             "Gp21TrigTask",  //ÈÎÎñÃû
-								512,            //ÈÎÎñÕ»´óĞ¡£¬Ò²¾ÍÊÇ4¸ö×Ö½Ú
+	             Gp21TrigTask,    //ä»»åŠ¡å‡½æ•°
+	             "Gp21TrigTask",  //ä»»åŠ¡å
+								512,            //ä»»åŠ¡æ ˆå¤§å°ï¼Œä¹Ÿå°±æ˜¯4ä¸ªå­—èŠ‚
 	              NULL, 
-								5,                //ÈÎÎñÓÅÏÈ¼¶
+								5,                //ä»»åŠ¡ä¼˜å…ˆçº§
 								&xHandleGp21Trig
 	            );
 
@@ -127,18 +130,18 @@ void LK_sensorParamTask(void *argument)
   flash_SaveInit();
 	paramBuff = structToBytes(&lk_defaultParm);
 	flashParam = structToBytes(&lk_flash);
-	flash_paramRead(flashParam.point,flashParam.lens); //¶ÁÈ¡²ÎÊı
-	if(lk_flash.ifHasConfig != 0x01)   //»¹Ã»ÓĞÅäÖÃ
+	flash_paramRead(flashParam.point,flashParam.lens); //è¯»å–å‚æ•°
+	if(lk_flash.ifHasConfig != 0x01)   //è¿˜æ²¡æœ‰é…ç½®
 	{		
 	  lk_flash = lk_defaultParm;
-		lk_flash.ifHasConfig = 0x01;   //´ú±íÅäÖÃ
+		lk_flash.ifHasConfig = 0x01;   //ä»£è¡¨é…ç½®
     flash_writeMoreData( (uint16_t *)(flashParam.point),flashParam.lens/2+1);		
 	}
-	else  //ÒÑ¾­ÅäÖÃ¹ı
+	else  //å·²ç»é…ç½®è¿‡
 	{
-	   //lk_defaultParm = lk_flash;  //½«flashÄÚ²ÎÊı¸¶¸øÄ¬ÈÏµÄ²ÎÊıÅäÖÃ  
+	   //lk_defaultParm = lk_flash;  //å°†flashå†…å‚æ•°ä»˜ç»™é»˜è®¤çš„å‚æ•°é…ç½®  
 	}
-#if TEST_QC    //Ä£ÄâĞ£×¼²âÊÔÒÑ¾­Í¨¹ı
+#if TEST_QC    //æ¨¡æ‹Ÿæ ¡å‡†æµ‹è¯•å·²ç»é€šè¿‡
 		lk_flash.QC[SECOND_PARAM].ifHavedStand=true;
 		lk_flash.QC[FIRST_PARAM].ifHavedStand=true;
 		lk_flash.QC[THIRD_PARAM].ifHavedStand=true;		
@@ -160,7 +163,7 @@ void LK_sensorParamTask(void *argument)
 	}
 }
 
-/*Êä³öÍâ²¿¿ª¹ØÁ¿*/
+/*è¾“å‡ºå¤–éƒ¨å¼€å…³é‡*/
 void snesor_ouput_switch(uint16_t dist)
 {
 	 if((dist<sensor_running_vaile.front_switch*100)&&(dist>sensor_running_vaile.back_switch*100))
@@ -178,7 +181,7 @@ void sensor_distOffset_calculate(_sensor_gesr_enum index)
 {
 	_sensor_gesr_enum select_stande =index;
 	
-	if(sensor_running_vaile.dist_base == 1)  //Ç°»ù×¼
+	if(sensor_running_vaile.dist_base == 1)  //å‰åŸºå‡†
 	{
 		sensor_running_vaile.dist_sensor_lenth = SENSOR_LENGTH;
 	}
@@ -188,11 +191,11 @@ void sensor_distOffset_calculate(_sensor_gesr_enum index)
 	}
  sensor_running_vaile.dist_offset = lk_flash.QC[select_stande].qc_stand_dist;	
 }
-/*¼ÓÔØflash ºó ×Ô¶¯ÅäÖÃ²ÎÊı*/
+/*åŠ è½½flash å è‡ªåŠ¨é…ç½®å‚æ•°*/
 void sensor_powerOn_flashParamCfg(void)
 {
 	sensor_baudRate_typeEnum baud_selet = (sensor_baudRate_typeEnum )lk_flash.baud_rate;
-  baudRateCfg_select(baud_selet);  //²¨ÌØÂÊÉèÖÃ
+  baudRateCfg_select(baud_selet);  //æ³¢ç‰¹ç‡è®¾ç½®
 
   for(int i=0;i<3;i++)
 	{
@@ -211,8 +214,8 @@ void sensor_powerOn_flashParamCfg(void)
 	{
 	  sensor_running_vaile.output_freq = 1000;
 	}
-	sensor_distOffset_calculate(lk03_first_gears);	//Æ«²îÖµ¼ÆËã
-	if(lk_flash.autoRunMode == 1)  //×Ô¶¯ÔËĞĞ
+	sensor_distOffset_calculate(lk03_first_gears);	//åå·®å€¼è®¡ç®—
+	if(lk_flash.autoRunMode == 1)  //è‡ªåŠ¨è¿è¡Œ
 	{
 	   sensor_strct.cmd = dist_continue_ack_cmd;
 	}
@@ -227,11 +230,11 @@ void sensor_powerOn_flashParamCfg(void)
 
 void start_singnal(void)
 {
-		start_txSignl_Tim();   //¿ªÊ¼pwmÂö³å·¢Éä
+		start_txSignl_Tim();   //å¼€å§‹pwmè„‰å†²å‘å°„
 		trigOnce();			 
 }
 
-//Æ½¾ù
+//å¹³å‡
 uint16_t average=0;
 uint32_t tem=0,num=0;
 uint16_t lk_average(uint16_t *buff,int len)
@@ -277,7 +280,7 @@ void SerialTask(void  *argument)
 {
   z_tiny_test();
 	 QueueInit(&lk_distQueue); 
-
+   zt_printf("system running....");
   /* Infinite loop */
   for(;;)
   { 
@@ -297,7 +300,7 @@ void SerialTask(void  *argument)
 				 }
 				 lk_average(&disPlayDistBufer[0],AVERAGE_SIZE);					 
 			 }else
-			 {      /*¿ª»úÊ±Êı¾İ²»×ã¹»Ê±*/
+			 {      /*å¼€æœºæ—¶æ•°æ®ä¸è¶³å¤Ÿæ—¶*/
 				 	for(counts_index=0;counts_index<queue_lenth;counts_index++)
 				 {
 						if(Queue_pop(&lk_distQueue,&disPlayDistBufer[counts_index]) ==Q_ERROR)
@@ -305,12 +308,12 @@ void SerialTask(void  *argument)
 							QE_FLASG=0;
 						}
 				 }
-			   lk_average(&disPlayDistBufer[1],queue_lenth-1);  //¿ª»úÇĞ»»Ä£Ê½Ê±ºò»á³öÏÖÊ×¸öÊı¾İ²»Õı³£Çé¿ö
+			   lk_average(&disPlayDistBufer[1],queue_lenth-1);  //å¼€æœºåˆ‡æ¢æ¨¡å¼æ—¶å€™ä¼šå‡ºç°é¦–ä¸ªæ•°æ®ä¸æ­£å¸¸æƒ…å†µ
 			 }			 
        QE_FLASG ++;
-			 snesor_ouput_switch(average);  //Íâ²¿¿ª¹ØÁ¿Êä³ö
+			 snesor_ouput_switch(average);  //å¤–éƒ¨å¼€å…³é‡è¾“å‡º
 		} //end _TDC_GP21.ifComplete			
-		switch(_TDC_GP21.system_statu.running_statu)   //µµÎ»ÇĞ»»×´Ì¬
+		switch(_TDC_GP21.system_statu.running_statu)   //æ¡£ä½åˆ‡æ¢çŠ¶æ€
 		 {
 			case IDLE:
 			{
@@ -319,7 +322,7 @@ void SerialTask(void  *argument)
 			 case START:
 			 {
 
-        if((lk_flash.QC[lk03_first_gears].ifHavedStand)&(lk_flash.QC[lk03_second_gears].ifHavedStand)&(lk_flash.QC[lk03_third_gears].ifHavedStand))  //È«²¿±ê¶¨Íê²Åµ²Î»ÇĞ»»
+        if((lk_flash.QC[lk03_first_gears].ifHavedStand)&(lk_flash.QC[lk03_second_gears].ifHavedStand)&(lk_flash.QC[lk03_third_gears].ifHavedStand))  //å…¨éƒ¨æ ‡å®šå®Œæ‰æŒ¡ä½åˆ‡æ¢
 				{
 					 gear_select_switch(lk03_first_gears);
 					_TDC_GP21.system_statu.running_statu = FIRST;
@@ -327,7 +330,7 @@ void SerialTask(void  *argument)
 			 }break;
 			 case FIRST:
 			 {
-				   if(_TDC_GP21.pid_resualt >600 ) //µÚ1µµÔöÒæ´óÓÚ600Ê± (_TDC_GP21.pid_resualt >620)&(
+				   if(_TDC_GP21.pid_resualt >600 ) //ç¬¬1æ¡£å¢ç›Šå¤§äº600æ—¶ (_TDC_GP21.pid_resualt >620)&(
 					 {
 						   gear_select_switch(lk03_second_gears);
 						 _TDC_GP21.system_statu.running_statu = SECOND;
@@ -336,12 +339,12 @@ void SerialTask(void  *argument)
 			 }break;
 			 case SECOND:
 			 {
-				 	  if(_TDC_GP21.pid_resualt >600)   //µÚ2µµÔöÒæ´óÓÚ600Ê±ÇĞ»»µÚÈıµµ
+				 	  if(_TDC_GP21.pid_resualt >600)   //ç¬¬2æ¡£å¢ç›Šå¤§äº600æ—¶åˆ‡æ¢ç¬¬ä¸‰æ¡£
 					 {
 						  gear_select_switch(lk03_third_gears);
 						 _TDC_GP21.system_statu.running_statu = THIRD;
 					 }
-					 else if(_TDC_GP21.pid_resualt <500) //ÇĞ»»µÚÒ»µµ((_TDC_GP21.pid_resualt <280)&(_TDC_GP21.distance<3500))
+					 else if(_TDC_GP21.pid_resualt <500) //åˆ‡æ¢ç¬¬ä¸€æ¡£((_TDC_GP21.pid_resualt <280)&(_TDC_GP21.distance<3500))
 					 {
 						   gear_select_switch(lk03_first_gears);
 						  _TDC_GP21.system_statu.running_statu = FIRST;
@@ -350,18 +353,18 @@ void SerialTask(void  *argument)
 			 }break;		 
 			 case THIRD:
 			 {
-						if(_TDC_GP21.pid_resualt <500)  //ÇĞ»»µÚ2µµ
+						if(_TDC_GP21.pid_resualt <500)  //åˆ‡æ¢ç¬¬2æ¡£
 					 {
 					  	 lk_gp21MessgeMode_switch(GP21_MESSGE1);
-					     gear_select_switch(lk03_second_gears);  //µÚ2µµ
+					     gear_select_switch(lk03_second_gears);  //ç¬¬2æ¡£
 						  _TDC_GP21.system_statu.running_statu = SECOND;
 					 }
-					 	if(_TDC_GP21.distance >30000)  //´óÓÚ300Ã×
+					 	if(_TDC_GP21.distance >30000)  //å¤§äº300ç±³
 					 {
 						 lk_gp21MessgeMode_switch(GP21_MESSGE2);
 						  _TDC_GP21.system_statu.running_statu = LONG_DISTANCE_MODE;
 					 }
-//           if((_TDC_GP21.statu==trig_time_out)&(_TDC_GP21.siganl.vol>=_TDC_GP21.pid.setpoint))//ÔÚ²âÁ¿Ä£Ê½2ÏÂtime_out ÇÒĞÅºÅ´óÓÚÉè¶¨µÄÖµ
+//           if((_TDC_GP21.statu==trig_time_out)&(_TDC_GP21.siganl.vol>=_TDC_GP21.pid.setpoint))//åœ¨æµ‹é‡æ¨¡å¼2ä¸‹time_out ä¸”ä¿¡å·å¤§äºè®¾å®šçš„å€¼
 //					 {
 //					   	 _TDC_GP21.messge_mode=GP21_MESSGE1;
 //	             lk_gp21MessgeMode_switch(&_TDC_GP21);
@@ -370,7 +373,7 @@ void SerialTask(void  *argument)
 			 }break;		
 			 case LONG_DISTANCE_MODE:
 			 {			 
-				 		if(_TDC_GP21.distance <20000)  //Ğ¡ÓÚ200Ã×
+				 		if(_TDC_GP21.distance <20000)  //å°äº200ç±³
 					 {
 						 _TDC_GP21.system_statu.running_statu = THIRD;
 					 }	 	 
@@ -389,11 +392,11 @@ void SerialTask(void  *argument)
 }
 
 
-/*Êı¾İÊä³öÈÎÎñ*/
+/*æ•°æ®è¾“å‡ºä»»åŠ¡*/
 void lk_sensor_outData_Task(void *argument)
 {
 
-  vTaskSuspend(xHandleDataOutFeq);   //¹ÒÆğÈÎÎñ
+  vTaskSuspend(xHandleDataOutFeq);   //æŒ‚èµ·ä»»åŠ¡
 	
 	for(;;)
 	{
@@ -434,11 +437,11 @@ void select_mode_ifStart(TypedSelextMode mode)
 		    if(ms2_erro>0)
 				{
 				  ms2_erro = 0;
-				  __HAL_TIM_SET_AUTORELOAD(singhlTim,100);  //Éè¶¨100usÖÜÆÚ
+				  __HAL_TIM_SET_AUTORELOAD(singhlTim,100);  //è®¾å®š100uså‘¨æœŸ
 				  gear_select(&_TDC_GP21.system_statu.high_value_defconfg[lk03_first_gears]);  
 	              lk_gp21MessgeMode_switch(GP21_MESSGE1); 
 				  slect_mode=first_mes2;
-				  gp21_write_reg(OPC_START_TOF);
+				  lk_gp2x_write(OPC_START_TOF);
 				}
 				else if(mes2_have_sighal)
 				{
@@ -476,7 +479,7 @@ uint16_t text_dist=0;
 void Gp21TrigTask(void *argument)
 { 	
   tdcSignalSemaphore = xSemaphoreCreateBinary();	 //
-  tdc_board_init();   /*³õÊ¼»¯¼¤¹â°å*/
+  tdc_board_init();   /*åˆå§‹åŒ–æ¿€å…‰æ¿*/
 //	High_Vol_Ctl_on();
 	_TDC_GP21.pid.ifTrunOn = true;  //
 	selected_mesg_mode(msg_qcStard);
@@ -497,7 +500,7 @@ void Gp21TrigTask(void *argument)
   /* USER CODE END Gp21TrigTask */
 }
 
-//Ä£Ê½Ñ¡Ôñ
+//æ¨¡å¼é€‰æ‹©
 void selected_mesg_mode(TypedSelextMsgMode mode)
 {
    TypedSelextMsgMode slect_index=mode;
@@ -505,7 +508,7 @@ void selected_mesg_mode(TypedSelextMsgMode mode)
 	 {
 		 case msg_thirdStard:
 		 {
-			 __HAL_TIM_SET_AUTORELOAD(singhlTim,500);  //Éè¶¨500usÖÜÆÚ
+			 __HAL_TIM_SET_AUTORELOAD(singhlTim,500);  //è®¾å®š500uså‘¨æœŸ
 			 gear_select(&_TDC_GP21.system_statu.high_value_defconfg[lk03_third_gears]);  //			
 			 lk_gp21MessgeMode_switch(GP21_MESSGE2);
 			 _TDC_GP21.system_statu.running_statu=STYLE;
@@ -538,8 +541,8 @@ void selected_mesg_mode(TypedSelextMsgMode mode)
 
 void trigOnce(void)
 {
-	gp21_write_reg(OPC_START_TOF);
-    gp21_en_startSignal();	  //Ê¹ÄÜ¿ªÊ¼ĞÅºÅ
+	lk_gp2x_write(OPC_START_TOF);
+    gp21_en_startSignal();	  //ä½¿èƒ½å¼€å§‹ä¿¡å·
 	gp21_en_stop1Signal();	
 }
 
@@ -553,12 +556,12 @@ void closeTdc(void)
 TDC_TRIGSTATU trigGetData(void)
 {
 	uint32_t gp21_statu_INT;
-  gp21_statu_INT = get_gp21_statu();	 
+    gp21_statu_INT = lk_gp2x_read_regStatu();	 
 	if(gp21_statu_INT & GP21_STATU_CH1)
 	{
 		closeTdc();		
-    _TDC_GP21.buff[trigCount++] = gp21_read_diatance(0);//ÊÕ¼¯¼¤¹â²âÁ¿Êı¾İ		
-    if(trigCount == DISTANCE_RCV_SIZE) 	
+       _TDC_GP21.buff[trigCount++] = lk_gp2x_read_regResult(0);//æ”¶é›†æ¿€å…‰æµ‹é‡æ•°æ®		
+       if(trigCount == DISTANCE_RCV_SIZE) 	
 		{
 			trigCount = 0;	
 		  return trig_enough_complete;
@@ -568,7 +571,7 @@ TDC_TRIGSTATU trigGetData(void)
 		  return trig_onece_complete;
 		}		
 	}
-if(gp21_statu_INT & GP21_STATU_TIMEOUT)  //³¬³öÊ±¼ä²âÁ¿
+if(gp21_statu_INT & GP21_STATU_TIMEOUT)  //è¶…å‡ºæ—¶é—´æµ‹é‡
 	{
 		  erroTimeOutCount ++ ;
       closeTdc();		
@@ -578,10 +581,10 @@ if(gp21_statu_INT & GP21_STATU_TIMEOUT)  //³¬³öÊ±¼ä²âÁ¿
 }
 
 
-/*²É¼¯µ½×ã¹»Êı¾İºó¿ªÊ¼Êı¾İ´¦Àí*/
+/*é‡‡é›†åˆ°è¶³å¤Ÿæ•°æ®åå¼€å§‹æ•°æ®å¤„ç†*/
 void trigEnough(void)
 {
-	tdc_rx_voltge_relese();   /*¸ßÑ¹ĞÅºÅ²É¼¯ÊÍ·Å*/
+	tdc_rx_voltge_relese();   /*é«˜å‹ä¿¡å·é‡‡é›†é‡Šæ”¾*/
 	gp21_distance_cal(_TDC_GP21.buff,DISTANCE_RCV_SIZE);
 	_TDC_GP21.ifComplete = true;		
 }
@@ -696,10 +699,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   if(GPIO_Pin ==GP21_INTN_Pin )
 	{ 
 			
-		gp21_statu_INT = get_gp21_statu();	
+		gp21_statu_INT = lk_gp2x_read_regStatu();	
     textCount++; 
-    reg_index=gp21_statu_INT&0x03; //È¡½á¹û¼Ä´æÆ÷µØÖ·
-		GP21_REG = gp21_read_diatance(0);//ÊÕ¼¯¼¤¹â²âÁ¿Êı¾İ  
+    reg_index=gp21_statu_INT&0x03; //å–ç»“æœå¯„å­˜å™¨åœ°å€
+		GP21_REG = lk_gp2x_read_regResult(0);//æ”¶é›†æ¿€å…‰æµ‹é‡æ•°æ®  
 		if(gp21_statu_INT &0x400)
 		{
 		   ms2_erro++;
@@ -709,13 +712,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		   ms1_err0++;
 		}
 		trigCount++;
-  if(((gp21_statu_INT &0x400)==false)&&((gp21_statu_INT &0x200)==false)&&(gp21_statu_INT!=0)) //ÎŞĞ§Öµ
+  if(((gp21_statu_INT &0x400)==false)&&((gp21_statu_INT &0x200)==false)&&(gp21_statu_INT!=0)) //æ— æ•ˆå€¼
 			{		
-				if(_TDC_GP21.ifMachineFine)  //»úÆ÷Õı³£ÔËĞĞÇé¿öÏÂ
+				if(_TDC_GP21.ifMachineFine)  //æœºå™¨æ­£å¸¸è¿è¡Œæƒ…å†µä¸‹
 				{
-				  _TDC_GP21.buff[trigCount-1] = GP21_REG;//ÊÕ¼¯¼¤¹â²âÁ¿Êı¾İ
+				  _TDC_GP21.buff[trigCount-1] = GP21_REG;//æ”¶é›†æ¿€å…‰æµ‹é‡æ•°æ®
 				}
-				gp21_write_reg(OPC_INIT);			
+				lk_gp2x_write(OPC_INIT);			
 				if(trigCount == DISTANCE_RCV_SIZE) 	
 				{				
 					trigCount = 0;
@@ -734,7 +737,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 								mes2_have_sighal=true;
 							}							
 					}
-					//¿ªÊ¼²É¼¯µçÑ¹
+					//å¼€å§‹é‡‡é›†ç”µå‹
 							z_analog_convert(&_TDC_GP21.siganl.vol); 	
 						if(_TDC_GP21.pid.ifTrunOn)
 							{
@@ -747,30 +750,30 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 										{
 											_TDC_GP21.siganl.vol = z_analog_covertDMA ();						
 										}
-									tdc_rx_voltge_relese();   /*¸ßÑ¹ĞÅºÅ²É¼¯ÊÍ·Å*/	
-									_TDC_GP21.pid_resualt= tdc_agc_control(_TDC_GP21.siganl.vol,_TDC_GP21.pid.setpoint); //pid¿ØÖÆ·åÖµµçÑ¹
+									tdc_rx_voltge_relese();   /*é«˜å‹ä¿¡å·é‡‡é›†é‡Šæ”¾*/	
+									_TDC_GP21.pid_resualt= tdc_agc_control(_TDC_GP21.siganl.vol,_TDC_GP21.pid.setpoint); //pidæ§åˆ¶å³°å€¼ç”µå‹
 							}
-							if(_TDC_GP21.ifMachineFine)  //»úÆ÷Õı³£ÔËĞĞÇé¿öÏÂ
+							if(_TDC_GP21.ifMachineFine)  //æœºå™¨æ­£å¸¸è¿è¡Œæƒ…å†µä¸‹
 							{
 								distance = gp21_distance_cal(_TDC_GP21.buff,DISTANCE_RCV_SIZE)-sensor_running_vaile.dist_offset-sensor_running_vaile.dist_sensor_lenth;
 								if(distance>=0)
 								{
 									_TDC_GP21.ifDistanceNull=false;
 									_TDC_GP21.distance=distance;
-								}else { _TDC_GP21.ifDistanceNull=true;}  //Êı¾İĞ¡ÓÚÆ«²îÖµÊı¾İÎŞĞ§
+								}else { _TDC_GP21.ifDistanceNull=true;}  //æ•°æ®å°äºåå·®å€¼æ•°æ®æ— æ•ˆ
 								if(_TDC_GP21.distance>500)
 								{
 								  _TDC_GP21.ifComplete = false;
 								}
 								if( Queue_push(&lk_distQueue,_TDC_GP21.distance) ==Q_ERROR)
 								{
-									 flag = 1; //¶ÓÁĞÂú
+									 flag = 1; //é˜Ÿåˆ—æ»¡
 								}
-								_TDC_GP21.ifComplete = true;				//½áÊø											
+								_TDC_GP21.ifComplete = true;				//ç»“æŸ											
 							}
-				}	//½ÓÊÕÍê×ã¹»Êı¾İ
+				}	//æ¥æ”¶å®Œè¶³å¤Ÿæ•°æ®
 			}
-			else  //ÎŞĞ§Öµ
+			else  //æ— æ•ˆå€¼
 	   	{
 				erro_count_test ++;	 
 				_TDC_GP21.tdc_gp2x.status=trig_time_out;			
@@ -790,11 +793,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 						if(trigCount == DISTANCE_RCV_SIZE) 	
 					{				
 						  trigCount = 0;
-							tdc_rx_voltge_relese();   /*¸ßÑ¹ĞÅºÅ²É¼¯ÊÍ·Å*/	
-							_TDC_GP21.pid_resualt= tdc_agc_control(_TDC_GP21.siganl.vol,_TDC_GP21.pid.setpoint); //pid¿ØÖÆ·åÖµµçÑ¹
+							tdc_rx_voltge_relese();   /*é«˜å‹ä¿¡å·é‡‡é›†é‡Šæ”¾*/	
+							_TDC_GP21.pid_resualt= tdc_agc_control(_TDC_GP21.siganl.vol,_TDC_GP21.pid.setpoint); //pidæ§åˆ¶å³°å€¼ç”µå‹
 					}
 					}	//endif _TDC_GP21.pid.ifTrunOn
-	          gp21_write_reg(OPC_INIT);						
+	          lk_gp2x_write(OPC_INIT);						
 		}				
 
 	}

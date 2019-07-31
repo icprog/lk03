@@ -1,7 +1,7 @@
 [PreviousGenFiles]
-HeaderPath=E:/zjk_lk/github/lk03/Inc
+HeaderPath=E:/zjk_lk/github/z_lk03/lk03/Inc
 HeaderFiles=gpio.h;adc.h;dma.h;FreeRTOSConfig.h;spi.h;tim.h;usart.h;stm32f1xx_it.h;stm32f1xx_hal_conf.h;main.h;dac.h;
-SourcePath=E:/zjk_lk/github/lk03/Src
+SourcePath=E:/zjk_lk/github/z_lk03/lk03/Src
 SourceFiles=gpio.c;adc.c;dma.c;freertos.c;spi.c;tim.c;usart.c;stm32f1xx_it.c;stm32f1xx_hal_msp.c;main.c;stm32f1xx_hal_timebase_tim.c;dac.c;
 
 [PreviousLibFiles]

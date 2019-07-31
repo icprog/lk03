@@ -135,6 +135,7 @@ int main(void)
   MX_SPI1_Init();
   MX_SPI2_Init();
   MX_DAC_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
  
   /* USER CODE END 2 */

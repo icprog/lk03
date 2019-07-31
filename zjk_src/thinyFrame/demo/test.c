@@ -10,17 +10,17 @@
 TinyFrame *demo_tf=NULL;
 TinyFrame zjk_tf;	
 extern sensor_runnig_cmd_typEnum sensor_runnig_cmd;
-bool ifDebug=false;  //ÊÇ·ñµ÷ÊÔ±ê¼Ç
+bool ifDebug=false;  //æ˜¯å¦è°ƒè¯•æ ‡è®°
 bool do_corrupt = false;
 extern const char *romeo;
-bool isFlashParam;   //ÊÇ·ñ±£´æÊı¾İ
+bool isFlashParam;   //æ˜¯å¦ä¿å­˜æ•°æ®
 void z_ListenerInit(void);
 extern TaskHandle_t xHandleGp21Trig;
 typedef bool z_lkParmStatuType;
-sensor_struct_ sensor_strct;    //´«¸ĞÆ÷½á¹¹
+sensor_struct_ sensor_strct;    //ä¼ æ„Ÿå™¨ç»“æ„
 
 void parmSend(parm_ *parm);
-/*×Ö½ÚÊı×é×ª»»¶ÔÓ¦µÄ½á¹¹Ìå*/
+/*å­—èŠ‚æ•°ç»„è½¬æ¢å¯¹åº”çš„ç»“æ„ä½“*/
 parm_* byteToStruct(uint8_t *buff)
 {
   parm_* parm = (parm_ *)buff;
@@ -28,7 +28,7 @@ parm_* byteToStruct(uint8_t *buff)
   return parm;
 }
 
-/*½á¹¹Ìå×ª»»¶ÔÓ¦×Ö½Ú*/
+/*ç»“æ„ä½“è½¬æ¢å¯¹åº”å­—èŠ‚*/
 arrayByte_ structToBytes(parm_ *p)
 {
 	  arrayByte_ arraybuff;
@@ -38,58 +38,58 @@ arrayByte_ structToBytes(parm_ *p)
 } 
 
 
-/*¼¤¹âÆ÷±£´æ²ÎÊı*/
+/*æ¿€å…‰å™¨ä¿å­˜å‚æ•°*/
 parm_ lk_defaultParm ={
-	.product = 0x02,     //²úÆ·ºÅlk03
-	.baud_rate = 5, //²¨ÌØÂÊ0:9600;1:4400;2:19200;3:38400;4:57600;5:115200
-	.front_limit_trigger = 100, //100Ã×´¥·¢
-  .back_limit_trigger = 0, //0Ã×´¥·¢
-  .front_or_base = 0,      //Ç°»ù×¼£º1 ºó»ù×¼£º0
-	.ifHasConfig = 0,      //µÚÒ»´ÎÉÕĞ´flashºó»á±ä³É0x01
-  .autoRunMode =0,       //×Ô¶¯ÔËĞĞ¹Ø±Õ
-	.outFreq = 10,         //Êä³öÆµÂÊ10hz   
+	.product = 0x02,     //äº§å“å·lk03
+	.baud_rate = 5, //æ³¢ç‰¹ç‡0:9600;1:4400;2:19200;3:38400;4:57600;5:115200
+	.front_limit_trigger = 100, //100ç±³è§¦å‘
+  .back_limit_trigger = 0, //0ç±³è§¦å‘
+  .front_or_base = 0,      //å‰åŸºå‡†ï¼š1 ååŸºå‡†ï¼š0
+	.ifHasConfig = 0,      //ç¬¬ä¸€æ¬¡çƒ§å†™flashåä¼šå˜æˆ0x01
+  .autoRunMode =0,       //è‡ªåŠ¨è¿è¡Œå…³é—­
+	.outFreq = 10,         //è¾“å‡ºé¢‘ç‡10hz   
 };
 
 
 
-/*¼¤¹âÆ÷±£´æ²ÎÊı*/
+/*æ¿€å…‰å™¨ä¿å­˜å‚æ•°*/
 //parm_ lk_parm ={
-//	.product = 0,     //²úÆ·ºÅlk03
-//	.baud_rate = 0, //²¨ÌØÂÊ
-//	.limit_trigger = 0, //100Ã×´¥·¢
-//	.red_laser_light = 0, //´ò¿ª:0x01 ¹Ø±Õ£º0
-//  .front_or_base = 0,      //Ç°»ù×¼£º1 ºó»ù×¼£º0
+//	.product = 0,     //äº§å“å·lk03
+//	.baud_rate = 0, //æ³¢ç‰¹ç‡
+//	.limit_trigger = 0, //100ç±³è§¦å‘
+//	.red_laser_light = 0, //æ‰“å¼€:0x01 å…³é—­ï¼š0
+//  .front_or_base = 0,      //å‰åŸºå‡†ï¼š1 ååŸºå‡†ï¼š0
 //};
 parm_ lk_flash=
  { 
-	.product = 0,     //²úÆ·ºÅlk03
-	.baud_rate = 0, //²¨ÌØÂÊ
-	.front_limit_trigger = 0, //100Ã×´¥·¢
-  .back_limit_trigger = 0, //0Ã×´¥·¢
-  .front_or_base = 0,      //Ç°»ù×¼£º1 ºó»ù×¼£º0
-	.ifHasConfig = 0,      //µÚÒ»´ÎÉÕĞ´flashºó»á±ä³É0x01
-  .autoRunMode =0,       //×Ô¶¯ÔËĞĞ¹Ø±Õ
-	.outFreq = 0         //Êä³öÆµÂÊ1000hz   
+	.product = 0,     //äº§å“å·lk03
+	.baud_rate = 0, //æ³¢ç‰¹ç‡
+	.front_limit_trigger = 0, //100ç±³è§¦å‘
+  .back_limit_trigger = 0, //0ç±³è§¦å‘
+  .front_or_base = 0,      //å‰åŸºå‡†ï¼š1 ååŸºå‡†ï¼š0
+	.ifHasConfig = 0,      //ç¬¬ä¸€æ¬¡çƒ§å†™flashåä¼šå˜æˆ0x01
+  .autoRunMode =0,       //è‡ªåŠ¨è¿è¡Œå…³é—­
+	.outFreq = 0         //è¾“å‡ºé¢‘ç‡1000hz   
 };
 
 
-/*Í¨ÓÃ¿ØÖÆ*/
+/*é€šç”¨æ§åˆ¶*/
 void dataGetCmdSlect(revFrame_distCtl_id_typEnum  dit_ctrl_cmd, TF_Msg *msg)
 {
 
 	switch(dit_ctrl_cmd)
 	{
-		case dist_once :    //µ¥´Î²âÁ¿ÃüÁî
+		case dist_once :    //å•æ¬¡æµ‹é‡å‘½ä»¤
 		{
 				sensor_strct.cmd= dist_once_ack_cmd;		 
 			  sensor_strct.msg = msg;
 		}break;
-	  case dist_continue:  //Á¬Ğø²âÁ¿ÃüÁî
+	  case dist_continue:  //è¿ç»­æµ‹é‡å‘½ä»¤
 		{
 			 	sensor_strct.cmd= dist_continue_ack_cmd;		 
 			  sensor_strct.msg = msg;
 		}break;
-		case dist_stop:   //Í£Ö¹²âÁ¿
+		case dist_stop:   //åœæ­¢æµ‹é‡
 		{
 			 	sensor_strct.cmd= dist_stop_ack_cmd;		 
 			  sensor_strct.msg = msg;
@@ -97,17 +97,17 @@ void dataGetCmdSlect(revFrame_distCtl_id_typEnum  dit_ctrl_cmd, TF_Msg *msg)
 	}
 
 }
-/*²ÎÊı»ñÈ¡*/
+/*å‚æ•°è·å–*/
 void paramGetCmdSlect(revFrame_paramCfg_getId_typEnum Param_GET, TF_Msg *msg)
 {
   sensor_strct.msg = msg;
-   switch(Param_GET)  //²ÎÊı»ñÈ¡
+   switch(Param_GET)  //å‚æ•°è·å–
 	 {
-		 case lk_all_get:  //ËùÓĞ²ÎÊı
+		 case lk_all_get:  //æ‰€æœ‰å‚æ•°
 		 {
 			 	sensor_strct.cmd= get_paramAll_base_cmd;		  
 		 }break;
-		 case baudRate_get:  //²¨ÌØÂÊ»ñÈ¡
+		 case baudRate_get:  //æ³¢ç‰¹ç‡è·å–
 		 {
 		   	sensor_strct.cmd= getParam_baudRate_ack_cmd;
 		 }break;
@@ -136,7 +136,7 @@ void paramGetCmdSlect(revFrame_paramCfg_getId_typEnum Param_GET, TF_Msg *msg)
 }
 
 
-/*²ÎÊı±£´æÃüÁî*/
+/*å‚æ•°ä¿å­˜å‘½ä»¤*/
 void paramDataSaveCMD(revFrame_paramCfg_setId_typEnum PAMRM_SAVE, TF_Msg *msg)
 {
   sensor_strct.msg = msg;
@@ -184,7 +184,7 @@ void paramDataSaveCMD(revFrame_paramCfg_setId_typEnum PAMRM_SAVE, TF_Msg *msg)
 }
 
 
-/*QC ¼ì²âÃüÁî*/
+/*QC æ£€æµ‹å‘½ä»¤*/
 void programer_cmd(revFrame_programer_id_typEnum qc, TF_Msg *msg)
 {
   revFrame_programer_id_typEnum cnd=qc;
@@ -192,54 +192,54 @@ void programer_cmd(revFrame_programer_id_typEnum qc, TF_Msg *msg)
 	switch(cnd)
 	{
 
-		case qc_standFirst_save:  //ÉÏÎ»»úµÚ1µµ±ê¶¨Öµ
+		case qc_standFirst_save:  //ä¸Šä½æœºç¬¬1æ¡£æ ‡å®šå€¼
 		{
 			sensor_strct.cmd = qc_standFirst_save_cmd;
 
 		}break;
-		case qc_standSecond_save:  //ÉÏÎ»»úµÚ2µµ±ê¶¨Öµ
+		case qc_standSecond_save:  //ä¸Šä½æœºç¬¬2æ¡£æ ‡å®šå€¼
 		{
 				sensor_strct.cmd = qc_standSecond_save_cmd;
 
 		}break;	
-		case qc_standthird_save:  //ÉÏÎ»»úµÚ3µµ±ê¶¨Öµ
+		case qc_standthird_save:  //ä¸Šä½æœºç¬¬3æ¡£æ ‡å®šå€¼
 		{
 				sensor_strct.cmd = qc_standthird_save_cmd;
 	
 		}break;	
-		case qc_standFirst_reset:  //µÚ1µµ´ÓĞÂĞ£×¼
+		case qc_standFirst_reset:  //ç¬¬1æ¡£ä»æ–°æ ¡å‡†
 		{
 				sensor_strct.cmd = qc_standFirst_reset_cmd;
 		}break;
-		case qc_standSecond_reset:  //µÚ2µµ´ÓĞÂĞ£×¼
+		case qc_standSecond_reset:  //ç¬¬2æ¡£ä»æ–°æ ¡å‡†
 		{
 				sensor_strct.cmd = qc_standSecond_reset_cmd;
 		}break;	
-		case qc_standthird_reset:  //µÚ3µµ´ÓĞÂĞ£×¼
+		case qc_standthird_reset:  //ç¬¬3æ¡£ä»æ–°æ ¡å‡†
 		{
 				sensor_strct.cmd = qc_standthird_reset_cmd;
 		}break;	
-		case qc_standFirst_switch:  //µµÎ»1ÇĞ»»
+		case qc_standFirst_switch:  //æ¡£ä½1åˆ‡æ¢
 		{
 				sensor_strct.cmd = qc_standFirst_switch_cmd;
 		}break;
-		case qc_standSecond_switch:  //µµÎ»2ÇĞ»»
+		case qc_standSecond_switch:  //æ¡£ä½2åˆ‡æ¢
 		{
 				sensor_strct.cmd = qc_standSecond_switch_cmd;
 		}break;	
-		case qc_standthird_switch:  //µµÎ»3ÇĞ»»
+		case qc_standthird_switch:  //æ¡£ä½3åˆ‡æ¢
 		{
 				sensor_strct.cmd = qc_standthird_switch_cmd;
 		}break;			
-    case qc_get_param :  //»ñÈ¡²ÎÊı
+    case qc_get_param :  //è·å–å‚æ•°
 		{
 				sensor_strct.cmd = qc_get_param_cmd;
 		}break;			
-    case debug_dist_continue :  //¿ªÊ¼µ÷ÊÔ
+    case debug_dist_continue :  //å¼€å§‹è°ƒè¯•
 		{
 				sensor_strct.cmd = programer_debugMode_cmd;
 		}break;	
-    case sensor_dist_standMode_switch :  //±ê¶¨Ä£Ê½
+    case sensor_dist_standMode_switch :  //æ ‡å®šæ¨¡å¼
 		{
 				sensor_strct.cmd = programer_qcStamdMode_cmd;
 		}break;						
@@ -266,7 +266,7 @@ void system_ctl_cmd(revFrame_system_ctl_id_typEnum id, TF_Msg *msg)
 
 
 
-//µ÷ÊÔÃüÁî
+//è°ƒè¯•å‘½ä»¤
 void debug_cmd(FRAME_DEBUG_CMD cmd,TF_Msg *msg)
 {
    FRAME_DEBUG_CMD cmd_id=cmd;
@@ -288,7 +288,7 @@ void debug_cmd(FRAME_DEBUG_CMD cmd,TF_Msg *msg)
 
 }
 
-//¹Ì¼şÉı¼¶ÃüÁî
+//å›ºä»¶å‡çº§å‘½ä»¤
 void download_cmd(revFrame_firmware_ctl_id_typEnum cmd,TF_Msg *msg)
 {
    revFrame_firmware_ctl_id_typEnum cmd_id=cmd;
@@ -312,7 +312,7 @@ void TF_WriteImpl(TinyFrame *tf, const uint8_t *buff, uint32_t len)
 		z_serial_write((uint8_t*)buff,len);
 }
 
-/*Í¨ÓÃ¼àÌı»Øµ÷º¯Êı*/
+/*é€šç”¨ç›‘å¬å›è°ƒå‡½æ•°*/
 TF_Msg cmdMsg ; uint8_t msg_data[50] = {0};
 
 void clear_msgData(TF_Msg *msg)
@@ -337,36 +337,36 @@ void clear_msgData(TF_Msg *msg)
 	revFrame_Type_typEnum recve_type = (revFrame_Type_typEnum) (sensorMsg->type);
 	 switch(recve_type)
 	{
-	  case user_dist_ctl:/*²âÁ¿ÃüÁî*/
+	  case user_dist_ctl:/*æµ‹é‡å‘½ä»¤*/
 		{
 			revFrame_distCtl_id_typEnum dist_ctl_id =  (revFrame_distCtl_id_typEnum) (sensorMsg->frame_id);
 		  dataGetCmdSlect(dist_ctl_id,sensorMsg);
 		}break;
-	  case usr_paramCfg_get: /*²ÎÊı»ñÈ¡*/
+	  case usr_paramCfg_get: /*å‚æ•°è·å–*/
 		{
 			revFrame_paramCfg_getId_typEnum get_param_id =  (revFrame_paramCfg_getId_typEnum) (sensorMsg->frame_id);
 		  paramGetCmdSlect(get_param_id,sensorMsg);
 		}break;		
-	  case user_paramCfg_set: /*²ÎÊıÅäÖÃ*/
+	  case user_paramCfg_set: /*å‚æ•°é…ç½®*/
 		{
 		  revFrame_paramCfg_setId_typEnum set_param_id = (revFrame_paramCfg_setId_typEnum) (sensorMsg->frame_id);
 		  paramDataSaveCMD(set_param_id,sensorMsg);
 		}	break;
-	  case system_boot_firmware_ctl: /*ÏµÍ³¹Ì¼ş¿ØÖÆ*/
+	  case system_boot_firmware_ctl: /*ç³»ç»Ÿå›ºä»¶æ§åˆ¶*/
 		{
 
 		}break;		
-	  case system_boot_firmware_pakage: /*ÏµÍ³¹Ì¼ş°ü*/
+	  case system_boot_firmware_pakage: /*ç³»ç»Ÿå›ºä»¶åŒ…*/
 		{
 
 		}	break;	
 
-	  case system_boot_param: /*ÏµÍ³²ÎÊı*/
+	  case system_boot_param: /*ç³»ç»Ÿå‚æ•°*/
 		{
       revFrame_system_ctl_id_typEnum system_id = (revFrame_system_ctl_id_typEnum) sensorMsg->frame_id;   
 	    system_ctl_cmd(system_id,sensorMsg); 
 		}	break;			
-	  case programer_ctl: /*¿ª·¢ÈËÔ±¿ØÖÆ*/
+	  case programer_ctl: /*å¼€å‘äººå‘˜æ§åˆ¶*/
 		{ 
 			revFrame_programer_id_typEnum cmd_id = (revFrame_programer_id_typEnum) sensorMsg->frame_id;
       programer_cmd(cmd_id,sensorMsg);
@@ -405,7 +405,7 @@ void parmSend(parm_ *parm)
     msg.len = arrayBuff.lens;
   	TF_Respond(demo_tf, &msg);	
 }
-//qc±ê¶¨²ÎÊı·¢ËÍ
+//qcæ ‡å®šå‚æ•°å‘é€
 void QCparmSend(uint8_t *data,uint8_t lens)
 {
     TF_Msg msg;
@@ -418,7 +418,7 @@ void QCparmSend(uint8_t *data,uint8_t lens)
 	
 }
 
-//µ÷ÊÔdebugÃüÁî²âÊÔ
+//è°ƒè¯•debugå‘½ä»¤æµ‹è¯•
 void debugParmSend(uint8_t *data,uint8_t lens)
 {
 //    TF_Msg msg;
@@ -456,25 +456,25 @@ void z_tiny_test(void)
  
 }
 /***********************************************
-   user_dist_ctl Ó¦´ğ ÁĞ±í
+   user_dist_ctl åº”ç­” åˆ—è¡¨
 ***********************************************/
-//µ¥´Î²âÁ¿Ó¦´ğÊı¾İ
+//å•æ¬¡æµ‹é‡åº”ç­”æ•°æ®
 void zTF_sendOnceDistAck(uint8_t *data,uint8_t lens)
 {
    lk_user_ack(dist_once_ack,data,lens);
 }
-//Í£Ö¹²âÁ¿Ó¦´ğ
+//åœæ­¢æµ‹é‡åº”ç­”
 void zTF_StopDistAck(void)
 {
   lk_user_ack(dist_stop_ack,NULL,NULL);
 }
 
-//ÎŞĞ§Êı¾İ·¢Éú
+//æ— æ•ˆæ•°æ®å‘ç”Ÿ
 void zTF_NullDistAck(void)
 {
   lk_user_ack(dist_null_ack,NULL,NULL);
 }
-//Á¬Ğø²âÁ¿Ó¦´ğÊı¾İ
+//è¿ç»­æµ‹é‡åº”ç­”æ•°æ®
 TF_Msg dist_continue_msg;
 void zTF_sendContinueDistAck(uint8_t *data,uint8_t lens)
 {
@@ -483,7 +483,7 @@ void zTF_sendContinueDistAck(uint8_t *data,uint8_t lens)
   	TF_Respond(demo_tf, &dist_continue_msg);
 }
 
-/*========»ñÈ¡²ÎÊıÓ¦´ğ================*/
+/*========è·å–å‚æ•°åº”ç­”================*/
 void zTF_paramCfg_getAll_Ack(uint8_t *data,uint8_t lens)
 {
   lk_user_ack(get_paramAll_base,data,lens);
@@ -517,7 +517,7 @@ void zTF_paramCfg_getOutDataFreq_Ack(uint8_t *data,uint8_t lens)
 {
   lk_user_ack(getParam_outData_freq_ack,data,lens);
 }
-/*========²ÎÊıÅäÖÃÓ¦´ğ================*/
+/*========å‚æ•°é…ç½®åº”ç­”================*/
 void zTF_paramCfg_setAll_Ack(void)
 {
   lk_user_ack(cfgParam_all,NULL,NULL);
@@ -553,7 +553,7 @@ void zTF_paramCfg_setOutDataFreq_Ack(void)
   lk_user_ack(cfgParam_outData_freq_ack,NULL,NULL);
 }
 
-/*========systemÓ¦´ğ================*/
+/*========systemåº”ç­”================*/
 void zTF_system_boot_paramReset_Ack(void)
 {
   lk_user_ack(system_boot_paramReset_ack,NULL,NULL);
@@ -569,13 +569,13 @@ void zTF_system_firmware_pakage_Ack(void)
   lk_user_ack(system_boot_firmware_pakage_ack,NULL,NULL);
 }
 
-/*========programerÓ¦´ğ================*/
+/*========programeråº”ç­”================*/
 
 void zTF_programer_qc_getParam_Ack(uint8_t *data,uint8_t lens)
 {
   lk_programer_ack(qc_get_param_ack,data,lens);
 }
-//ÇĞ»»
+//åˆ‡æ¢
 void zTF_programer_qc_standFirst_switch_ack(void)
 {
   lk_programer_ack(qc_standFirst_switch_ack,NULL,NULL);
@@ -591,7 +591,7 @@ void zTF_programer_qc_standthird_switch_ack(void)
   lk_programer_ack(qc_standthird_switch_ack,NULL,NULL);
 }
 
-//¸´Î»
+//å¤ä½
 void zTF_programer_qc_standFirst_reset_ack(void)
 {
   lk_programer_ack(qc_standFirst_reset_ack,NULL,NULL);
@@ -608,7 +608,7 @@ void zTF_programer_qc_standthird_reset_ack(void)
   lk_programer_ack(qc_standthird_reset_ack,NULL,NULL);
 }
 
-//´æ´¢
+//å­˜å‚¨
 void zTF_programer_qc_standFirst_save_ack(void)
 {
   lk_programer_ack(qc_standFirst_save_ack,NULL,NULL);
@@ -627,7 +627,7 @@ void zTF_programer_qc_standthird_save_ack(void)
 }
 
 
-//µ÷ÊÔÓ¦´ğ
+//è°ƒè¯•åº”ç­”
 void zTF_programer_debug_sensorParam_ack(uint8_t *data,uint8_t lens)
 {
   lk_programer_ack(sensor_debugMode_switch_ack,data,lens);
@@ -640,7 +640,7 @@ void zTF_programer_standMode_switch_ack(void)
 
 
 /***********************************************
-   ÓÃ»§Í¨ÓÃ Ó¦´ğ
+   ç”¨æˆ·é€šç”¨ åº”ç­”
 ***********************************************/
 void lk_user_ack(sendframe_user_ackId_typEnum id,uint8_t *data,uint8_t lens)
 {
@@ -654,7 +654,7 @@ void lk_user_ack(sendframe_user_ackId_typEnum id,uint8_t *data,uint8_t lens)
 }
 
 /***********************************************
-   ¿ª·¢ÈËÔ±Ó¦´ğ
+   å¼€å‘äººå‘˜åº”ç­”
 ***********************************************/
 void lk_programer_ack(sendframe_programer_ackId_typEnum id,uint8_t *data,uint8_t lens)
 {

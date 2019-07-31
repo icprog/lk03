@@ -1,24 +1,24 @@
 #include "Connect_format.h"
 
-//fun:¹¦ÄÜ×Ö. 0XA0~0XAF
-//data:Êı¾İ»º´æÇø,×î¶à28×Ö½Ú!!
-//len:dataÇøÓĞĞ§Êı¾İ¸öÊı
+//fun:åŠŸèƒ½å­—. 0XA0~0XAF
+//data:æ•°æ®ç¼“å­˜åŒº,æœ€å¤š28å­—èŠ‚!!
+//len:dataåŒºæœ‰æ•ˆæ•°æ®ä¸ªæ•°
 void usart1_niming_report(uint8_t fun,uint8_t *data,uint8_t len)
 {
 	uint8_t send_buf[32];
 	uint8_t i;
-	if(len>28)return;	//×î¶à28×Ö½ÚÊı¾İ 
-	send_buf[len+3]=0;	//Ğ£ÑéÊıÖÃÁã
-	send_buf[0]=0X88;	//Ö¡Í·
-	send_buf[1]=fun;	//¹¦ÄÜ×Ö
-	send_buf[2]=len;	//Êı¾İ³¤¶È
-	for(i=0;i<len;i++)send_buf[3+i]=data[i];			//¸´ÖÆÊı¾İ
-	for(i=0;i<len+3;i++)send_buf[len+3]+=send_buf[i];	//¼ÆËãĞ£ÑéºÍ	
-	for(i=0;i<len+4;i++) z_serial_write(&send_buf[i],1);	//·¢ËÍÊı¾İµ½´®¿Ú1 
+	if(len>28)return;	//æœ€å¤š28å­—èŠ‚æ•°æ® 
+	send_buf[len+3]=0;	//æ ¡éªŒæ•°ç½®é›¶
+	send_buf[0]=0X88;	//å¸§å¤´
+	send_buf[1]=fun;	//åŠŸèƒ½å­—
+	send_buf[2]=len;	//æ•°æ®é•¿åº¦
+	for(i=0;i<len;i++)send_buf[3+i]=data[i];			//å¤åˆ¶æ•°æ®
+	for(i=0;i<len+3;i++)send_buf[len+3]+=send_buf[i];	//è®¡ç®—æ ¡éªŒå’Œ	
+	for(i=0;i<len+4;i++) z_serial_write(&send_buf[i],1);	//å‘é€æ•°æ®åˆ°ä¸²å£1 
 }
-//·¢ËÍ¼ÓËÙ¶È´«¸ĞÆ÷Êı¾İºÍÍÓÂİÒÇÊı¾İ
-//aacx,aacy,aacz:x,y,zÈı¸ö·½ÏòÉÏÃæµÄ¼ÓËÙ¶ÈÖµ
-//gyrox,gyroy,gyroz:x,y,zÈı¸ö·½ÏòÉÏÃæµÄÍÓÂİÒÇÖµ
+//å‘é€åŠ é€Ÿåº¦ä¼ æ„Ÿå™¨æ•°æ®å’Œé™€èºä»ªæ•°æ®
+//aacx,aacy,aacz:x,y,zä¸‰ä¸ªæ–¹å‘ä¸Šé¢çš„åŠ é€Ÿåº¦å€¼
+//gyrox,gyroy,gyroz:x,y,zä¸‰ä¸ªæ–¹å‘ä¸Šé¢çš„é™€èºä»ªå€¼
 void mpu6050_send_data(short aacx,short aacy,short aacz,short gyrox,short gyroy,short gyroz)
 {
 	uint8_t tbuf[12]; 
@@ -34,19 +34,19 @@ void mpu6050_send_data(short aacx,short aacy,short aacz,short gyrox,short gyroy,
 	tbuf[9]=gyroy&0XFF;
 	tbuf[10]=(gyroz>>8)&0XFF;
 	tbuf[11]=gyroz&0XFF;
-	usart1_niming_report(0XA1,tbuf,12);//×Ô¶¨ÒåÖ¡,0XA1
+	usart1_niming_report(0XA1,tbuf,12);//è‡ªå®šä¹‰å¸§,0XA1
 }	
-//Í¨¹ı´®¿Ú1ÉÏ±¨½áËãºóµÄ×ËÌ¬Êı¾İ¸øµçÄÔ
-//aacx,aacy,aacz:x,y,zÈı¸ö·½ÏòÉÏÃæµÄ¼ÓËÙ¶ÈÖµ
-//gyrox,gyroy,gyroz:x,y,zÈı¸ö·½ÏòÉÏÃæµÄÍÓÂİÒÇÖµ
-//roll:ºá¹ö½Ç.µ¥Î»0.01¶È¡£ -18000 -> 18000 ¶ÔÓ¦ -180.00  ->  180.00¶È
-//pitch:¸©Ñö½Ç.µ¥Î» 0.01¶È¡£-9000 - 9000 ¶ÔÓ¦ -90.00 -> 90.00 ¶È
-//yaw:º½Ïò½Ç.µ¥Î»Îª0.1¶È 0 -> 3600  ¶ÔÓ¦ 0 -> 360.0¶È
+//é€šè¿‡ä¸²å£1ä¸ŠæŠ¥ç»“ç®—åçš„å§¿æ€æ•°æ®ç»™ç”µè„‘
+//aacx,aacy,aacz:x,y,zä¸‰ä¸ªæ–¹å‘ä¸Šé¢çš„åŠ é€Ÿåº¦å€¼
+//gyrox,gyroy,gyroz:x,y,zä¸‰ä¸ªæ–¹å‘ä¸Šé¢çš„é™€èºä»ªå€¼
+//roll:æ¨ªæ»šè§’.å•ä½0.01åº¦ã€‚ -18000 -> 18000 å¯¹åº” -180.00  ->  180.00åº¦
+//pitch:ä¿¯ä»°è§’.å•ä½ 0.01åº¦ã€‚-9000 - 9000 å¯¹åº” -90.00 -> 90.00 åº¦
+//yaw:èˆªå‘è§’.å•ä½ä¸º0.1åº¦ 0 -> 3600  å¯¹åº” 0 -> 360.0åº¦
 void usart1_report_imu(short aacx,short aacy,short aacz,short gyrox,short gyroy,short gyroz,short roll,short pitch,short yaw)
 {
 	uint8_t tbuf[28]; 
 	uint8_t i;
-	for(i=0;i<28;i++)tbuf[i]=0;//Çå0
+	for(i=0;i<28;i++)tbuf[i]=0;//æ¸…0
 	tbuf[0]=(aacx>>8)&0XFF;
 	tbuf[1]=aacx&0XFF;
 	tbuf[2]=(aacy>>8)&0XFF;
@@ -65,10 +65,10 @@ void usart1_report_imu(short aacx,short aacy,short aacz,short gyrox,short gyroy,
 	tbuf[21]=pitch&0XFF;
 	tbuf[22]=(yaw>>8)&0XFF;
 	tbuf[23]=yaw&0XFF;
-	usart1_niming_report(0XAF,tbuf,28);//·É¿ØÏÔÊ¾Ö¡,0XAF
+	usart1_niming_report(0XAF,tbuf,28);//é£æ§æ˜¾ç¤ºå¸§,0XAF
 } 
 /*************************************************************
-·¢ËÍÖÁÉÏÎ»»ú,ÉÏÎ»»úÊÇÄäÃûÉÏÎ»»úV4.2°æ±¾
+å‘é€è‡³ä¸Šä½æœº,ä¸Šä½æœºæ˜¯åŒ¿åä¸Šä½æœºV4.2ç‰ˆæœ¬
 
 **************************************************************/
 void Data_Send_Status(float Pitch,float Roll,float Yaw,int16_t *gyro,int16_t *accel)
@@ -94,12 +94,12 @@ void Data_Send_Status(float Pitch,float Roll,float Yaw,int16_t *gyro,int16_t *ac
 	data_to_send[_cnt++]=BYTE0(_temp);
 	
 	data_to_send[3] = _cnt-4;
-	//ºÍĞ£Ñé
+	//å’Œæ ¡éªŒ
 	for(i=0;i<_cnt;i++)
 		sum+= data_to_send[i];
 	data_to_send[_cnt++]=sum;
 	
-	//´®¿Ú·¢ËÍÊı¾İ
+	//ä¸²å£å‘é€æ•°æ®
 	for(i=0;i<_cnt;i++)
 		usart1_send_char(&data_to_send[i]);
 		
@@ -136,12 +136,12 @@ void Data_Send_Status(float Pitch,float Roll,float Yaw,int16_t *gyro,int16_t *ac
 //	data_to_send[_cnt++]=0;
 //	
 //	data_to_send[3] = _cnt-4;
-//	//ºÍĞ£Ñé
+//	//å’Œæ ¡éªŒ
 //	for(i=0;i<_cnt;i++)
 //		sum+= data_to_send[i];
 //	data_to_send[_cnt++]=sum;
 //	
-//	//´®¿Ú·¢ËÍÊı¾İ
+//	//ä¸²å£å‘é€æ•°æ®
 //	for(i=0;i<_cnt;i++)
 //		z_serial_write(&data_to_send[i],1);
 //}
@@ -167,11 +167,11 @@ void Send_Pose_Data(uint16_t *a,uint16_t *b,uint16_t *c)
 	data_to_send[_cnt++]=BYTE0(c[0]);
 	
 	data_to_send[3] = _cnt-4;
-	//ºÍĞ£Ñé
+	//å’Œæ ¡éªŒ
 	for(i=0;i<_cnt;i++)
 		sum+= data_to_send[i];
 	data_to_send[_cnt++]=sum;
-	//´®¿Ú·¢ËÍÊı¾İ
+	//ä¸²å£å‘é€æ•°æ®
 	for(i=0;i<_cnt;i++)
 		z_serial_write(&data_to_send[i],1);
 }
@@ -194,11 +194,11 @@ void Send_Pose_IData(uint16_t *Gyro,int16_t *Accel)
 	data_to_send[_cnt++]=BYTE1(Accel[0]);
 	data_to_send[_cnt++]=BYTE0(Accel[0]);
 	data_to_send[3] = _cnt-4;
-	//ºÍĞ£Ñé
+	//å’Œæ ¡éªŒ
 	for(i=0;i<_cnt;i++)
 		sum+= data_to_send[i];
 	data_to_send[_cnt++]=sum;
-	//´®¿Ú·¢ËÍÊı¾İ
+	//ä¸²å£å‘é€æ•°æ®
 	for(i=0;i<_cnt;i++)
 		z_serial_write(&data_to_send[i],1);
 }

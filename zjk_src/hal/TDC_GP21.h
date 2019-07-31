@@ -119,20 +119,18 @@
 
 #define gp21_en_stop1Signal()   HAL_GPIO_WritePin(GP21_EN_Stop1_GPIO_Port,GP21_EN_Stop1_Pin,GPIO_PIN_SET)
 #define gp21_close_stop1Signal()   HAL_GPIO_WritePin(GP21_EN_Stop1_GPIO_Port,GP21_EN_Stop1_Pin,GPIO_PIN_RESET)
-
-
 #define gp21_read_intn()     HAL_GPIO_ReadPin(GP21_INTN_GPIO_Port,GP21_INTN_Pin)
 
 void lk_gp2x_init(void);
-void gp21_write_reg(uint8_t reg);
+void lk_gp2x_write(uint8_t reg);
 uint64_t lk_gp2x_get_id(void);
-uint16_t  get_gp21_statu(void);
+uint16_t  lk_gp2x_read_regStatu(void);
 void gp21_hard_rst(void);
-bool gp21_defaultcofg(void);
+bool lk_gp2x_messgeMode1(void);
 void gp21_startOneSignal(void);
-uint32_t   gp21_read_diatance(uint8_t index);
+uint32_t   lk_gp2x_read_regResult(uint8_t index);
  void tdc_delay(uint32_t cval);
- void gp21_messgeModeTwo(void);
+ void lk_gp2x_messgeMode2(void);
 
 typedef struct 
 {

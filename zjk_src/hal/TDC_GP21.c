@@ -34,10 +34,10 @@ uint64_t id =0;
 
 void lk_gp2x_init(void)
 {
-  gp21_rstn_idle();
+   gp21_rstn_idle();
 	HAL_Delay(10);
 	gp21_rstn_rsow();
-  HAL_Delay(10);
+    HAL_Delay(10);
 	gp21_rstn_idle();
 	HAL_Delay(10);
 	gp21_close_startSignal();
@@ -47,33 +47,38 @@ void lk_gp2x_init(void)
 
 void gp21_hard_rst(void)
 {
-  gp21_rstn_idle();
+    gp21_rstn_idle();
 	HAL_Delay(1);
 	gp21_rstn_rsow();
-  HAL_Delay(1);
+    HAL_Delay(1);
 	gp21_rstn_idle();
 	HAL_Delay(1);
 }
 
-bool gp21_defaultcofg(void)
+/**
+ * gp2x æµ‹é‡æ¨¡å¼1
+ *
+ * @param 
+ * @return None
+ */
+bool lk_gp2x_messgeMode1(void)
 {
 	
-   lk_gp2x_write_opcode(OP_CODE_WR(0x00), 0x00242012);   //4·ÖÆµ
-   //gp21_write_cfg(OP_CODE_WR(0x00), 0x00011202);   //²»·ÖÆµ,¹Ø±Õ×Ô¶¯Ğ£×¼
-	lk_gp2x_write_opcode(OP_CODE_WR(0x01), 0x01410025);//0x01420023 //STOPÍ¨µÀ1¸öÂö³å£¬stopÍ¨µÀ2¹Ø±Õ£¬¿ìËÙ³õÊ¼»¯¹¦ÄÜÆô¶¯,ALUÌáÇ°Êı¾İ´¦ÀíµÄ¼ÆËã stop ch1 -start
+   lk_gp2x_write_opcode(OP_CODE_WR(0x00), 0x00242012);   //4åˆ†é¢‘
+   //gp21_write_cfg(OP_CODE_WR(0x00), 0x00011202);   //ä¸åˆ†é¢‘,å…³é—­è‡ªåŠ¨æ ¡å‡†
+	lk_gp2x_write_opcode(OP_CODE_WR(0x01), 0x01410025);//0x01420023 //STOPé€šé“1ä¸ªè„‰å†²ï¼Œstopé€šé“2å…³é—­ï¼Œå¿«é€Ÿåˆå§‹åŒ–åŠŸèƒ½å¯åŠ¨,ALUæå‰æ•°æ®å¤„ç†çš„è®¡ç®— stop ch1 -start
 	//bit29 = 1 ALU ok
 	//bit30 = 1 the received pulse counter is ready
 	//bit31 = 1 TDC timeout overflow
-	//gp21_write_cfg(OP_CODE_WR(0x02), 0xE0000011); //Timeout End Hits ALUÖĞ¶Ï´¥·¢, ÉÏÉı»òÏÂ½µÑØ
+	//gp21_write_cfg(OP_CODE_WR(0x02), 0xE0000011); //Timeout End Hits ALUä¸­æ–­è§¦å‘, ä¸Šå‡æˆ–ä¸‹é™æ²¿
 	lk_gp2x_write_opcode(OP_CODE_WR(0x02), 0x20000011);
-	lk_gp2x_write_opcode(OP_CODE_WR(0x03), 0x20000012); //ÓÉÓÚtimeout Ç¿ÆÈALUĞ´Èë0XFFFFFFFFµ½½á¹û¼Ä´æÆ÷£º¹Ø±Õ		
-	lk_gp2x_write_opcode(OP_CODE_WR(0x04), 0x20000013);  //Ä¬ÈÏÅäÖÃ
-	lk_gp2x_write_opcode(OP_CODE_WR(0x05), 0x00000014);  //Âö³å´¥·¢Æ÷¹Ø±Õ£¬ÔëÉùµ¥Ôª¹Ø±Õ
+	lk_gp2x_write_opcode(OP_CODE_WR(0x03), 0x20000012); //ç”±äºtimeout å¼ºè¿«ALUå†™å…¥0XFFFFFFFFåˆ°ç»“æœå¯„å­˜å™¨ï¼šå…³é—­		
+	lk_gp2x_write_opcode(OP_CODE_WR(0x04), 0x20000013);  //é»˜è®¤é…ç½®
+	lk_gp2x_write_opcode(OP_CODE_WR(0x05), 0x00000014);  //è„‰å†²è§¦å‘å™¨å…³é—­ï¼Œå™ªå£°å•å…ƒå…³é—­
 	HAL_Delay(5);
-	lk_gp2x_write_opcode(OP_CODE_WR(0x06), 0x00000015);  //³¬Éù²¨..¹Ø±Õ			
+	lk_gp2x_write_opcode(OP_CODE_WR(0x06), 0x00000015);  //è¶…å£°æ³¢..å…³é—­			
 	id = lk_gp2x_get_id();
 
-//²âÁ¿·¶Î§2
    if(id == 0x12251112131415)
 	 {
 	   return true;
@@ -82,21 +87,26 @@ bool gp21_defaultcofg(void)
 }
 
 
-//²âÁ¿Ä£Ê½2,Ô¶¾àÀë
-void gp21_messgeModeTwo(void)
+/**
+ * gp2x æµ‹é‡æ¨¡å¼2ï¼Œè¿œè·ç¦»
+ *
+ * @param 
+ * @return None
+ */
+void lk_gp2x_messgeMode2(void)
 {
-	lk_gp2x_write_opcode(OP_CODE_WR(0x00), 0x00042812);   //0·ÖÆµ,²âÁ¿·¶Î§2
-	lk_gp2x_write_opcode(OP_CODE_WR(0x01), 0x21422025);//0x01420023 //STOPÍ¨µÀ1¸öÂö³å£¬stopÍ¨µÀ2¹Ø±Õ£¬¿ìËÙ³õÊ¼»¯¹¦ÄÜÆô¶¯,ALUÌáÇ°Êı¾İ´¦ÀíµÄ¼ÆËã stop ch1 -start
+	lk_gp2x_write_opcode(OP_CODE_WR(0x00), 0x00042812);   //0åˆ†é¢‘,æµ‹é‡èŒƒå›´2
+	lk_gp2x_write_opcode(OP_CODE_WR(0x01), 0x21422025);//0x01420023 //STOPé€šé“1ä¸ªè„‰å†²ï¼Œstopé€šé“2å…³é—­ï¼Œå¿«é€Ÿåˆå§‹åŒ–åŠŸèƒ½å¯åŠ¨,ALUæå‰æ•°æ®å¤„ç†çš„è®¡ç®— stop ch1 -start
 	//bit29 = 1 ALU ok
 	//bit30 = 1 the received pulse counter is ready
 	//bit31 = 1 TDC timeout overflow
-	//gp21_write_cfg(OP_CODE_WR(0x02), 0xE0000011); //Timeout End Hits ALUÖĞ¶Ï´¥·¢, ÉÏÉı»òÏÂ½µÑØ
+	//gp21_write_cfg(OP_CODE_WR(0x02), 0xE0000011); //Timeout End Hits ALUä¸­æ–­è§¦å‘, ä¸Šå‡æˆ–ä¸‹é™æ²¿
 	lk_gp2x_write_opcode(OP_CODE_WR(0x02), 0xC0000011);
-	lk_gp2x_write_opcode(OP_CODE_WR(0x03), 0x20000012); //ÓÉÓÚtimeout Ç¿ÆÈALUĞ´Èë0XFFFFFFFFµ½½á¹û¼Ä´æÆ÷£º¹Ø±Õ		
-	lk_gp2x_write_opcode(OP_CODE_WR(0x04), 0x20000013);  //Ä¬ÈÏÅäÖÃ
-	lk_gp2x_write_opcode(OP_CODE_WR(0x05), 0x00000014);  //Âö³å´¥·¢Æ÷¹Ø±Õ£¬ÔëÉùµ¥Ôª¹Ø±Õ
+	lk_gp2x_write_opcode(OP_CODE_WR(0x03), 0x20000012); //ç”±äºtimeout å¼ºè¿«ALUå†™å…¥0XFFFFFFFFåˆ°ç»“æœå¯„å­˜å™¨ï¼šå…³é—­		
+	lk_gp2x_write_opcode(OP_CODE_WR(0x04), 0x20000013);  //é»˜è®¤é…ç½®
+	lk_gp2x_write_opcode(OP_CODE_WR(0x05), 0x00000014);  //è„‰å†²è§¦å‘å™¨å…³é—­ï¼Œå™ªå£°å•å…ƒå…³é—­
 	HAL_Delay(5);
-	lk_gp2x_write_opcode(OP_CODE_WR(0x06), 0x00000015);  //³¬Éù²¨..¹Ø±Õ			
+	lk_gp2x_write_opcode(OP_CODE_WR(0x06), 0x00000015);  //è¶…å£°æ³¢..å…³é—­			
 	lk_gp2x_get_id();	
 }
 
@@ -111,7 +121,7 @@ HAL_StatusTypeDef gp21_statu;
  * @param reg:  configure
  * @return None
  */
-void gp21_write_reg(uint8_t reg)
+void lk_gp2x_write(uint8_t reg)
 {
 	uint8_t rg=reg;	
     lk_gp2x_select();	
@@ -147,9 +157,7 @@ void lk_gp2x_write_opcode(uint8_t op_code, uint32_t reg)
 
 /**
  * gp2x sensor get id
- *
- * @param id  8bytes buff point
- * @return None
+ * @return uint64_t
  */
 uint64_t lk_gp2x_get_id(void)
 {
@@ -164,35 +172,48 @@ uint64_t lk_gp2x_get_id(void)
   return gp_id;	 
 }
 
-
-uint32_t gp21_read_dword(uint8_t opcode)
+/**
+ * gp2x è·å–opcode å¯¹åº”å¯„å­˜å™¨å€¼
+ * @param opcode ç 
+ * @return uint32_t
+ */
+static uint32_t lk_gp2x_read(uint8_t opcode)
 {
    uint32_t result=0;
-	//uint8_t txcmd[5] ={opcode,opcode,opcode,opcode,opcode};
 	uint8_t txcmd[5] ={opcode,0xFF,0xff,0xff,0xff};
 	lk_gp2x_select();
 	HAL_SPI_TransmitReceive(gp21_spi,txcmd,rxbuf,5,0xffff);
-//	HAL_SPI_Transmit(gp21_spi,txcmd,1,0xfff);
-//	HAL_SPI_Receive(gp21_spi,rxbuf,5,0xffff);
-   lk_gp2x_release();
-	 result  = rxbuf[1]<<24 | rxbuf[2] <<16 | rxbuf[3] <<8 | rxbuf[4];   //Êı¾İ´Ó ÏÂ±ê1¿ªÊ¼ÓĞĞ§
+    lk_gp2x_release();
+	result  = rxbuf[1]<<24 | rxbuf[2] <<16 | rxbuf[3] <<8 | rxbuf[4];   //æ•°æ®ä» ä¸‹æ ‡1å¼€å§‹æœ‰æ•ˆ
   return result;
 }
 
 uint32_t status_gp2 = 0;
-uint16_t  get_gp21_statu(void)
+
+/**
+ * gp2x è·å–çŠ¶æ€å¯„å­˜å™¨å€¼
+ * @param 
+ * @return uint16_t
+ */
+uint16_t  lk_gp2x_read_regStatu(void)
 {
 	
-  status_gp2=gp21_read_dword(OP_CODE_RD(0x04));	
+  status_gp2=lk_gp2x_read(OP_CODE_RD(0x04));	
   status_gp2>>=16;
   return  status_gp2;
 	
 }
 
-uint32_t   gp21_read_diatance(uint8_t index)
+
+/**
+ * gp2x è·å–ç»“æœå¯„å­˜å™¨å€¼
+ * @param  regIndex 0~3
+ * @return uint16_t
+ */
+uint32_t   lk_gp2x_read_regResult(uint8_t regIndex)
 {
 
-   return  gp21_read_dword(OP_CODE_RD(index));
+   return  lk_gp2x_read(OP_CODE_RD(regIndex));
 }
 
 

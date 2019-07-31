@@ -134,11 +134,11 @@
             <RunIndependent>0</RunIndependent>
             <UpdateFlashBeforeDebugging>1</UpdateFlashBeforeDebugging>
             <Capability>1</Capability>
-            <DriverSelection>4107</DriverSelection>
+            <DriverSelection>4101</DriverSelection>
           </Flash1>
           <bUseTDR>1</bUseTDR>
           <Flash2>STLink\ST-LINKIII-KEIL_SWO.dll</Flash2>
-          <Flash3></Flash3>
+          <Flash3>"" ()</Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xE</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;               ../Drivers/STM32F1xx_HAL_Driver/Inc;               ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;               ../Middlewares/Third_Party/FreeRTOS/Source/include;               ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;               ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3;               ../Drivers/CMSIS/Device/ST/STM32F1xx/Include;               ../Drivers/CMSIS/Include;               ..\zjk_src\boards\lk03;               ..\zjk_src\sensor;               ..\zjk_src\hal;               ..\zjk_src\comToPC;               ..\zjk_src\serial;               ..\zjk_src\thinyFrame;               ..\zjk_src\thinyFrame\demo;               ..\zjk_src\task;               ..\zjk_src\flash;               ..\zjk_src\include;               ..\zjk_src\ringBuffer</IncludePath>
+              <IncludePath>../Inc;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3;../Drivers/CMSIS/Device/ST/STM32F1xx/Include;../Drivers/CMSIS/Include;..\zjk_src\boards\lk03;..\zjk_src\sensor;..\zjk_src\hal;..\zjk_src\comToPC;..\zjk_src\serial;..\zjk_src\thinyFrame;..\zjk_src\thinyFrame\demo;..\zjk_src\task;..\zjk_src\flash;..\zjk_src\include;..\zjk_src\ringBuffer;..\zjk_src\modbus\include;..\zjk_src\modbus\port;..\zjk_src\modbus\rtu;..\zjk_src\modbus\ascii;..\zjk_src\z_sysos\z_include;..\zjk_src\z_sysos</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -380,17 +380,7 @@
       </TargetOption>
       <Groups>
         <Group>
-          <GroupName>Application/MDK-ARM</GroupName>
-          <Files>
-            <File>
-              <FileName>startup_stm32f103xe.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>startup_stm32f103xe.s</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>usr_hal</GroupName>
+          <GroupName>z_os/driver</GroupName>
           <Files>
             <File>
               <FileName>TDC_GP21.c</FileName>
@@ -407,11 +397,6 @@
               <FileType>1</FileType>
               <FilePath>..\zjk_src\serial\z_serial.c</FilePath>
             </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>usr_sensor</GroupName>
-          <Files>
             <File>
               <FileName>tlc5618.c</FileName>
               <FileType>1</FileType>
@@ -420,7 +405,32 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>z_board</GroupName>
+          <GroupName>z_os/kernel</GroupName>
+          <Files>
+            <File>
+              <FileName>zdef.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\zjk_src\z_sysos\z_include\zdef.h</FilePath>
+            </File>
+            <File>
+              <FileName>z_os.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\zjk_src\z_sysos\z_include\z_os.h</FilePath>
+            </File>
+            <File>
+              <FileName>zdebug.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\zjk_src\z_sysos\z_include\zdebug.h</FilePath>
+            </File>
+            <File>
+              <FileName>zos_service.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\zjk_src\z_sysos\z_include\zos_service.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>z_os/board</GroupName>
           <Files>
             <File>
               <FileName>z_lko3.c</FileName>
@@ -441,6 +451,141 @@
               <FileName>Connect_Format.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\zjk_src\comToPC\Connect_Format.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>z_os/protecol/tinyFrame</GroupName>
+          <Files>
+            <File>
+              <FileName>test.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\zjk_src\thinyFrame\demo\test.c</FilePath>
+            </File>
+            <File>
+              <FileName>TinyFrame.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\zjk_src\thinyFrame\TinyFrame.c</FilePath>
+            </File>
+            <File>
+              <FileName>utils.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\zjk_src\thinyFrame\utils.c</FilePath>
+            </File>
+            <File>
+              <FileName>z_param.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\zjk_src\task\z_param.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>z_os/tasks</GroupName>
+          <Files>
+            <File>
+              <FileName>z_freeRtos.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\zjk_src\task\z_freeRtos.c</FilePath>
+            </File>
+            <File>
+              <FileName>z_param.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\zjk_src\task\z_param.h</FilePath>
+            </File>
+            <File>
+              <FileName>ringQueue.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\zjk_src\ringBuffer\ringQueue.c</FilePath>
+            </File>
+            <File>
+              <FileName>z_checksum.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\zjk_src\hal\z_checksum.c</FilePath>
+            </File>
+            <File>
+              <FileName>z_sensor_ack.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\zjk_src\task\z_sensor_ack.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Middlewares/freeModbus</GroupName>
+          <Files>
+            <File>
+              <FileName>mb.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\zjk_src\modbus\mb.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbfunccoils.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\zjk_src\modbus\functions\mbfunccoils.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbfuncdiag.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\zjk_src\modbus\functions\mbfuncdiag.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbfuncdisc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\zjk_src\modbus\functions\mbfuncdisc.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbfuncholding.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\zjk_src\modbus\functions\mbfuncholding.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbfuncinput.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\zjk_src\modbus\functions\mbfuncinput.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbfuncother.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\zjk_src\modbus\functions\mbfuncother.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbutils.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\zjk_src\modbus\functions\mbutils.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbcrc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\zjk_src\modbus\rtu\mbcrc.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbrtu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\zjk_src\modbus\rtu\mbrtu.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Middlewares/freeModbus/port</GroupName>
+          <Files>
+            <File>
+              <FileName>portevent.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\zjk_src\modbus\port\portevent.c</FilePath>
+            </File>
+            <File>
+              <FileName>portserial.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\zjk_src\modbus\port\portserial.c</FilePath>
+            </File>
+            <File>
+              <FileName>porttimer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\zjk_src\modbus\port\porttimer.c</FilePath>
+            </File>
+            <File>
+              <FileName>mdtask.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\zjk_src\modbus\task\mdtask.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -670,57 +815,12 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>z_tiny_frame</GroupName>
+          <GroupName>Application/MDK-ARM</GroupName>
           <Files>
             <File>
-              <FileName>test.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\zjk_src\thinyFrame\demo\test.c</FilePath>
-            </File>
-            <File>
-              <FileName>TinyFrame.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\zjk_src\thinyFrame\TinyFrame.c</FilePath>
-            </File>
-            <File>
-              <FileName>utils.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\zjk_src\thinyFrame\utils.c</FilePath>
-            </File>
-            <File>
-              <FileName>z_param.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\zjk_src\task\z_param.h</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>z_freeRtos</GroupName>
-          <Files>
-            <File>
-              <FileName>z_freeRtos.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\zjk_src\task\z_freeRtos.c</FilePath>
-            </File>
-            <File>
-              <FileName>z_param.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\zjk_src\task\z_param.h</FilePath>
-            </File>
-            <File>
-              <FileName>ringQueue.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\zjk_src\ringBuffer\ringQueue.c</FilePath>
-            </File>
-            <File>
-              <FileName>z_checksum.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\zjk_src\hal\z_checksum.c</FilePath>
-            </File>
-            <File>
-              <FileName>z_sensor_ack.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\zjk_src\task\z_sensor_ack.c</FilePath>
+              <FileName>startup_stm32f103xe.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>startup_stm32f103xe.s</FilePath>
             </File>
           </Files>
         </Group>

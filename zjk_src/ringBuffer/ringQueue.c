@@ -7,7 +7,7 @@
   * @brief          : 
   *
   ******************************************************************************
-  * @attention  Ë³Ðò´æ´¢Ñ­»·¶ÓÁÐ
+  * @attention  é¡ºåºå­˜å‚¨å¾ªçŽ¯é˜Ÿåˆ—
   *
   *
   ******************************************************************************
@@ -31,7 +31,7 @@
 /* Exported function ----------------------------------------------------------*/
 
 /**
-  * @brief  Ñ­»·¶ÓÁÐ³õÊ¼»¯
+  * @brief  å¾ªçŽ¯é˜Ÿåˆ—åˆå§‹åŒ–
   * @param  None
   * @retval None
   */
@@ -42,7 +42,7 @@
 	 return Q_OK;
  }
 /**
-  * @brief  ·µ»ØQµÄÔªËØµÄ¸öÊý£¬Ò²¾ÍÊÇµ±Ç°¶ÓÁÐµÄ³¤¶È
+  * @brief  è¿”å›žQçš„å…ƒç´ çš„ä¸ªæ•°ï¼Œä¹Ÿå°±æ˜¯å½“å‰é˜Ÿåˆ—çš„é•¿åº¦
   * @param  None
   * @retval None
   */
@@ -51,28 +51,28 @@
 	 return (Q->rear - Q->front + MAXSIZE)%MAXSIZE;
  }
  /**
-  * @brief  Èë¶ÓÁÐ£¬Èô¶ÓÁÐÎ´Âú£¬Ôò²åÈëÔªËØeÎªÐÂµÄ¶ÓÎ²ÔªËØ
+  * @brief  å…¥é˜Ÿåˆ—ï¼Œè‹¥é˜Ÿåˆ—æœªæ»¡ï¼Œåˆ™æ’å…¥å…ƒç´ eä¸ºæ–°çš„é˜Ÿå°¾å…ƒç´ 
   * @param  None
   * @retval None
   */
  QStatus Queue_push(SqQueue*Q,QElemType e)
  {
-	 if((Q->rear + 1)%MAXSIZE == Q->front)   /*¶ÓÁÐ Âú */
+	 if((Q->rear + 1)%MAXSIZE == Q->front)   /*é˜Ÿåˆ— æ»¡ */
 	 return Q_ERROR;
-	 Q->data[Q->rear] = e;   //½«ÔªËØe¸³Öµ¸ø¶ÓÎ²
-	 Q->rear =  (Q->rear +1 )%MAXSIZE;  /*real Ö¸ÕëÏòºóÒÆ¶¯£¬Èôµ½×îºóÔò×ªµ½Êý×éÍ·²¿*/
+	 Q->data[Q->rear] = e;   //å°†å…ƒç´ eèµ‹å€¼ç»™é˜Ÿå°¾
+	 Q->rear =  (Q->rear +1 )%MAXSIZE;  /*real æŒ‡é’ˆå‘åŽç§»åŠ¨ï¼Œè‹¥åˆ°æœ€åŽåˆ™è½¬åˆ°æ•°ç»„å¤´éƒ¨*/
      return Q_OK;
  }
   /**
-  * @brief  ³ö¶ÓÁÐ£¬Èô¶ÓÁÐ²»¿Õ£¬ÔòÉ¾³ýQÖÐ¶ÔÍ·ÔªËØ£¬ÓÃe·µ»ØÆäÖµ
+  * @brief  å‡ºé˜Ÿåˆ—ï¼Œè‹¥é˜Ÿåˆ—ä¸ç©ºï¼Œåˆ™åˆ é™¤Qä¸­å¯¹å¤´å…ƒç´ ï¼Œç”¨eè¿”å›žå…¶å€¼
   * @param  None
   * @retval None
   */
 QStatus Queue_pop(SqQueue*Q,QElemType* e)
 {
-    if(Q->front == Q->rear)   /*¶ÓÁÐ¿ÕÅÐ¶Ï */
+    if(Q->front == Q->rear)   /*é˜Ÿåˆ—ç©ºåˆ¤æ–­ */
 	return Q_ERROR;
-	*e = Q->data[Q->front];   //½«¶ÓÍ·ÔªËØ¸¶¸øe
+	*e = Q->data[Q->front];   //å°†é˜Ÿå¤´å…ƒç´ ä»˜ç»™e
 	Q->front = (Q->front + 1)%MAXSIZE;
     return Q_OK;
  }

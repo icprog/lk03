@@ -11,12 +11,12 @@
 #if TEST_QC 
 //#define DIST_FIRST_OFFSET   716
 //#define DIST_SECOND_OFFSET   695
-//2#½á¹¹
+//2#ç»“æ„
 #define DIST_FIRST_OFFSET    0
 #define DIST_SECOND_OFFSET   780
 #define DIST_THIED_OFFSET    780
 
-//3#½á¹¹
+//3#ç»“æ„
 //#define DIST_FIRST_OFFSET    594
 //#define DIST_SECOND_OFFSET   780
 //#define DIST_THIED_OFFSET    780
@@ -25,14 +25,14 @@
 #define second_test   true
 	
 #endif
-#define LK03_STAND_COUNTS  3     //±ê¶¨´ÎÊı3
+#define LK03_STAND_COUNTS  3     //æ ‡å®šæ¬¡æ•°3
 
 #define  PROTECL_HEAD_TAIL_SIZE 3  //0xff+cmd+tail=3
 
-typedef enum{dist_cmd=1,ack_cmd=2,stand_param_cmd}TypedSend;  //·¢ËÍĞ­Òé¹¦ÄÜ¶¨Òå
+typedef enum{dist_cmd=1,ack_cmd=2,stand_param_cmd}TypedSend;  //å‘é€åè®®åŠŸèƒ½å®šä¹‰
 typedef enum{first_mes1=1,first_mes2=2,}TypedSelextMode;  //
 typedef enum{msg_thirdStard=1,msg_firstStard=2,msg_qcStard}TypedSelextMsgMode;  //
-/*²ÎÊı×´Ì¬*/
+/*å‚æ•°çŠ¶æ€*/
 //typedef struct
 //{
 //  bool ifParamSave;
@@ -40,11 +40,11 @@ typedef enum{msg_thirdStard=1,msg_firstStard=2,msg_qcStard}TypedSelextMsgMode;  
 //	bool ifGetOnceDist;
 //	bool ifContinuDist;
 //	bool ifStopContinu;
-//  bool ifQCStand[LK03_STAND_COUNTS];    //±£´æ±ê¶¨
+//  bool ifQCStand[LK03_STAND_COUNTS];    //ä¿å­˜æ ‡å®š
 //	bool ifQCgetParm;
-//	bool ifQCgetParmReset[LK03_STAND_COUNTS];  //¸´Î»±ê¶¨
-//	bool ifstandSwitch[LK03_STAND_COUNTS];  //µµÎ»ÇĞ»»
-//	bool  ifDownloadStart;   //  ¹Ì¼şÉı¼¶
+//	bool ifQCgetParmReset[LK03_STAND_COUNTS];  //å¤ä½æ ‡å®š
+//	bool ifstandSwitch[LK03_STAND_COUNTS];  //æ¡£ä½åˆ‡æ¢
+//	bool  ifDownloadStart;   //  å›ºä»¶å‡çº§
 //}lk_statu_;
 
 
@@ -63,7 +63,7 @@ typedef struct
   sensor_runnig_cmd_typEnum cmd;
 	TF_Msg *msg;
 }sensor_struct_;
-/*½á¹¹¶ÔÓ¦Êı¾İÖ¸ÕëºÍÊı¾İ³¤¶È*/
+/*ç»“æ„å¯¹åº”æ•°æ®æŒ‡é’ˆå’Œæ•°æ®é•¿åº¦*/
 typedef struct
 {
  uint8_t *point;
@@ -71,31 +71,31 @@ typedef struct
 }arrayByte_;
 
 
-/*QC ²ÎÊı*/
+/*QC å‚æ•°*/
 typedef struct{
-	uint16_t qc_stand_dist ;   //Ğ£×¼Öµ
-  uint16_t qc_ad603Gain;    //ÔöÒæÖµ
-	bool ifHavedStand;   //ÊÇ·ñÒÑ¾­±ê¶¨¹ı£¬±ê¶¨¹ıÖµÎªtrue,·´Ö®Îªfalse
+	uint16_t qc_stand_dist ;   //æ ¡å‡†å€¼
+  uint16_t qc_ad603Gain;    //å¢ç›Šå€¼
+	bool ifHavedStand;   //æ˜¯å¦å·²ç»æ ‡å®šè¿‡ï¼Œæ ‡å®šè¿‡å€¼ä¸ºtrue,åä¹‹ä¸ºfalse
 }QC_TYP;
 
 
-/*±£´æÔÚflashÖĞ*/
+/*ä¿å­˜åœ¨flashä¸­*/
 
 #pragma pack(1)
 typedef struct 
 {
-  uint8_t product;   //²úÆ·±àºÅ ; LK03 :0X02  LK02: 0X01
-	uint8_t baud_rate; //²¨ÌØÂÊ£¬²¨ÌØÂÊ0:9600;1:4400;2:19200;3:38400;4:57600;5:115200
-	uint16_t front_limit_trigger; //Ç°ÃÅÏŞ¾àÀë´¥·¢
-	uint16_t back_limit_trigger;//ºóÃÅÏŞ¾àÀë´¥·¢
-	uint8_t front_or_base;//Ç°ºó»ù×¼
-  uint8_t ifHasConfig;     //ÊÇ·ñÒÑ¾­ÅäÖÃ
-	uint8_t autoRunMode;  //×Ô¶¯ÔËĞĞÄ£Ê½
+  uint8_t product;   //äº§å“ç¼–å· ; LK03 :0X02  LK02: 0X01
+	uint8_t baud_rate; //æ³¢ç‰¹ç‡ï¼Œæ³¢ç‰¹ç‡0:9600;1:4400;2:19200;3:38400;4:57600;5:115200
+	uint16_t front_limit_trigger; //å‰é—¨é™è·ç¦»è§¦å‘
+	uint16_t back_limit_trigger;//åé—¨é™è·ç¦»è§¦å‘
+	uint8_t front_or_base;//å‰ååŸºå‡†
+  uint8_t ifHasConfig;     //æ˜¯å¦å·²ç»é…ç½®
+	uint8_t autoRunMode;  //è‡ªåŠ¨è¿è¡Œæ¨¡å¼
 	uint16_t outFreq;
-  volatile QC_TYP QC[LK03_STAND_COUNTS];   //ÉèÖÃ3µ²±ê¶¨
+  volatile QC_TYP QC[LK03_STAND_COUNTS];   //è®¾ç½®3æŒ¡æ ‡å®š
 }parm_;
 
-/*½ÓÊÕÃüÁî*/
+/*æ¥æ”¶å‘½ä»¤*/
 typedef enum  { user_dist_ctl = 0x01,usr_paramCfg_get=0x02, user_paramCfg_set=0x03,
 							  system_boot_firmware_ctl=0x20, system_boot_firmware_pakage,
 							  system_boot_param = 0x30,
@@ -130,7 +130,7 @@ typedef enum  { debug_ID=1}FRAME_DEBUG_CMD;
 typedef enum  { lk_getData_ack = 1, lk_saveParm_ack, lk_getParm_ack, lk_QC_ack = 6, lk_debug_ack = 7, lk_download_ack = 0xfe,lk_download_pakage_ack}FRAME_ACK_CMD;
 typedef enum{z_type=0,z_id} z_type_id;
 
-extern bool ifDebug;  //ÊÇ·ñµ÷ÊÔ±ê¼Ç
+extern bool ifDebug;  //æ˜¯å¦è°ƒè¯•æ ‡è®°
 
 
 #pragma pack()
@@ -138,27 +138,27 @@ extern bool ifDebug;  //ÊÇ·ñµ÷ÊÔ±ê¼Ç
 #define DIST_CONTINUE_BIT_1  (1<<1)
 #define Dist_Stop_BIT_2      (1<<2)
 #define EVENT_ALL_BIT (DIST_ONCE_BIT_0|DIST_CONTINUE_BIT_1|Dist_Stop_BIT_2)
-//±äÁ¿
+//å˜é‡
 extern QC_TYP qc_param;
 extern parm_ lk_defaultParm;
 extern parm_ lk_flash;
 
-//º¯Êı
+//å‡½æ•°
 /***********************************************
-   ¿ª·¢ÈËÔ±Ó¦´ğ
+   å¼€å‘äººå‘˜åº”ç­”
 ***********************************************/
 void lk_programer_ack(sendframe_programer_ackId_typEnum id,uint8_t *data,uint8_t lens);
 /***********************************************
-   ÓÃ»§Í¨ÓÃ Ó¦´ğ
+   ç”¨æˆ·é€šç”¨ åº”ç­”
 ***********************************************/
 
 void lk_user_ack(sendframe_user_ackId_typEnum id,uint8_t *data,uint8_t lens);
 void zTF_sendOnceDistAck(uint8_t *data,uint8_t lens);
 void zTF_StopDistAck(void);
 void zTF_sendContinueDistAck(uint8_t *data,uint8_t lens);
-//ÎŞĞ§Êı¾İ·¢Éú
+//æ— æ•ˆæ•°æ®å‘ç”Ÿ
 void zTF_NullDistAck(void);
-/*========»ñÈ¡²ÎÊıÓ¦´ğ================*/
+/*========è·å–å‚æ•°åº”ç­”================*/
 void zTF_paramCfg_getAll_Ack(uint8_t *data,uint8_t lens);
 void zTF_paramCfg_getBaudRate_Ack(uint8_t *data,uint8_t lens);
 void zTF_paramCfg_getFrontSwich_Ack(uint8_t *data,uint8_t lens);
@@ -166,7 +166,7 @@ void zTF_paramCfg_getBackSwich_Ack(uint8_t *data,uint8_t lens);
 void zTF_paramCfg_getDisBase_Ack(uint8_t *data,uint8_t lens);
 void zTF_paramCfg_getPowerOnMode_Ack(uint8_t *data,uint8_t lens);
 void zTF_paramCfg_getOutDataFreq_Ack(uint8_t *data,uint8_t lens);
-/*========²ÎÊıÅäÖÃÓ¦´ğ================*/
+/*========å‚æ•°é…ç½®åº”ç­”================*/
 void zTF_paramCfg_setAll_Ack(void);
 void zTF_paramCfg_setBaudRate_Ack(void);
 void zTF_paramCfg_setFrontSwich_Ack(void);
@@ -174,34 +174,34 @@ void zTF_paramCfg_setBackSwich_Ack(void);
 void zTF_paramCfg_setDisBase_Ack();
 void zTF_paramCfg_setPowerOnMode_Ack(void);
 void zTF_paramCfg_setOutDataFreq_Ack(void);
-/*========systemÓ¦´ğ================*/
+/*========systemåº”ç­”================*/
 void zTF_system_boot_paramReset_Ack(void);
 void zTF_system_firmware_ctl_Ack(void);
 void zTF_system_firmware_pakage_Ack(void);
 
-/*========programerÓ¦´ğ================*/
+/*========programeråº”ç­”================*/
 void zTF_programer_qc_getParam_Ack(uint8_t *data,uint8_t lens);
-//ÇĞ»»
+//åˆ‡æ¢
 void zTF_programer_qc_standFirst_switch_ack(void);
 void zTF_programer_qc_standSecond_switch_ack(void);
 void zTF_programer_qc_standthird_switch_ack(void);
-//¸´Î»
+//å¤ä½
 void zTF_programer_qc_standFirst_reset_ack(void);
 void zTF_programer_qc_standSecond_reset_ack(void);
 void zTF_programer_qc_standthird_reset_ack(void);
-//´æ´¢
+//å­˜å‚¨
 void zTF_programer_qc_standFirst_save_ack(void);
 void zTF_programer_qc_standSecond_save_ack(void);
 void zTF_programer_qc_standthird_save_ack(void);
 void clear_msgData(TF_Msg *msg);
-//µ÷ÊÔÓ¦´ğ
+//è°ƒè¯•åº”ç­”
 void zTF_programer_debug_sensorParam_ack(uint8_t *data,uint8_t lens);
 void zTF_programer_standMode_switch_ack(void);
-//qc±ê¶¨²ÎÊı·¢ËÍ
+//qcæ ‡å®šå‚æ•°å‘é€
 void QCparmSend(uint8_t *data,uint8_t lens);
 void parmSend(parm_ *parm);
-void zTF_sendOnceDist(uint8_t *data,uint8_t lens);   //·¢ËÍ²âÁ¿¾àÀë
-arrayByte_ structToBytes(parm_ *p);       //²ÎÊı½á¹¹×ª¶ÔÓ¦Êı×é½á¹¹
+void zTF_sendOnceDist(uint8_t *data,uint8_t lens);   //å‘é€æµ‹é‡è·ç¦»
+arrayByte_ structToBytes(parm_ *p);       //å‚æ•°ç»“æ„è½¬å¯¹åº”æ•°ç»„ç»“æ„
 extern EventGroupHandle_t xTinyFrameEventGroup;
 void debugParmSend(uint8_t *data,uint8_t lens);
 #endif
