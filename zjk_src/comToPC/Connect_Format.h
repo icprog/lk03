@@ -10,7 +10,7 @@ void usart1_niming_report(uint8_t fun,uint8_t*data,uint8_t len);
 void usart1_report_imu(short aacx,short aacy,short aacz,short gyrox,short gyroy,short gyroz,short roll,short pitch,short yaw);
 void mpu6050_send_data(short aacx,short aacy,short aacz,short gyrox,short gyroy,short gyroz);
 
-//发送上位机 V4.2
+//鍙戦�佷笂浣嶆満 V4.2
 #define BYTE0(dwTemp)       (*(char *)(&dwTemp))
 #define BYTE1(dwTemp)       (*((char *)(&dwTemp) + 1))
 #define BYTE2(dwTemp)       (*((char *)(&dwTemp) + 2))

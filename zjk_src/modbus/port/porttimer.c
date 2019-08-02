@@ -46,7 +46,7 @@ vMBPortTimersEnable(  )
   __HAL_TIM_CLEAR_IT(portTimex,TIM_IT_UPDATE);
   __HAL_TIM_SET_COUNTER(portTimex,0);
   
-  /* ÔÚÖÐ¶ÏÄ£Ê½ÏÂÆô¶¯¶¨Ê±Æ÷ */
+  /* åœ¨ä¸­æ–­æ¨¡å¼ä¸‹å¯åŠ¨å®šæ—¶å™¨ */
   HAL_TIM_Base_Start_IT(portTimex);
 }
 
@@ -70,10 +70,10 @@ static void prvvTIMERExpiredISR( void )
 }
 
 /**
-  * º¯Êý¹¦ÄÜ: ·Ç×èÈûÄ£Ê½ÏÂ¶¨Ê±Æ÷µÄ»Øµ÷º¯Êý
-  * ÊäÈë²ÎÊý: htim£º¶¨Ê±Æ÷¾ä±ú
-  * ·µ »Ø Öµ: ÎÞ
-  * Ëµ    Ã÷: ÎÞ
+  * å‡½æ•°åŠŸèƒ½: éžé˜»å¡žæ¨¡å¼ä¸‹å®šæ—¶å™¨çš„å›žè°ƒå‡½æ•°
+  * è¾“å…¥å‚æ•°: htimï¼šå®šæ—¶å™¨å¥æŸ„
+  * è¿” å›ž å€¼: æ— 
+  * è¯´    æ˜Ž: æ— 
   */
 //void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 //{

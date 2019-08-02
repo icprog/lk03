@@ -27,7 +27,7 @@ uint8_t   Start_Temp_Restart =  0x06;
 //variable
 
 /* function -------------------------------------------------------------------*/
-static void lk_gp2x_write_opcode(uint8_t op_code, uint32_t reg);
+static GP2XERROTYPE lk_gp2x_write_opcode(uint8_t op_code, uint32_t reg);
 SPI_HandleTypeDef  *gp21_spi = &hspi2;
 uint8_t rxbuf[5] = {0};
 uint64_t id =0;
@@ -44,8 +44,13 @@ void lk_gp2x_init(void)
 	gp21_close_stop1Signal();
 }
 
-
-void gp21_hard_rst(void)
+/**
+* gp2x 硬件复位
+ *
+ * @param 
+ * @return None
+ */
+void lk_gp2x_hard_rst(void)
 {
     gp21_rstn_idle();
 	HAL_Delay(1);
@@ -121,7 +126,7 @@ HAL_StatusTypeDef gp21_statu;
  * @param reg:  configure
  * @return None
  */
-void lk_gp2x_write(uint8_t reg)
+GP2XERROTYPE lk_gp2x_write(uint8_t reg)
 {
 	uint8_t rg=reg;	
     lk_gp2x_select();	
@@ -129,8 +134,9 @@ void lk_gp2x_write(uint8_t reg)
 	lk_gp2x_release();
 	if(gp21_statu !=HAL_OK) 
 	{
-	   	
-	}	
+	   	return GP2X_ERRO;
+	}
+  return  GP2X_OK;	
 }
 
 /**
@@ -140,8 +146,9 @@ void lk_gp2x_write(uint8_t reg)
  * @param reg:  configure
  * @return None
  */
-void lk_gp2x_write_opcode(uint8_t op_code, uint32_t reg)
+static GP2XERROTYPE lk_gp2x_write_opcode(uint8_t op_code, uint32_t reg)
 {
+	GP2XERROTYPE re_sult;
 	 uint8_t trant=op_code;
 	 uint8_t cfg[4] = {0};
 	 cfg[0] = reg>>24;
@@ -149,9 +156,14 @@ void lk_gp2x_write_opcode(uint8_t op_code, uint32_t reg)
 	 cfg[2] = reg>>8;	 	
 	 cfg[3] = reg;	 		 
      lk_gp2x_select();
-     gp21_statu =  HAL_SPI_Transmit(gp21_spi,&trant,1,0xff); 
-	 HAL_SPI_Transmit(gp21_spi,cfg,4,0xff); 
+     re_sult =  HAL_SPI_Transmit(gp21_spi,&trant,1,0xff); 
+	 re_sult = HAL_SPI_Transmit(gp21_spi,cfg,4,0xff); 
 	 lk_gp2x_release();
+	if(gp21_statu !=HAL_OK) 
+	{
+	   	return GP2X_ERRO;
+	}
+  return  GP2X_OK;		 
 }
   
 
@@ -162,13 +174,15 @@ void lk_gp2x_write_opcode(uint8_t op_code, uint32_t reg)
 uint64_t lk_gp2x_get_id(void)
 {
   static uint64_t gp_id = 0;
+  GP2XERROTYPE re_sult;
   uint8_t gp2x_id[8]={0};
   uint8_t txcmd[8]= {OPC_ID,0xff,0xff,0xff,0xff,0xff,0xff,0xff};
   lk_gp2x_select();
-  HAL_SPI_TransmitReceive(gp21_spi,txcmd,gp2x_id,8,0xff);
+  re_sult =  HAL_SPI_TransmitReceive(gp21_spi,txcmd,gp2x_id,8,0xff);
   lk_gp2x_release();
   gp_id = (((uint64_t)gp2x_id[0]<<56 )|((uint64_t)gp2x_id[1]<<48 )|((uint64_t)gp2x_id[2]<<40 )|((uint64_t)gp2x_id[3]<<32 ) |
         ((uint64_t)gp2x_id[4]<<24 )|((uint64_t)gp2x_id[5]<<16 )| ((uint64_t)gp2x_id[4]<<24 )|((uint64_t)gp2x_id[6]<<8 ) |((uint64_t)gp2x_id[7] ));
+ 
   return gp_id;	 
 }
 

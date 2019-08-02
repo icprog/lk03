@@ -15,7 +15,7 @@ SPI_HandleTypeDef *tlc5618_spi = &hspi1 ;
 #define ACHANNELCODE 0x8000
 #define BCHANNELCODE 0x1000
 
-#define BANDTWO 0x0000     //Ğ´¼Ä´æÆ÷BºÍË«»º´æÆ÷
+#define BANDTWO 0x0000     //å†™å¯„å­˜å™¨Bå’ŒåŒç¼“å­˜å™¨
 void tlc5618_delay(uint16_t dly_val)
 {
 	for(int i = 0;i<dly_val;i++)

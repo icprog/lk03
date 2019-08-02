@@ -64,7 +64,7 @@ high_value_control_ gp21_highVolCrlParm[3]=
    tdc_rx_voltge_low();
 
 }
-/*bsp 电源打开**/
+/*bsp 鐢垫簮鎵撳紑**/
 
 void lk_bsp_power_on(void)
 {
@@ -73,7 +73,7 @@ void lk_bsp_power_on(void)
 	tdc_rxHigh_power_on();
 }
 
-/*bsp 电源关闭**/
+/*bsp 鐢垫簮鍏抽棴**/
 
 void lk_bsp_power_off(void)
 {
@@ -81,7 +81,7 @@ void lk_bsp_power_off(void)
 	tdc_txHigh_power_off();
 	tdc_rxHigh_power_off();
 }
-/*初始化**/
+/*鍒濆鍖�**/
  void tdc_board_init(void)
  {  
 	lk_bsp_power_off(); 
@@ -104,8 +104,8 @@ void lk_bsp_power_off(void)
  }
  
 
-#define GP22_TNS  500       //gp21 ���� 1000ns 1MHZ
-//#define GP22_TNS  1000       //gp21 ���� 1000ns 1MHZ
+#define GP22_TNS  500       //gp21 锟斤拷锟斤拷 1000ns 1MHZ
+//#define GP22_TNS  1000       //gp21 锟斤拷锟斤拷 1000ns 1MHZ
 float test_dit=0,test_distf=0;
 uint16_t gp21_distance_cal(uint32_t *dit,uint8_t dislens)
 {
@@ -117,7 +117,7 @@ uint16_t gp21_distance_cal(uint32_t *dit,uint8_t dislens)
 		     minIndex = i;
 			  for( int j=i+1;j<dislens;j++)
 		   	{
-					 if(dit[j]<dit[minIndex])     //Ѱ����С����
+					 if(dit[j]<dit[minIndex])     //寻锟斤拷锟斤拷小锟斤拷锟斤拷
 					 {
 					    minIndex = j;
 					 }
@@ -161,13 +161,13 @@ void  lk_gp21MessgeMode_switch(GP21_MESSAGE_MODE messge_mode)
 }
 
 
- /*档位选择*/
+ /*妗ｄ綅閫夋嫨*/
 void gear_select(high_value_control_ *g)
 {
 	
 	high_value_control_ *p=g; 
 	tlc5618_writeAchannal(p->tx5618_value);	  	/*LK  AGC DAC Voltage control*/  
-	rx_pwmHv (p->rx_vol_value);   //接收高压
+	rx_pwmHv (p->rx_vol_value);   //鎺ユ敹楂樺帇
   tx_VolCtl(p->tx_vol_ctl);    /*tx high voltage control*/ 
 	if(p->ifBootVolCtl)
 	{
@@ -194,7 +194,7 @@ void gear_select_switch(_sensor_gesr_enum gear_index)
 //			 lk_gp21MessgeMode_switch(&_TDC_GP21);				
 			_TDC_GP21.pid.setpoint = 1000;
 			_TDC_GP21.system_statu.cureent_gear = 1;
-		    __HAL_TIM_SET_AUTORELOAD(&htim3,100);  //设定100us周期
+		    __HAL_TIM_SET_AUTORELOAD(&htim3,100);  //璁惧畾100us鍛ㄦ湡
 		}break;
 		case lk03_second_gears:
 		{
@@ -202,7 +202,7 @@ void gear_select_switch(_sensor_gesr_enum gear_index)
 //			 lk_gp21MessgeMode_switch(&_TDC_GP21);				
 		  _TDC_GP21.pid.setpoint = 1000;
 			_TDC_GP21.system_statu.cureent_gear = 2;
-       __HAL_TIM_SET_AUTORELOAD(&htim3,100);  //设定100us周期				
+       __HAL_TIM_SET_AUTORELOAD(&htim3,100);  //璁惧畾100us鍛ㄦ湡				
 		}break;
 		case lk03_third_gears:
 		{
@@ -210,7 +210,7 @@ void gear_select_switch(_sensor_gesr_enum gear_index)
 //			 lk_gp21MessgeMode_switch(&_TDC_GP21);			
 			_TDC_GP21.pid.setpoint = 800;
 			_TDC_GP21.system_statu.cureent_gear = 3;
-		   __HAL_TIM_SET_AUTORELOAD(&htim3,500);  //设定500us周期
+		   __HAL_TIM_SET_AUTORELOAD(&htim3,500);  //璁惧畾500us鍛ㄦ湡
 		}break;		
 	}
   gear_select(p);

@@ -21,7 +21,7 @@
 
 /* Private types -------------------------------------------------------------*/
 /**
-  * @brief  ¶ÓÁĞ´óĞ¡
+  * @brief  é˜Ÿåˆ—å¤§å°
   */
 #define  MAXSIZE   1024
 /**
@@ -35,13 +35,13 @@ typedef enum
 } QStatus;
 
 /**
-  * @brief  Ñ­»·¶ÓÁĞË³Ğò´æ´¢½á¹¹ 
+  * @brief  å¾ªç¯é˜Ÿåˆ—é¡ºåºå­˜å‚¨ç»“æ„ 
   */
 typedef struct
 {
 	QElemType data[MAXSIZE];
-	int front;   /* Í·Ö¸Õë */
-	int rear;    /* Î²Ö¸Õë */
+	int front;   /* å¤´æŒ‡é’ˆ */
+	int rear;    /* å°¾æŒ‡é’ˆ */
 }SqQueue;
 
 /* Private variables ---------------------------------------------------------*/

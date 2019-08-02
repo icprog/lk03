@@ -4,7 +4,10 @@
 #include "stdbool.h"
 #include "main.h"
 #include "spi.h"
+typedef uint8_t GP2XERROTYPE;
 
+#define GP2X_ERRO 0
+#define GP2X_OK  1
 //REGISTER 0
 #define REG0_ANZ_FIRE(x)      ((uint32_t)x)<<28
 #define REG0_DIV_FIRE(x)      ((uint32_t)x)<<24
@@ -99,7 +102,7 @@
 #define OP_CODE_RD(addr)         (0xB0 | (addr))
 ////
 //--------------------------------------------------------------------------
-// 1m(Ã×) = 10dm(¹«·Ö) = 100cm(ÀåÃ×) = 1000mm(ºÁÃ×)
+// 1m(ç±³) = 10dm(å…¬åˆ†) = 100cm(åŽ˜ç±³) = 1000mm(æ¯«ç±³)
 //#define   C_VELOCITY           299792458 // velocity of light (m/s)
 //#define   C_VELOCITY          299792.458 // velocity of light (m/ms)
 //#define   C_VELOCITY          299.792458 // velocity of light (m/us)
@@ -122,16 +125,14 @@
 #define gp21_read_intn()     HAL_GPIO_ReadPin(GP21_INTN_GPIO_Port,GP21_INTN_Pin)
 
 void lk_gp2x_init(void);
-void lk_gp2x_write(uint8_t reg);
+GP2XERROTYPE lk_gp2x_write(uint8_t reg);
 uint64_t lk_gp2x_get_id(void);
 uint16_t  lk_gp2x_read_regStatu(void);
-void gp21_hard_rst(void);
+void lk_gp2x_hard_rst(void);
 bool lk_gp2x_messgeMode1(void);
-void gp21_startOneSignal(void);
 uint32_t   lk_gp2x_read_regResult(uint8_t index);
- void tdc_delay(uint32_t cval);
- void lk_gp2x_messgeMode2(void);
-
+void lk_gp2x_messgeMode2(void);
+void tdc_delay(uint32_t cval);
 typedef struct 
 {
    void (*init)(void);    /*init tdc gp21*/

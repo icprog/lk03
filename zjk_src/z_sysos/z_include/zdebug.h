@@ -4,8 +4,10 @@
 #define Z_ASSERT(EX)                                                         \
 if (!(EX))                                                                   \
 {                                                                            \
-   z_assert_handler(#EX, __FUNCTION__, __LINE__);                          \
+   zt_assert_handler(#EX, __FUNCTION__, __LINE__);                           \
 }
+
+
 
 
 #endif	// __ZDEBUG_H__

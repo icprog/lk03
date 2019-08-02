@@ -127,7 +127,8 @@ uint8_t text_debug=0x00;
 extern void test_send_cmd(void);
 void LK_sensorParamTask(void *argument)
 {
-  flash_SaveInit();
+	
+    flash_SaveInit();
 	paramBuff = structToBytes(&lk_defaultParm);
 	flashParam = structToBytes(&lk_flash);
 	flash_paramRead(flashParam.point,flashParam.lens); //读取参数
@@ -141,6 +142,7 @@ void LK_sensorParamTask(void *argument)
 	{
 	   //lk_defaultParm = lk_flash;  //将flash内参数付给默认的参数配置  
 	}
+	
 #if TEST_QC    //模拟校准测试已经通过
 		lk_flash.QC[SECOND_PARAM].ifHavedStand=true;
 		lk_flash.QC[FIRST_PARAM].ifHavedStand=true;
@@ -194,7 +196,7 @@ void sensor_distOffset_calculate(_sensor_gesr_enum index)
 /*加载flash 后 自动配置参数*/
 void sensor_powerOn_flashParamCfg(void)
 {
-	sensor_baudRate_typeEnum baud_selet = (sensor_baudRate_typeEnum )lk_flash.baud_rate;
+  sensor_baudRate_typeEnum baud_selet = (sensor_baudRate_typeEnum )lk_flash.baud_rate;
   baudRateCfg_select(baud_selet);  //波特率设置
 
   for(int i=0;i<3;i++)
@@ -239,8 +241,8 @@ uint16_t average=0;
 uint32_t tem=0,num=0;
 uint16_t lk_average(uint16_t *buff,int len)
 {
-		volatile uint8_t minIndex=0;
- for( int i=0;i<len-1;i++)    // selection sort 
+  volatile uint8_t minIndex=0;
+  for( int i=0;i<len-1;i++)    // selection sort 
 	  {
 		     minIndex = i;
 			  for( int j=i+1;j<len;j++)
@@ -279,8 +281,7 @@ int queue_lenth=0;
 void SerialTask(void  *argument)
 {
   z_tiny_test();
-	 QueueInit(&lk_distQueue); 
-   zt_printf("system running....");
+  QueueInit(&lk_distQueue); 
   /* Infinite loop */
   for(;;)
   { 

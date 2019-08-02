@@ -12,6 +12,6 @@ uint16_t Get_AnalogDMA_Value(void);
 bool z_analog_convert(uint16_t *value);
 extern ADC_HandleTypeDef  *z_anlog;
 extern uint16_t adc_buf[BUF_SIZE];
-extern bool ifDMAisComplete ;   //DMA是否转换完成
+extern bool ifDMAisComplete ;   //DMA鏄惁杞崲瀹屾垚
 #endif
 
