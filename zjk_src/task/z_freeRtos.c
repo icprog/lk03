@@ -285,35 +285,35 @@ void SerialTask(void  *argument)
   /* Infinite loop */
   for(;;)
   { 
-    if(_TDC_GP21.ifComplete)
-		 {
-			 _TDC_GP21.ifComplete = false;
-			 queue_lenth = QueueLength(&lk_distQueue);
-			 if( queue_lenth >=AVERAGE_SIZE)
-			 {
-				 QE_FLASG=0;
-					 for(counts_index=0;counts_index<80;counts_index++)
-				 {
-						if(Queue_pop(&lk_distQueue,&disPlayDistBufer[counts_index]) ==Q_ERROR)
-						{
-							QE_FLASG=0;
-						}
-				 }
-				 lk_average(&disPlayDistBufer[0],AVERAGE_SIZE);					 
-			 }else
-			 {      /*开机时数据不足够时*/
-				 	for(counts_index=0;counts_index<queue_lenth;counts_index++)
-				 {
-						if(Queue_pop(&lk_distQueue,&disPlayDistBufer[counts_index]) ==Q_ERROR)
-						{
-							QE_FLASG=0;
-						}
-				 }
-			   lk_average(&disPlayDistBufer[1],queue_lenth-1);  //开机切换模式时候会出现首个数据不正常情况
-			 }			 
-       QE_FLASG ++;
-			 snesor_ouput_switch(average);  //外部开关量输出
-		} //end _TDC_GP21.ifComplete			
+//    if(_TDC_GP21.ifComplete)
+//		 {
+//			 _TDC_GP21.ifComplete = false;
+//			 queue_lenth = QueueLength(&lk_distQueue);
+//			 if( queue_lenth >=AVERAGE_SIZE)
+//			 {
+//				 QE_FLASG=0;
+//					 for(counts_index=0;counts_index<80;counts_index++)
+//				 {
+//						if(Queue_pop(&lk_distQueue,&disPlayDistBufer[counts_index]) ==Q_ERROR)
+//						{
+//							QE_FLASG=0;
+//						}
+//				 }
+//				 lk_average(&disPlayDistBufer[0],AVERAGE_SIZE);					 
+//			 }else
+//			 {      /*开机时数据不足够时*/
+//				 	for(counts_index=0;counts_index<queue_lenth;counts_index++)
+//				 {
+//						if(Queue_pop(&lk_distQueue,&disPlayDistBufer[counts_index]) ==Q_ERROR)
+//						{
+//							QE_FLASG=0;
+//						}
+//				 }
+//			   lk_average(&disPlayDistBufer[1],queue_lenth-1);  //开机切换模式时候会出现首个数据不正常情况
+//			 }			 
+//       QE_FLASG ++;
+//			 snesor_ouput_switch(average);  //外部开关量输出
+//		} //end _TDC_GP21.ifComplete			
 		switch(_TDC_GP21.system_statu.running_statu)   //档位切换状态
 		 {
 			case IDLE:
@@ -345,7 +345,7 @@ void SerialTask(void  *argument)
 						  gear_select_switch(lk03_third_gears);
 						 _TDC_GP21.system_statu.running_statu = THIRD;
 					 }
-					 else if(_TDC_GP21.pid_resualt <500) //切换第一档((_TDC_GP21.pid_resualt <280)&(_TDC_GP21.distance<3500))
+					 else if(_TDC_GP21.pid_resualt <280) //切换第一档((_TDC_GP21.pid_resualt <280)&(_TDC_GP21.distance<3500))
 					 {
 						   gear_select_switch(lk03_first_gears);
 						  _TDC_GP21.system_statu.running_statu = FIRST;
@@ -354,7 +354,7 @@ void SerialTask(void  *argument)
 			 }break;		 
 			 case THIRD:
 			 {
-						if(_TDC_GP21.pid_resualt <500)  //切换第2档
+						if(_TDC_GP21.pid_resualt <400)  //切换第2档
 					 {
 					  	 lk_gp21MessgeMode_switch(GP21_MESSGE1);
 					     gear_select_switch(lk03_second_gears);  //第2档
@@ -405,13 +405,14 @@ void lk_sensor_outData_Task(void *argument)
 		 {
 			 if(if_debug == true)
 			 {
-				zt_protecl_printf("distance: %d, sighal_value :%d  pid_result : %d\r\n",_TDC_GP21.distance,_TDC_GP21.siganl.vol,_TDC_GP21.pid_resualt);
+				//zt_protecl_printf("distance: %d, sighal_value :%d  pid_result : %d\r\n",_TDC_GP21.distance,_TDC_GP21.siganl.vol,_TDC_GP21.pid_resualt); 
+				 zt_printf("distance: %d, sighal_value :%d  pid_result : %d\r\n  gears:%d",_TDC_GP21.average,_TDC_GP21.siganl.vol,_TDC_GP21.pid_resualt,_TDC_GP21.system_statu.cureent_gear);
 			 }
 			 else
 			 {
 				 // Send_Pose_Data(&_TDC_GP21.siganl.vol,&average,&_TDC_GP21.pid_resualt);
 				 // Send_Pose_Data(&_TDC_GP21.siganl.vol,&_TDC_GP21.distance,&_TDC_GP21.pid_resualt);
-                 sensor_distContinu_ack(_TDC_GP21.distance); 	
+                 sensor_distContinu_ack(average); 	
                 // zt_protecl_printf("distance: %d, sighal_value :%d  pid_result : %d\r\n",_TDC_GP21.distance,_TDC_GP21.siganl.vol,_TDC_GP21.pid_resualt);				 
 			 }
 				//sensor_distContinu_ack(_TDC_GP21.distance);   
@@ -688,6 +689,23 @@ uint16_t tdc_agc_Default_control(uint16_t nowData,int16_t setPoint)
       
    return  ad603_resualt;
 }
+#define AVERAGE_TIMES 200
+void lk_distance_average(uint16_t dist)
+{
+  static uint8_t count=0;
+  static float l_dist=0,r_dist=0;
+	count++;
+	l_dist+=dist;
+	if(count  >= AVERAGE_TIMES)
+	{
+		count =0;
+	   _TDC_GP21.average= l_dist/AVERAGE_TIMES;
+	  _TDC_GP21.ifAverageComplete = true;
+	 l_dist =0;
+	}
+    else _TDC_GP21.ifAverageComplete = false;
+ 
+}
    /* gp21 intn interrupt callback */
 BaseType_t xHigherPriorityTaskWoken = pdTRUE;
 uint16_t vol_signal=0,statu_erro=0;
@@ -766,10 +784,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 								{
 								  _TDC_GP21.ifComplete = false;
 								}
-								if( Queue_push(&lk_distQueue,_TDC_GP21.distance) ==Q_ERROR)
-								{
-									 flag = 1; //队列满
-								}
+//								if( Queue_push(&lk_distQueue,_TDC_GP21.distance) ==Q_ERROR)
+//								{
+//									 flag = 1; //队列满
+//								}
+								lk_distance_average(_TDC_GP21.distance);
 								_TDC_GP21.ifComplete = true;				//结束											
 							}
 				}	//接收完足够数据

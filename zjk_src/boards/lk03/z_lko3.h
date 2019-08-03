@@ -87,6 +87,9 @@ typedef struct
 	bool ifComplete;
 	/*转换好的距离*/
 	uint16_t distance;
+	bool ifAverageComplete;
+    /*平均值*/
+	uint16_t average;
 	/*无效信号标记*/
 	bool ifDistanceNull;
 		/*开机正常后才输出*/
