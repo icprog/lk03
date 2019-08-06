@@ -323,15 +323,15 @@ void SerialTask(void  *argument)
 			 case START:
 			 {
 
-        if((lk_flash.QC[lk03_first_gears].ifHavedStand)&(lk_flash.QC[lk03_second_gears].ifHavedStand)&(lk_flash.QC[lk03_third_gears].ifHavedStand))  //全部标定完才挡位切换
-				{
-					 gear_select_switch(lk03_first_gears);
-					_TDC_GP21.system_statu.running_statu = FIRST;
-				}
+//               if((lk_flash.QC[lk03_first_gears].ifHavedStand)&(lk_flash.QC[lk03_second_gears].ifHavedStand)&(lk_flash.QC[lk03_third_gears].ifHavedStand))  //全部标定完才挡位切换
+//				{
+//					 gear_select_switch(lk03_first_gears);
+//					_TDC_GP21.system_statu.running_statu = FIRST;
+//				}
 			 }break;
 			 case FIRST:
 			 {
-				   if(_TDC_GP21.pid_resualt >600 ) //第1档增益大于600时 (_TDC_GP21.pid_resualt >620)&(
+				   if(_TDC_GP21.pid_resualt >550 ) //第1档增益大于600时 (_TDC_GP21.pid_resualt >620)&(
 					 {
 						   gear_select_switch(lk03_second_gears);
 						 _TDC_GP21.system_statu.running_statu = SECOND;
@@ -340,7 +340,7 @@ void SerialTask(void  *argument)
 			 }break;
 			 case SECOND:
 			 {
-				 	  if(_TDC_GP21.pid_resualt >600)   //第2档增益大于600时切换第三档
+				 	  if(_TDC_GP21.pid_resualt >550)   //第2档增益大于600时切换第三档
 					 {
 						  gear_select_switch(lk03_third_gears);
 						 _TDC_GP21.system_statu.running_statu = THIRD;
@@ -406,7 +406,7 @@ void lk_sensor_outData_Task(void *argument)
 			 if(if_debug == true)
 			 {
 				//zt_protecl_printf("distance: %d, sighal_value :%d  pid_result : %d\r\n",_TDC_GP21.distance,_TDC_GP21.siganl.vol,_TDC_GP21.pid_resualt); 
-				 zt_printf("distance: %d, sighal_value :%d  pid_result : %d\r\n  gears:%d",_TDC_GP21.average,_TDC_GP21.siganl.vol,_TDC_GP21.pid_resualt,_TDC_GP21.system_statu.cureent_gear);
+				 zt_printf("d: %d, s:%d pid: %d  gears:%d\r\n",_TDC_GP21.average,_TDC_GP21.siganl.vol,_TDC_GP21.pid_resualt,_TDC_GP21.system_statu.cureent_gear);
 			 }
 			 else
 			 {
@@ -485,7 +485,7 @@ void Gp21TrigTask(void *argument)
 //	High_Vol_Ctl_on();
 	_TDC_GP21.pid.ifTrunOn = true;  //
 	selected_mesg_mode(msg_qcStard);
-
+   
   /* Infinite loop */
   for(;;)
   { 		
@@ -528,7 +528,8 @@ void selected_mesg_mode(TypedSelextMsgMode mode)
 		 }break;
 		 case msg_qcStard:
 		 {
-			gear_select(&_TDC_GP21.system_statu.high_value_defconfg[lk03_first_gears]);  //			
+			//gear_select_switch(lk03_first_gears);  //	
+			 gear_select_switch(lk03_third_gears);
 			lk_gp21MessgeMode_switch(GP21_MESSGE1);
 			_TDC_GP21.system_statu.running_statu=START;
 			ifFirstStart = true;
@@ -689,7 +690,7 @@ uint16_t tdc_agc_Default_control(uint16_t nowData,int16_t setPoint)
       
    return  ad603_resualt;
 }
-#define AVERAGE_TIMES 200
+#define AVERAGE_TIMES 10
 void lk_distance_average(uint16_t dist)
 {
   static uint8_t count=0;

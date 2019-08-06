@@ -192,7 +192,7 @@ void gear_select_switch(_sensor_gesr_enum gear_index)
 		{
 //			 _TDC_GP21.messge_mode=GP21_MESSGE1;
 //			 lk_gp21MessgeMode_switch(&_TDC_GP21);				
-			_TDC_GP21.pid.setpoint = 1000;
+			_TDC_GP21.pid.setpoint = 900;
 			_TDC_GP21.system_statu.cureent_gear = 1;
 		    __HAL_TIM_SET_AUTORELOAD(&htim3,100);  //璁惧畾100us鍛ㄦ湡
 		}break;
@@ -200,7 +200,7 @@ void gear_select_switch(_sensor_gesr_enum gear_index)
 		{
 //			 _TDC_GP21.messge_mode=GP21_MESSGE1;
 //			 lk_gp21MessgeMode_switch(&_TDC_GP21);				
-		  _TDC_GP21.pid.setpoint = 1000;
+		  _TDC_GP21.pid.setpoint = 900;
 			_TDC_GP21.system_statu.cureent_gear = 2;
        __HAL_TIM_SET_AUTORELOAD(&htim3,100);  //璁惧畾100us鍛ㄦ湡				
 		}break;
