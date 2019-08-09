@@ -87,6 +87,8 @@ typedef struct
 	bool ifComplete;
 	/*转换好的距离*/
 	uint16_t distance;
+	/*有符号距离*/
+	int16_t distance_inl;
 	bool ifAverageComplete;
     /*平均值*/
 	uint16_t average;

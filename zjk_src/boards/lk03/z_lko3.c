@@ -85,19 +85,18 @@ void lk_bsp_power_off(void)
  void tdc_board_init(void)
  {  
 	lk_bsp_power_off(); 
+	// tdc_rxHigh_power_on();
+	 HAL_Delay(100);
 	 for(int i=0;i<3;i++)
 	 {
-			_TDC_GP21.system_statu.high_value_defconfg[i] = gp21_highVolCrlParm[i];
+		_TDC_GP21.system_statu.high_value_defconfg[i] = gp21_highVolCrlParm[i];
 	 
 	 }
-	 	tlc5618_write(_TDC_GP21.system_statu.high_value_defconfg[lk03_first_gears].tx5618_value,AD603_AGC_DEFAULT); /*LK  AGC DAC Voltage control*/  
-	   tlc5618_writeAchannal(_TDC_GP21.system_statu.high_value_defconfg[lk03_first_gears].tx5618_value);	  
-		start_rx_tim();
-		lk_gp2x_init(); 
-	//	
-(OPC_START_TOF);		 /*LK  gp21 Init*/	
-
-    _TDC_GP21.pid.Kp = PID_KP;
+	 tlc5618_write(_TDC_GP21.system_statu.high_value_defconfg[lk03_first_gears].tx5618_value,AD603_AGC_DEFAULT); /*LK  AGC DAC Voltage control*/  
+	 start_rx_tim();
+	 lk_gp2x_init(); 	
+   
+	 _TDC_GP21.pid.Kp = PID_KP;
     _TDC_GP21.pid.Ki = PID_KI;	 
 	  _TDC_GP21.pid.setpoint = PID_SETPOINT;
 
@@ -168,7 +167,7 @@ void gear_select(high_value_control_ *g)
 	high_value_control_ *p=g; 
 	tlc5618_writeAchannal(p->tx5618_value);	  	/*LK  AGC DAC Voltage control*/  
 	rx_pwmHv (p->rx_vol_value);   //鎺ユ敹楂樺帇
-  tx_VolCtl(p->tx_vol_ctl);    /*tx high voltage control*/ 
+    tx_VolCtl(p->tx_vol_ctl);    /*tx high voltage control*/ 
 	if(p->ifBootVolCtl)
 	{
 	  tdc_boot_vol_high();
