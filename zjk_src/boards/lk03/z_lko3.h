@@ -160,7 +160,7 @@ void tdc_rx_voltge_relese(void);
 #define GP21_STATU_TIMEOUT  0x0100U
 	
 #define first_vol_param {\
-				.tx5618_value=1330,\
+				.tx5618_value=1380,\
 				.rx_vol_value=100,\
 				.tx_vol_ctl=VOL_CTL2,\
 				.ifBootVolCtl=true}
@@ -181,7 +181,7 @@ void tdc_rx_voltge_relese(void);
 				
 /*参数配置*/
 #define AD603_AGC_DEFAULT   500  
-#define AD603_AGC_MIN     100 //0.16V -10DB
+#define AD603_AGC_MIN     50 //0.16V -10DB
 #define AD603_AGC_MAX     650//0.720V 20DB
 
 #define PID_KP      0.1

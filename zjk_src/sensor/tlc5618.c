@@ -57,7 +57,11 @@ static inline void tlc5618_write_reg(uint16_t tlc_reg)
 	sedata[1]=tlc_reg&0xff;
 	tlc_tatus = HAL_SPI_Transmit(tlc5618_spi,sedata,2,0xff); 
 
-	 Z_ASSERT(tlc_tatus == HAL_OK); 	
+	 //Z_ASSERT(tlc_tatus == HAL_OK);
+   if(tlc_tatus != HAL_OK)
+	 {
+	   zt_printf("tlc 5618 tansmit erro\r\n");
+	 }		 
    tlc5618_release();
 }
 
