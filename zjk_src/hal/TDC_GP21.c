@@ -76,7 +76,7 @@ bool lk_gp2x_messgeMode1(void)
 	//bit30 = 1 the received pulse counter is ready
 	//bit31 = 1 TDC timeout overflow
 	//gp21_write_cfg(OP_CODE_WR(0x02), 0xE0000011); //Timeout End Hits ALU中断触发, 上升或下降沿
-	lk_gp2x_write_opcode(OP_CODE_WR(0x02), 0x20000011);
+	lk_gp2x_write_opcode(OP_CODE_WR(0x02), 0xC0000011);
 	lk_gp2x_write_opcode(OP_CODE_WR(0x03), 0x20000012); //由于timeout 强迫ALU写入0XFFFFFFFF到结果寄存器：关闭		
 	lk_gp2x_write_opcode(OP_CODE_WR(0x04), 0x20000013);  //默认配置
 	lk_gp2x_write_opcode(OP_CODE_WR(0x05), 0x00000014);  //脉冲触发器关闭，噪声单元关闭
