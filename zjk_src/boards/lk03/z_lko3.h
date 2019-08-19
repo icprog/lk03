@@ -15,6 +15,7 @@ typedef enum  {VOL_CTL1,VOL_CTL2,VOL_CTL3}TX_VOL_ENUM_TYP;
 typedef enum  {IDLE,START,FIRST,SECOND,THIRD,LONG_DISTANCE_MODE,STYLE}RUN_STATU;
 typedef enum{lk03_first_gears=0,lk03_second_gears,lk03_third_gears} _sensor_gesr_enum;
 typedef enum{GP21_MESSGE1=1,GP21_MESSGE2=2,}GP21_MESSAGE_MODE;  //GP21测量模式
+typedef enum {debug_typeMode=1,qc_typeMode,normal_typeMode}_sensor_cureent_typeMode;
 typedef struct {
 
 	uint16_t vol;
@@ -43,7 +44,9 @@ typedef  struct
 	 uint16_t front_switch; //前开关量距离
 	 uint16_t back_switch; //后开关量距离
 	 uint16_t output_freq; // 数据输出频率 ms
-	 bool  qc_ifStand[3]; //1,2,3档是否标定	
+	 bool  ifFirstStand; //1,2,3档是否标定	
+	 bool  ifSecondStand;
+	 bool  ifThirdStand;
 }sensor_struct_typ;           
 
 
@@ -78,7 +81,9 @@ typedef struct{
 
 typedef struct   
 {
-	system_statu_  system_statu;  
+	system_statu_  system_statu; 
+	/*当前运行模式：标定模式，调试模式,正常模式*/
+	_sensor_cureent_typeMode sensor_runMode;
 	/*s时间转换芯片gp21状态*/
 	tdc_gp2x_statu_ tdc_gp2x;
 	/*数据缓存*/
@@ -99,11 +104,9 @@ typedef struct
 	/*AD603增益*/
 	uint16_t pid_resualt;
 	/*峰值信号电压*/
- _tdc_voltage siganl;
+	_tdc_voltage siganl;
 	/*pid 参数*/
 	_tdc_pid pid;
-	
-	
 }_TDC_TYP;
 
 
@@ -189,6 +192,7 @@ void tdc_rx_voltge_relese(void);
 #define PID_SETPOINT 1000
 
 #define Debug_Pid   1
+				
 void lk_bsp_power_on(void);   //开始连续测量时候打开
 void lk_bsp_power_off(void);	//停止测量测量关闭			
 void  lk_gp21MessgeMode_switch(GP21_MESSAGE_MODE messge_mode);
@@ -196,7 +200,7 @@ extern _TDC_TYP _TDC_GP21;
 void tdc_board_init(void);
 void gear_select(high_value_control_ *g);
 uint16_t gp21_distance_cal(uint32_t *dit,uint8_t dislens);
-void gear_select_switch(_sensor_gesr_enum gear_index);
+void lk_gear_switch(_sensor_gesr_enum gear_index);
 				
 #endif
 

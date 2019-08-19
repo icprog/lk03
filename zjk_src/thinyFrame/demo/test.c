@@ -47,7 +47,8 @@ parm_ lk_defaultParm ={
   .front_or_base = 0,      //前基准：1 后基准：0
 	.ifHasConfig = 0,      //第一次烧写flash后会变成0x01
   .autoRunMode =0,       //自动运行关闭
-	.outFreq = 10,         //输出频率10hz   
+	.outFreq = 10,         //输出频率10hz 
+  .displayMode = 1 ,         //默认字符输出显示
 };
 
 
@@ -69,7 +70,7 @@ parm_ lk_flash=
   .front_or_base = 0,      //前基准：1 后基准：0
 	.ifHasConfig = 0,      //第一次烧写flash后会变成0x01
   .autoRunMode =0,       //自动运行关闭
-	.outFreq = 0         //输出频率1000hz   
+	.outFreq = 0         //输出频率1000hz
 };
 
 
@@ -131,6 +132,10 @@ void paramGetCmdSlect(revFrame_paramCfg_getId_typEnum Param_GET, TF_Msg *msg)
 		 {
        	sensor_strct.cmd= getParam_outData_freq_ack_cmd;
 		 }break;	
+		 case cfgParam_strShow_get:
+		 {
+       	sensor_strct.cmd= getParam_stringShow_cmd;
+		 }break;		 
 		 
 	 }
 }
@@ -179,6 +184,11 @@ void paramDataSaveCMD(revFrame_paramCfg_setId_typEnum PAMRM_SAVE, TF_Msg *msg)
           sensor_strct.cmd = cfgParam_outData_freq_ack_cmd;
 		
 		}break;
+		case cfgParam_strShow_set:  
+		{
+         sensor_strct.cmd = cfgParam_stringShow_cmd;
+		
+		}break;		
 	}
 	
 }
@@ -235,14 +245,23 @@ void programer_cmd(revFrame_programer_id_typEnum qc, TF_Msg *msg)
 		{
 				sensor_strct.cmd = qc_get_param_cmd;
 		}break;			
-    case debug_dist_continue :  //开始调试
+    case sensor_debugMode_switch :  //调试模式
 		{
 				sensor_strct.cmd = programer_debugMode_cmd;
 		}break;	
-    case sensor_dist_standMode_switch :  //标定模式
+    case sensor_standMode_switch :  //标定模式
 		{
 				sensor_strct.cmd = programer_qcStamdMode_cmd;
-		}break;						
+		}break;
+    case sensor_normalMode_switch :  //正常模式
+		{
+				sensor_strct.cmd = programer_normalMode_cmd;
+		}break;		
+    case sensor_debug_stringShow :  //调试信息显示
+		{
+				sensor_strct.cmd = programer_debug_stringShow_cmd;
+		}break;		
+		
 	}
  
 }
@@ -517,6 +536,11 @@ void zTF_paramCfg_getOutDataFreq_Ack(uint8_t *data,uint8_t lens)
 {
   lk_user_ack(getParam_outData_freq_ack,data,lens);
 }
+
+void zTF_paramCfg_get_dispalyMode_Ack(uint8_t *data,uint8_t lens)
+{
+  lk_user_ack(getParam_strShow_ack,data,lens);
+}
 /*========参数配置应答================*/
 void zTF_paramCfg_setAll_Ack(void)
 {
@@ -551,6 +575,11 @@ void zTF_paramCfg_setPowerOnMode_Ack(void)
 void zTF_paramCfg_setOutDataFreq_Ack(void)
 {
   lk_user_ack(cfgParam_outData_freq_ack,NULL,NULL);
+}
+
+void zTF_paramCfg_set_displayMode_Ack(void)
+{
+  lk_user_ack(cfgParam_strShow_ack,NULL,NULL);
 }
 
 /*========system应答================*/

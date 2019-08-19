@@ -4,9 +4,17 @@ extern arrayByte_ flashParam;
 extern TaskHandle_t xHandleDataOutFeq;
 extern void sensor_distOffset_calculate(_sensor_gesr_enum index);
 extern sensor_struct_typ sensor_running_vaile;
+extern void system_runStatu_select(_sensor_cureent_typeMode rmod);
+extern bool  ifLkProtecl_show;
+extern bool  ifDebug_strShow;
+extern bool  ifUser_strShow;
+char *runTypeModeString = NULL;
+ char *typeModeString[]={
+   "dbg",
+   "qc",
+   "normal", 	 
+ };
 
-bool if_debug=false;
-bool cureent_qcStandmode=false;
 void sensor_distContinu_ack(uint16_t dist)
 {
   uint8_t dist_buf[2] = {0};
@@ -29,7 +37,7 @@ void sensor_distStop_ack(void)
 
 void sensor_getAllParam_ack(void)
 {
-	    uint8_t sensor_data[9] ={0};
+	    uint8_t sensor_data[10] ={0};
 			sensor_data[0] = lk_flash.baud_rate;
 			sensor_data[1] = lk_flash.front_limit_trigger >>8;
 			sensor_data[2] = lk_flash.front_limit_trigger &0xff;
@@ -38,8 +46,9 @@ void sensor_getAllParam_ack(void)
 			sensor_data[5] = lk_flash.front_or_base;
 			sensor_data[6] = lk_flash.autoRunMode;		
 			sensor_data[7] = lk_flash.outFreq >>8;
-			sensor_data[8] = lk_flash.outFreq &0xff;				
-      zTF_paramCfg_getAll_Ack(sensor_data,9);
+			sensor_data[8] = lk_flash.outFreq &0xff;
+			sensor_data[9] = lk_flash.displayMode;
+      zTF_paramCfg_getAll_Ack(sensor_data,10);
 }
 
 void sensor_getBaudRate_ack(void)
@@ -153,6 +162,32 @@ void sensor_setOutDataFreq_ack(TF_Msg *msg)
 	   flash_writeMoreData( (uint16_t *)(flashParam.point),flashParam.lens/2+1);
       zTF_paramCfg_setOutDataFreq_Ack();
 }
+void sensor_displaySet_ack(TF_Msg *msg)
+{
+	uint8_t set =*(uint8_t *) msg->data;
+  if(set == 1)//字符显示
+	{
+		lk_flash.displayMode = 1;
+		ifLkProtecl_show = false;
+		ifUser_strShow = true;
+	}
+	else if(set == 2)//协议显示
+	{
+		lk_flash.displayMode = 2;
+		ifUser_strShow = false;
+		ifLkProtecl_show = true;
+	}
+	flash_writeMoreData( (uint16_t *)(flashParam.point),flashParam.lens/2+1);
+	zTF_paramCfg_set_displayMode_Ack();
+}
+
+void sensor_displayGet_ack(TF_Msg *msg)
+{
+
+
+}
+//参数配置结束
+
 
 extern void sensor_powerOn_flashParamCfg(void);
 void sensor_system_boot_paramReset_ack(void)
@@ -176,6 +211,64 @@ void sensor_system_firmware_ctl_ack(void)
 void sensor_system_firmware_pakage_ack(void)
 {
       zTF_system_firmware_pakage_Ack();
+}
+
+typedef enum{mode_start=0, stand_switch_type=0x01,pid_ctrl_type  }_debug_type_enum;
+
+typedef union 
+{
+	uint8_t data[2];
+  _debug_type_enum type;
+	uint8_t id;
+}dbug_modeType_union_;
+
+void praogramer_debug_mode(TF_Msg *msg)
+{
+    dbug_modeType_union_  *dbug_typeId= (dbug_modeType_union_*)msg->data;
+    switch(dbug_typeId->type)
+		{
+			case mode_start:   //调试模式认证。。。
+			{
+			      if(dbug_typeId->id == 78)  //验证成功
+						{
+						   
+						}
+						else
+						{
+						   
+						}
+			
+			}break;
+			case stand_switch_type:
+			{
+					if(dbug_typeId->id ==0)  //自动切换
+					{
+						_TDC_GP21.system_statu.running_statu = FIRST;  //不需要标定会自动切换
+					}
+					else if(dbug_typeId->id ==1)
+					{
+						_TDC_GP21.system_statu.running_statu = IDLE;   //不切换
+						lk_gear_switch(lk03_first_gears);
+						sensor_distOffset_calculate(lk03_first_gears);
+					}
+					else if(dbug_typeId->id ==2)
+					{
+						_TDC_GP21.system_statu.running_statu = IDLE;   //不切换
+					 lk_gear_switch(lk03_second_gears);
+					 sensor_distOffset_calculate(lk03_second_gears);
+					}
+					else if(dbug_typeId->id ==3)
+					{
+						_TDC_GP21.system_statu.running_statu = IDLE;   //不切换
+					 lk_gear_switch(lk03_third_gears);
+					 sensor_distOffset_calculate(lk03_third_gears);
+					}	
+			}break;
+			case pid_ctrl_type:
+			{
+			
+			}break;			
+		}
 }
 
 
@@ -226,20 +319,20 @@ void sensor_qc_get_param_ack(void)
 }
 void sensor_qc_standFirst_switch_ack(void)
 {
-		gear_select(&_TDC_GP21.system_statu.high_value_defconfg[lk03_first_gears]);
+		lk_gear_switch(lk03_first_gears);
 	  sensor_distOffset_calculate(lk03_first_gears);
 	  zTF_programer_qc_standFirst_switch_ack();
 }
 void sensor_qc_standSecond_switch_ack(void)
 {
-		gear_select(&_TDC_GP21.system_statu.high_value_defconfg[lk03_second_gears]);
+		lk_gear_switch(lk03_second_gears);
 	 sensor_distOffset_calculate(lk03_second_gears);
 	  zTF_programer_qc_standSecond_switch_ack();
 }
 void sensor_qc_standthird_switch_ack(void)
 {
-		gear_select(&_TDC_GP21.system_statu.high_value_defconfg[lk03_third_gears]);
-	 sensor_distOffset_calculate(lk03_third_gears);
+		lk_gear_switch(lk03_third_gears);
+	  sensor_distOffset_calculate(lk03_third_gears);
 	  zTF_programer_qc_standthird_switch_ack();
 }
 void sensor_qc_standFirst_reset_ack(void)
@@ -275,7 +368,73 @@ void sensor_qc_standthird_save_ack(TF_Msg *msg)
 	zTF_programer_qc_standthird_save_ack();
 }
 
+void sensor_debuMde_standSwich_ack(TF_Msg *msg)
+{
+   uint8_t ctl_msg= (uint8_t) msg->data;
+	if(ctl_msg ==0)  //自动切换
+	{
+		_TDC_GP21.system_statu.running_statu = FIRST;  //不需要标定会自动切换
+	}
+	else if(ctl_msg ==1)
+	{
+		_TDC_GP21.system_statu.running_statu = IDLE;   //不切换
+		lk_gear_switch(lk03_first_gears);
+	  sensor_distOffset_calculate(lk03_first_gears);
+	}
+	else if(ctl_msg ==2)
+	{
+		_TDC_GP21.system_statu.running_statu = IDLE;   //不切换
+	 lk_gear_switch(lk03_second_gears);
+	 sensor_distOffset_calculate(lk03_second_gears);
+	}
+	else if(ctl_msg ==3)
+	{
+		_TDC_GP21.system_statu.running_statu = IDLE;   //不切换
+	 lk_gear_switch(lk03_third_gears);
+	 sensor_distOffset_calculate(lk03_third_gears);
+	}	
+}
 
+void sensor_debuMde_pidCtl_ack(TF_Msg *msg)
+{
+	uint8_t ctl_msg= (uint8_t) msg->data;
+	if(ctl_msg ==1)
+	{
+	  _TDC_GP21.pid.ifTrunOn = true;  //pid打开
+	}
+	else if(ctl_msg ==0)
+	{
+		_TDC_GP21.pid.ifTrunOn = false;  //pid关闭
+	}
+}
+
+void sensor_debug_programerStrShow_ack(TF_Msg *msg)
+{
+	uint8_t ctl_msg= (uint8_t) msg->data;
+	if(ctl_msg ==1)
+	{
+	  ifDebug_strShow = true;  //pid打开
+	}
+	else if(ctl_msg ==0)
+	{
+		ifDebug_strShow = false;  //pid关闭
+	}
+}
+
+void sensor_user_StrShow_ack(TF_Msg *msg)
+{
+	uint8_t ctl_msg= (uint8_t) msg->data;
+	if(ctl_msg ==1)
+	{
+	  ifUser_strShow = true;  //pid打开
+	}
+	else if(ctl_msg ==0)
+	{
+		ifUser_strShow = false;  //pid关闭
+	}
+
+
+}
 
 extern void start_singnal(void);
  void sensor_struct_loop(sensor_struct_ * p)
@@ -289,7 +448,6 @@ extern void start_singnal(void);
 		  case dist_continue_ack_cmd:
 			{
 				lk_bsp_power_on();
-				if_debug = false;
 				start_singnal();
 				vTaskResume(xHandleDataOutFeq);  //恢复数据输出任务
 			}break;		
@@ -381,27 +539,46 @@ extern void start_singnal(void);
 			}break;			
 		  case qc_standFirst_reset_cmd:
 			{
-				sensor_qc_standFirst_reset_ack();
+				if(_TDC_GP21.sensor_runMode == qc_typeMode)  //在标定模式下
+				{
+					sensor_qc_standFirst_reset_ack();
+				}
+
 			}break;	
 		  case qc_standSecond_reset_cmd:
 			{
-				sensor_qc_standSecond_reset_ack();
+				if(_TDC_GP21.sensor_runMode == qc_typeMode)  //在标定模式下
+				{
+					sensor_qc_standSecond_reset_ack();
+				}
 			}break;	
 		  case qc_standthird_reset_cmd:
 			{
-				sensor_qc_standthird_reset_ack();
+				if(_TDC_GP21.sensor_runMode == qc_typeMode)  //在标定模式下
+				{				
+					sensor_qc_standthird_reset_ack();
+				}
 			}break;	
 		  case qc_standFirst_save_cmd:
 			{
-				sensor_qc_standFirst_save_ack(p->msg);
+				if(_TDC_GP21.sensor_runMode == qc_typeMode)  //在标定模式下
+				{				
+					sensor_qc_standFirst_save_ack(p->msg);
+				}
 			}break;	
 		  case qc_standSecond_save_cmd:
 			{
+				if(_TDC_GP21.sensor_runMode == qc_typeMode)  //在标定模式下
+				{				
 			   sensor_qc_standSecond_save_ack(p->msg);
+				}
 			}break;				
 		  case qc_standthird_save_cmd:
 			{
-			  sensor_qc_standthird_save_ack(p->msg);
+				if(_TDC_GP21.sensor_runMode == qc_typeMode)  //在标定模式下
+				{				
+					sensor_qc_standthird_save_ack(p->msg);
+				} 
 			}break;				
 		  case system_boot_paramReset_ack_cmd:
 			{
@@ -415,19 +592,39 @@ extern void start_singnal(void);
 			{
 			
 			}break;
-		  case programer_debugMode_cmd:
+		  case programer_debugMode_cmd: //调试模式
 			{
-			  if_debug = true;
-				lk_bsp_power_on();
-        start_singnal();
-				vTaskResume(xHandleDataOutFeq);  //恢复数据输出任务				 
+				runTypeModeString = typeModeString[0];
+				praogramer_debug_mode(p->msg);
 			}break;
 		  case programer_qcStamdMode_cmd:  //标定模式
-			{
-	       cureent_qcStandmode =true;
-				_TDC_GP21.system_statu.running_statu = IDLE;
+			{	
+				runTypeModeString = typeModeString[1];
+				_TDC_GP21.sensor_runMode = qc_typeMode ;
+				system_runStatu_select(_TDC_GP21.sensor_runMode);
 				zTF_programer_standMode_switch_ack();
-			}break; 			
+			}break; 
+		  case programer_normalMode_cmd:  //正常模式
+			{
+				runTypeModeString = typeModeString[2];
+        _TDC_GP21.sensor_runMode = normal_typeMode ;
+        system_runStatu_select(_TDC_GP21.sensor_runMode);				
+			}break;
+			case programer_debug_stringShow_cmd :  //调试信息显示
+			{
+				
+			  
+			}break;
+			case cfgParam_stringShow_cmd :  //用户字符串显示
+			{
+				 sensor_displaySet_ack(p->msg);
+			   
+			}break;	
+			case getParam_stringShow_cmd :  //获取字符串显示设置
+			{
+				
+			  
+			}break;				
 		}
     p->cmd = sensor_idle;
  

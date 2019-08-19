@@ -50,11 +50,12 @@ typedef enum{msg_thirdStard=1,msg_firstStard=2,msg_qcStard}TypedSelextMsgMode;  
 
 
 typedef enum{   sensor_idle, dist_continue_ack_cmd, dist_once_ack_cmd, dist_stop_ack_cmd,dist_null_cmd,
-                get_paramAll_base_cmd= 0x10, getParam_baudRate_ack_cmd, getParam_frontSwich_ack_cmd, getParam_backSwich_ack_cmd, getParam_disBase_ack_cmd, getParam_powerOn_mode_ack_cmd,getParam_outData_freq_ack_cmd,
-                cfgParam_all_cmd= 0x40, cfgParam_baudRate_ack_cmd, cfgParam_frontSwich_ack_cmd, cfgParam_backSwich_ack_cmd, cfgParam_distBase_ack_cmd, cfgParam_powerOn_mode_ack_cmd, cfgParam_outData_freq_ack_cmd,
+                get_paramAll_base_cmd= 0x10, getParam_baudRate_ack_cmd, getParam_frontSwich_ack_cmd, getParam_backSwich_ack_cmd, getParam_disBase_ack_cmd, getParam_powerOn_mode_ack_cmd,getParam_outData_freq_ack_cmd,getParam_stringShow_cmd,
+                cfgParam_all_cmd= 0x40, cfgParam_baudRate_ack_cmd, cfgParam_frontSwich_ack_cmd, cfgParam_backSwich_ack_cmd, cfgParam_distBase_ack_cmd, cfgParam_powerOn_mode_ack_cmd, cfgParam_outData_freq_ack_cmd,cfgParam_stringShow_cmd,
                 qc_get_param_cmd = 0x50, qc_standFirst_switch_cmd, qc_standSecond_switch_cmd, qc_standthird_switch_cmd, qc_standFirst_reset_cmd, qc_standSecond_reset_cmd, qc_standthird_reset_cmd, qc_standFirst_save_cmd, qc_standSecond_save_cmd, qc_standthird_save_cmd,
-	              programer_debugMode_cmd = 0x60,programer_qcStamdMode_cmd,
-	              system_boot_paramReset_ack_cmd = 0xf0, system_boot_firmware_ctl_ack_cmd, system_boot_firmware_pakage_ack_cmd,
+	              programer_debugMode_cmd = 0x60,programer_qcStamdMode_cmd,programer_normalMode_cmd,
+	              programer_debug_stringShow_cmd=0x70,
+                system_boot_paramReset_ack_cmd = 0xf0, system_boot_firmware_ctl_ack_cmd, system_boot_firmware_pakage_ack_cmd,
 }sensor_runnig_cmd_typEnum;
 
 typedef enum { baudRate_9600=0,baudRate_14400,baudRate_19200,baudRate_38400,baudRate_57600,baudRate_115200   }sensor_baudRate_typeEnum;
@@ -91,7 +92,8 @@ typedef struct
 	uint8_t front_or_base;//前后基准
   uint8_t ifHasConfig;     //是否已经配置
 	uint8_t autoRunMode;  //自动运行模式
-	uint16_t outFreq;
+	uint16_t outFreq;   //输出频率
+	uint8_t displayMode; //显示模式：1字符 , 2 lk协议显示
   volatile QC_TYP QC[LK03_STAND_COUNTS];   //设置3挡标定
 }parm_;
 
@@ -104,10 +106,11 @@ typedef enum  { user_dist_ctl = 0x01,usr_paramCfg_get=0x02, user_paramCfg_set=0x
 
 					
 typedef enum  { dist_continue = 0x01, dist_once=0x02, dist_stop=0x03}revFrame_distCtl_id_typEnum;
-typedef enum  { lk_all_set = 0x00, baudRate_set, frontSwich_set, backSwich_set, disBase_set, powerOn_mode_set, outData_freq_set }revFrame_paramCfg_getId_typEnum;
-typedef enum  { lk_all_get = 0x00, baudRate_get, frontSwich_get, backSwich_get, disBase_get, powerOn_mode_get, outData_freq_get }revFrame_paramCfg_setId_typEnum;
+typedef enum  { lk_all_set = 0x00, baudRate_set, frontSwich_set, backSwich_set, disBase_set, powerOn_mode_set, outData_freq_set,cfgParam_strShow_set }revFrame_paramCfg_getId_typEnum;
+typedef enum  { lk_all_get = 0x00, baudRate_get, frontSwich_get, backSwich_get, disBase_get, powerOn_mode_get, outData_freq_get,cfgParam_strShow_get }revFrame_paramCfg_setId_typEnum;
 typedef enum  { qc_get_param = 0x00, qc_standFirst_switch, qc_standSecond_switch, qc_standthird_switch, qc_standFirst_reset, qc_standSecond_reset, qc_standthird_reset, qc_standFirst_save, qc_standSecond_save, qc_standthird_save,
-	              debug_dist_continue=0xf1,sensor_dist_standMode_switch,
+	              sensor_debug_stringShow=0x10,
+	              sensor_debugMode_switch=0xf1,sensor_standMode_switch,sensor_normalMode_switch,
 								}revFrame_programer_id_typEnum;  
 typedef enum  { firmware_begin = 1 }revFrame_firmware_ctl_id_typEnum; 
 
@@ -115,8 +118,8 @@ typedef enum  { system_param_reset = 1 }revFrame_system_ctl_id_typEnum;
 //sendFrame
 typedef enum {usr_ack = 0x10,programer_ack = 0xf0}sendFrame_Type_typEnum ;		
 typedef enum  { dist_base=0,dist_continue_ack, dist_once_ack, dist_stop_ack,dist_null_ack,
-                get_paramAll_base= 0x10, getParam_baudRate_ack, getParam_frontSwich_ack, getParam_backSwich_ack, getParam_disBase_ack, getParam_powerOn_mode_ack,getParam_outData_freq_ack,
-                cfgParam_all= 0x40, cfgParam_baudRate_ack, cfgParam_frontSwich_ack, cfgParam_backSwich_ack, cfgParam_distBase_ack, cfgParam_powerOn_mode_ack, cfgParam_outData_freq_ack,
+                get_paramAll_base= 0x10, getParam_baudRate_ack, getParam_frontSwich_ack, getParam_backSwich_ack, getParam_disBase_ack, getParam_powerOn_mode_ack,getParam_outData_freq_ack,getParam_strShow_ack,
+                cfgParam_all= 0x40, cfgParam_baudRate_ack, cfgParam_frontSwich_ack, cfgParam_backSwich_ack, cfgParam_distBase_ack, cfgParam_powerOn_mode_ack, cfgParam_outData_freq_ack,cfgParam_strShow_ack,
                 system_boot_paramReset_ack = 0xf0, system_boot_firmware_ctl_ack, system_boot_firmware_pakage_ack,
 						   }sendframe_user_ackId_typEnum;
 
@@ -166,6 +169,7 @@ void zTF_paramCfg_getBackSwich_Ack(uint8_t *data,uint8_t lens);
 void zTF_paramCfg_getDisBase_Ack(uint8_t *data,uint8_t lens);
 void zTF_paramCfg_getPowerOnMode_Ack(uint8_t *data,uint8_t lens);
 void zTF_paramCfg_getOutDataFreq_Ack(uint8_t *data,uint8_t lens);
+void zTF_paramCfg_get_dispalyMode_Ack(uint8_t *data,uint8_t lens);
 /*========参数配置应答================*/
 void zTF_paramCfg_setAll_Ack(void);
 void zTF_paramCfg_setBaudRate_Ack(void);
@@ -174,6 +178,7 @@ void zTF_paramCfg_setBackSwich_Ack(void);
 void zTF_paramCfg_setDisBase_Ack();
 void zTF_paramCfg_setPowerOnMode_Ack(void);
 void zTF_paramCfg_setOutDataFreq_Ack(void);
+void zTF_paramCfg_set_displayMode_Ack(void);
 /*========system应答================*/
 void zTF_system_boot_paramReset_Ack(void);
 void zTF_system_firmware_ctl_Ack(void);

@@ -43,7 +43,7 @@ high_value_control_ gp21_highVolCrlParm[3]=
  {
  
     z_tlc_rxHv_pwm->Instance->CCR2 = vlue;
- 
+
  } 
  
  
@@ -179,7 +179,7 @@ void gear_select(high_value_control_ *g)
 
 extern void sensor_distOffset_calculate(_sensor_gesr_enum index);
 
-void gear_select_switch(_sensor_gesr_enum gear_index)
+void lk_gear_switch(_sensor_gesr_enum gear_index)
 {
   _sensor_gesr_enum index = gear_index;
 	high_value_control_ *p=NULL;
