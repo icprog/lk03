@@ -48,7 +48,7 @@ parm_ lk_defaultParm ={
 	.ifHasConfig = 0,      //第一次烧写flash后会变成0x01
   .autoRunMode =0,       //自动运行关闭
 	.outFreq = 10,         //输出频率10hz 
-  .displayMode = 1 ,         //默认字符输出显示
+  .displayMode = 2 ,         //1:默认字符输出显示,2:协议显示
 };
 
 

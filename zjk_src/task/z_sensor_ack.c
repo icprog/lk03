@@ -170,14 +170,22 @@ void sensor_displaySet_ack(TF_Msg *msg)
 		lk_flash.displayMode = 1;
 		ifLkProtecl_show = false;
 		ifUser_strShow = true;
+		ifDebug_strShow = false;
 	}
 	else if(set == 2)//协议显示
 	{
 		lk_flash.displayMode = 2;
 		ifUser_strShow = false;
 		ifLkProtecl_show = true;
+		ifDebug_strShow = false;
 	}
-	flash_writeMoreData( (uint16_t *)(flashParam.point),flashParam.lens/2+1);
+	else if(set == 3)//调试信息显示
+	{
+		ifUser_strShow = false;
+		ifLkProtecl_show = false;
+		ifDebug_strShow = true;
+	}	
+	//flash_writeMoreData( (uint16_t *)(flashParam.point),flashParam.lens/2+1);
 	zTF_paramCfg_set_displayMode_Ack();
 }
 

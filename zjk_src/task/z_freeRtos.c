@@ -161,7 +161,10 @@ void LK_sensorParamTask(void *argument)
 #else 
  
     sensor_powerOn_flashParamCfg();
-   // sensor_strct.cmd = programer_debugMode_cmd;  
+	 //test 
+ //   sensor_strct.cmd = dist_continue_ack_cmd;
+ //  ifDebug_strShow = true;
+
 	//sensor_ouput_switch_high();
 #endif	
   for(;;)
@@ -314,11 +317,11 @@ void SerialTask(void  *argument)
 			 case START:
 			 {
 
-         if((lk_flash.QC[lk03_first_gears].ifHavedStand)&(lk_flash.QC[lk03_second_gears].ifHavedStand)&(lk_flash.QC[lk03_third_gears].ifHavedStand))  //全部标定完才挡位切换
-				{
-					 lk_gear_switch(lk03_first_gears);
-					_TDC_GP21.system_statu.running_statu = FIRST;
-				}
+					 if((lk_flash.QC[lk03_first_gears].ifHavedStand)&(lk_flash.QC[lk03_second_gears].ifHavedStand)&(lk_flash.QC[lk03_third_gears].ifHavedStand))  //全部标定完才挡位切换
+					{
+						 lk_gear_switch(lk03_first_gears);
+						_TDC_GP21.system_statu.running_statu = FIRST;
+					}
 				
 			 }break;
 			 case FIRST:
@@ -557,7 +560,7 @@ void selected_mesg_mode(TypedSelextMsgMode mode)
 		 case msg_qcStard:
 		 {
 		 	lk_gear_switch(lk03_first_gears);  //
-		//	 lk_gear_switch(lk03_second_gears);  //
+			// lk_gear_switch(lk03_second_gears);  //
 			lk_gp21MessgeMode_switch(GP21_MESSGE1);
 			_TDC_GP21.system_statu.running_statu=START;
 			ifFirstStart = true;

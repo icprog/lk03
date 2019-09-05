@@ -60,7 +60,7 @@ static inline void tlc5618_write_reg(uint16_t tlc_reg)
 	 //Z_ASSERT(tlc_tatus == HAL_OK);
    if(tlc_tatus != HAL_OK)
 	 {
-	   zt_printf("tlc 5618 tansmit erro\r\n");
+	  // zt_printf("tlc 5618 tansmit erro\r\n");
 	 }		 
    tlc5618_release();
 }
