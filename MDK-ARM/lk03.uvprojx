@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xE</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3;../Drivers/CMSIS/Device/ST/STM32F1xx/Include;../Drivers/CMSIS/Include;..\zjk_src\boards\lk03;..\zjk_src\sensor;..\zjk_src\hal;..\zjk_src\comToPC;..\zjk_src\serial;..\zjk_src\thinyFrame;..\zjk_src\thinyFrame\demo;..\zjk_src\task;..\zjk_src\flash;..\zjk_src\include;..\zjk_src\ringBuffer;..\zjk_src\modbus\include;..\zjk_src\modbus\port;..\zjk_src\modbus\rtu;..\zjk_src\modbus\ascii;..\zjk_src\z_sysos\z_include;..\zjk_src\z_sysos</IncludePath>
+              <IncludePath>../Inc; ../Drivers/STM32F1xx_HAL_Driver/Inc; ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy; ../Middlewares/Third_Party/FreeRTOS/Source/include; ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS; ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3; ../Drivers/CMSIS/Device/ST/STM32F1xx/Include; ../Drivers/CMSIS/Include; ..\zjk_src\boards\lk03; ..\zjk_src\sensor; ..\zjk_src\hal; ..\zjk_src\comToPC; ..\zjk_src\serial; ..\zjk_src\thinyFrame; ..\zjk_src\thinyFrame\demo; ..\zjk_src\task; ..\zjk_src\flash; ..\zjk_src\include; ..\zjk_src\ringBuffer; ..\zjk_src\modbus\include; ..\zjk_src\modbus\port; ..\zjk_src\modbus\rtu; ..\zjk_src\modbus\ascii; ..\zjk_src\z_sysos\z_include; ..\zjk_src\z_sysos</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
