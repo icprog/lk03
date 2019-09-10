@@ -95,7 +95,7 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+extern void lk_dac_init(void);
 /* USER CODE END 0 */
 
 /**
@@ -137,7 +137,7 @@ int main(void)
   MX_DAC_Init();
   MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
- 
+  lk_dac_init();
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
