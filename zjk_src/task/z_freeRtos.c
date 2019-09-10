@@ -161,15 +161,9 @@ void LK_sensorParamTask(void *argument)
 #else 
  
     sensor_powerOn_flashParamCfg();
-	 //test 
- //   sensor_strct.cmd = dist_continue_ack_cmd;
- //  ifDebug_strShow = true;
-
-	//sensor_ouput_switch_high();
 #endif	
   for(;;)
 	{
-	//	test_send_cmd();
      sensor_struct_loop(&sensor_strct); 
 	 osDelay(500);
 	}
@@ -395,7 +389,11 @@ void lk_sensor_outData_Task(void *argument)
 		 {
 			 if(ifDebug_strShow)
 			 {
-				 zt_printf("d: %d, s:%d pid: %d gs:%d  md:%s\r\n",_TDC_GP21.average,_TDC_GP21.siganl.vol,_TDC_GP21.pid_resualt,_TDC_GP21.system_statu.cureent_gear,runTypeModeString);
+				 if(_TDC_GP21.pid.ifTrunOn) 
+				 {
+					 zt_printf("d: %d, s:%d pid_on: %d gs:%d  md:%s\r\n",_TDC_GP21.average,_TDC_GP21.siganl.vol,_TDC_GP21.pid_resualt,_TDC_GP21.system_statu.cureent_gear,runTypeModeString);
+				 }
+				 else zt_printf("d: %d, s:%d pid_off: %d gs:%d  md:%s\r\n",_TDC_GP21.average,_TDC_GP21.siganl.vol,_TDC_GP21.pid_resualt,_TDC_GP21.system_statu.cureent_gear,runTypeModeString);
 			 }
 			 else if(ifUser_strShow)
 			 {
@@ -560,7 +558,6 @@ void selected_mesg_mode(TypedSelextMsgMode mode)
 		 case msg_qcStard:
 		 {
 		 	lk_gear_switch(lk03_first_gears);  //
-			// lk_gear_switch(lk03_second_gears);  //
 			lk_gp21MessgeMode_switch(GP21_MESSGE1);
 			_TDC_GP21.system_statu.running_statu=START;
 			ifFirstStart = true;
@@ -740,9 +737,12 @@ uint16_t tdc_agc_Default_control(uint16_t nowData,int16_t setPoint)
 		 if(ad603_resualt >600)
 		 {
 		   tesr_1=4;
-		 }
+		 }		 
 	 #if  Debug_Pid
+	 if(_TDC_GP21.pid.ifTrunOn)
+		{
       tlc5618_writeBchannal(ad603_resualt);  
+		}
  		#endif 
       
    return  ad603_resualt;
@@ -817,9 +817,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 					}
 					//开始采集电压
 							z_analog_convert(&_TDC_GP21.siganl.vol); 	
-						if(_TDC_GP21.pid.ifTrunOn)
-							{
-										if(ifDMAisComplete)
+                //增益控制
+									if(ifDMAisComplete)
 										{
 												ifDMAisComplete =false;
 												_TDC_GP21.siganl.vol = z_analog_covertDMA ();
@@ -830,7 +829,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 										}
 									tdc_rx_voltge_relese();   /*高压信号采集释放*/	
 									_TDC_GP21.pid_resualt= tdc_agc_control(_TDC_GP21.siganl.vol,_TDC_GP21.pid.setpoint); //pid控制峰值电压
-							}
+               //增益控制结束
 							if(_TDC_GP21.ifMachineFine)  //机器正常运行情况下
 							{
 								distance = gp21_distance_cal(_TDC_GP21.buff,DISTANCE_RCV_SIZE)-sensor_running_vaile.dist_offset-sensor_running_vaile.dist_sensor_lenth;

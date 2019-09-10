@@ -221,23 +221,28 @@ void sensor_system_firmware_pakage_ack(void)
       zTF_system_firmware_pakage_Ack();
 }
 
-typedef enum{mode_start=0, stand_switch_type=0x01,pid_ctrl_type  }_debug_type_enum;
+typedef enum{mode_start=0, stand_switch_type=0x01,pid_ctrl_type,recieveStandType  }_debug_type_enum;
 
+typedef struct 
+{
+  uint8_t type;
+	uint8_t id;
+}dbug_msg_t_;
 typedef union 
 {
 	uint8_t data[2];
-  _debug_type_enum type;
-	uint8_t id;
+  dbug_msg_t_ msg;
 }dbug_modeType_union_;
 
 void praogramer_debug_mode(TF_Msg *msg)
 {
     dbug_modeType_union_  *dbug_typeId= (dbug_modeType_union_*)msg->data;
-    switch(dbug_typeId->type)
+	  _debug_type_enum debug_select_type = (_debug_type_enum)dbug_typeId->msg.type;
+    switch(debug_select_type)
 		{
 			case mode_start:   //调试模式认证。。。
 			{
-			      if(dbug_typeId->id == 78)  //验证成功
+			      if(dbug_typeId->msg.id == 78)  //验证成功
 						{
 						   
 						}
@@ -249,23 +254,25 @@ void praogramer_debug_mode(TF_Msg *msg)
 			}break;
 			case stand_switch_type:
 			{
-					if(dbug_typeId->id ==0)  //自动切换
+					if(dbug_typeId->msg.id ==0)  //自动切换
 					{
+						lk_gear_switch(lk03_first_gears);
+						sensor_distOffset_calculate(lk03_first_gears);
 						_TDC_GP21.system_statu.running_statu = FIRST;  //不需要标定会自动切换
 					}
-					else if(dbug_typeId->id ==1)
+					else if(dbug_typeId->msg.id==1)
 					{
 						_TDC_GP21.system_statu.running_statu = IDLE;   //不切换
 						lk_gear_switch(lk03_first_gears);
 						sensor_distOffset_calculate(lk03_first_gears);
 					}
-					else if(dbug_typeId->id ==2)
+					else if(dbug_typeId->msg.id ==2)
 					{
 						_TDC_GP21.system_statu.running_statu = IDLE;   //不切换
 					 lk_gear_switch(lk03_second_gears);
 					 sensor_distOffset_calculate(lk03_second_gears);
 					}
-					else if(dbug_typeId->id ==3)
+					else if(dbug_typeId->msg.id ==3)
 					{
 						_TDC_GP21.system_statu.running_statu = IDLE;   //不切换
 					 lk_gear_switch(lk03_third_gears);
@@ -274,8 +281,33 @@ void praogramer_debug_mode(TF_Msg *msg)
 			}break;
 			case pid_ctrl_type:
 			{
-			
-			}break;			
+					if(dbug_typeId->msg.id ==0)  //pid,关闭
+					{
+            _TDC_GP21.pid.ifTrunOn = false;
+					}
+					else if(dbug_typeId->msg.id==1)// pid 打开
+					{
+             _TDC_GP21.pid.ifTrunOn = true;
+					}			
+			}break;
+			case recieveStandType:   //接收对焦模式
+			{
+			  	_TDC_GP21.system_statu.running_statu = IDLE;
+				 _TDC_GP21.pid.ifTrunOn = false;   //调试接收用
+			    if(dbug_typeId->msg.id ==0) //固定3挡不切换，pid关闭
+					{
+					    lk_gear_switch(lk03_third_gears); 
+					}
+					else if(dbug_typeId->msg.id ==1)//固定2挡不切换，pid关闭
+					{
+					
+					   lk_gear_switch(lk03_second_gears);
+					}
+					else if(dbug_typeId->msg.id ==2)//固定1挡不切换，pid关闭
+					{
+					   lk_gear_switch(lk03_first_gears);	
+					}					
+			}break;				
 		}
 }
 

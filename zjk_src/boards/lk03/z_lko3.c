@@ -188,25 +188,19 @@ void lk_gear_switch(_sensor_gesr_enum gear_index)
 	switch(index)
 	{
 		case lk03_first_gears:
-		{
-//			 _TDC_GP21.messge_mode=GP21_MESSGE1;
-//			 lk_gp21MessgeMode_switch(&_TDC_GP21);				
+		{				
 			_TDC_GP21.pid.setpoint = 900;
 			_TDC_GP21.system_statu.cureent_gear = 1;
 		    __HAL_TIM_SET_AUTORELOAD(&htim3,100);  //璁惧畾100us鍛ㄦ湡
 		}break;
 		case lk03_second_gears:
-		{
-//			 _TDC_GP21.messge_mode=GP21_MESSGE1;
-//			 lk_gp21MessgeMode_switch(&_TDC_GP21);				
+		{				
 		  _TDC_GP21.pid.setpoint = 900;
 			_TDC_GP21.system_statu.cureent_gear = 2;
        __HAL_TIM_SET_AUTORELOAD(&htim3,100);  //璁惧畾100us鍛ㄦ湡				
 		}break;
 		case lk03_third_gears:
 		{
-//			 _TDC_GP21.messge_mode=GP21_MESSGE2;
-//			 lk_gp21MessgeMode_switch(&_TDC_GP21);			
 			_TDC_GP21.pid.setpoint = 800;
 			_TDC_GP21.system_statu.cureent_gear = 3;
 		   __HAL_TIM_SET_AUTORELOAD(&htim3,500);  //璁惧畾500us鍛ㄦ湡
