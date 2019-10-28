@@ -1,44 +1,45 @@
-T53F4 705:351 SEGGER J-Link V6.32i Log File (0000ms, 3886ms total)
-T53F4 705:351 DLL Compiled: Jul 24 2018 15:19:55 (0000ms, 3886ms total)
-T53F4 705:351 Logging started @ 2019-09-10 19:03 (0000ms, 3886ms total)
-T53F4 705:351 JLINK_SetWarnOutHandler(...) (0000ms, 3886ms total)
-T53F4 705:351 JLINK_OpenEx(...)
+
+T1B48 474:582 SEGGER J-Link V6.32i Log File (0034ms, 0055ms total)
+T1B48 474:582 DLL Compiled: Jul 24 2018 15:19:55 (0034ms, 0055ms total)
+T1B48 474:582 Logging started @ 2019-09-23 11:00 (0034ms, 0055ms total)
+T1B48 474:616 JLINK_SetWarnOutHandler(...) (0000ms, 0055ms total)
+T1B48 474:616 JLINK_OpenEx(...)
 Firmware: J-Link V9 compiled Oct 25 2018 11:46:07
 Hardware: V9.40
 S/N: 59400616
 Feature(s): RDI, FlashBP, FlashDL, JFlash, GDB
 TELNET listener socket opened on port 19021WEBSRV 
-Starting webserver (0122ms, 4008ms total)
-T53F4 705:351 WEBSRV Webserver running on local port 19080 (0122ms, 4008ms total)
-T53F4 705:351   returns O.K. (0122ms, 4008ms total)
-T53F4 705:473 JLINK_GetEmuCaps()  returns 0xB9FF7BBF (0000ms, 4008ms total)
-T53F4 705:474 JLINK_TIF_GetAvailable(...) (0000ms, 4008ms total)
-T53F4 705:474 JLINK_SetErrorOutHandler(...) (0000ms, 4008ms total)
-T53F4 705:474 JLINK_ExecCommand("ProjectFile = "E:\zjk_lk\github\z_lk03\lk03\MDK-ARM\JLinkSettings.ini"", ...).   returns 0x00 (0002ms, 4010ms total)
-T53F4 705:476 JLINK_ExecCommand("Device = STM32F103RC", ...). Device "STM32F103RC" selected.  returns 0x00 (0001ms, 4011ms total)
-T53F4 705:477 JLINK_ExecCommand("DisableConnectionTimeout", ...).   returns 0x01 (0000ms, 4011ms total)
-T53F4 705:477 JLINK_GetHardwareVersion()  returns 0x16F30 (0000ms, 4011ms total)
-T53F4 705:477 JLINK_GetDLLVersion()  returns 63209 (0000ms, 4011ms total)
-T53F4 705:477 JLINK_GetFirmwareString(...) (0000ms, 4011ms total)
-T53F4 705:477 JLINK_GetDLLVersion()  returns 63209 (0000ms, 4011ms total)
-T53F4 705:477 JLINK_GetCompileDateTime() (0000ms, 4011ms total)
-T53F4 705:477 JLINK_GetFirmwareString(...) (0000ms, 4011ms total)
-T53F4 705:477 JLINK_GetHardwareVersion()  returns 0x16F30 (0000ms, 4011ms total)
-T53F4 705:477 JLINK_TIF_Select(JLINKARM_TIF_SWD)  returns 0x00 (0001ms, 4012ms total)
-T53F4 705:478 JLINK_SetSpeed(5000) (0000ms, 4012ms total)
-T53F4 705:478 JLINK_SetResetType(JLINKARM_RESET_TYPE_NORMAL)  returns JLINKARM_RESET_TYPE_NORMAL (0000ms, 4012ms total)
-T53F4 705:478 JLINK_Reset() >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF>STM32 (connect): Can not attach to CPU. Trying connect under reset. >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF>
+Starting webserver (0024ms, 0079ms total)
+T1B48 474:616 WEBSRV Webserver running on local port 19080 (0024ms, 0079ms total)
+T1B48 474:616   returns O.K. (0024ms, 0079ms total)
+T1B48 474:640 JLINK_GetEmuCaps()  returns 0xB9FF7BBF (0000ms, 0079ms total)
+T1B48 474:640 JLINK_TIF_GetAvailable(...) (0001ms, 0080ms total)
+T1B48 474:641 JLINK_SetErrorOutHandler(...) (0000ms, 0080ms total)
+T1B48 474:641 JLINK_ExecCommand("ProjectFile = "E:\zjk_lk\github\z_lk03\lk03\MDK-ARM\JLinkSettings.ini"", ...).   returns 0x00 (0043ms, 0123ms total)
+T1B48 474:684 JLINK_ExecCommand("Device = STM32F103RC", ...). Device "STM32F103RC" selected.  returns 0x00 (0005ms, 0128ms total)
+T1B48 474:689 JLINK_ExecCommand("DisableConnectionTimeout", ...).   returns 0x01 (0000ms, 0128ms total)
+T1B48 474:689 JLINK_GetHardwareVersion()  returns 0x16F30 (0000ms, 0128ms total)
+T1B48 474:689 JLINK_GetDLLVersion()  returns 63209 (0000ms, 0128ms total)
+T1B48 474:689 JLINK_GetFirmwareString(...) (0000ms, 0128ms total)
+T1B48 474:689 JLINK_GetDLLVersion()  returns 63209 (0000ms, 0128ms total)
+T1B48 474:689 JLINK_GetCompileDateTime() (0000ms, 0128ms total)
+T1B48 474:689 JLINK_GetFirmwareString(...) (0000ms, 0128ms total)
+T1B48 474:689 JLINK_GetHardwareVersion()  returns 0x16F30 (0000ms, 0128ms total)
+T1B48 474:689 JLINK_TIF_Select(JLINKARM_TIF_SWD)  returns 0x00 (0001ms, 0129ms total)
+T1B48 474:690 JLINK_SetSpeed(5000) (0000ms, 0129ms total)
+T1B48 474:691 JLINK_SetResetType(JLINKARM_RESET_TYPE_NORMAL)  returns JLINKARM_RESET_TYPE_NORMAL (0000ms, 0129ms total)
+T1B48 474:691 JLINK_Reset() >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF>STM32 (connect): Can not attach to CPU. Trying connect under reset. >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF>
   ***** Error: STM32: Connecting to CPU via connect under reset failed.
  >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF>STM32 (connect): Can not attach to CPU. Trying connect under reset. >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF>
   ***** Error: STM32: Connecting to CPU via connect under reset failed.JLINK_GetId() >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF>STM32 (connect): Can not attach to CPU. Trying connect under reset. >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF>
   ***** Error: STM32: Connecting to CPU via connect under reset failed. >0x10B TIF> >0x10F TIF>
  >0x10B TIF> >0x10F TIF>STM32 (connect): Can not attach to CPU. Trying connect under reset. >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF>
-  ***** Error: STM32: Connecting to CPU via connect under reset failed.  returns 0x00000000 (0694ms, 5920ms total)
-T53F4 707:386 JLINK_GetId() >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF>STM32 (connect): Can not attach to CPU. Trying connect under reset. >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF>
+  ***** Error: STM32: Connecting to CPU via connect under reset failed.  returns 0x00000000 (0697ms, 2038ms total)
+T1B48 476:600 JLINK_GetId() >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF>STM32 (connect): Can not attach to CPU. Trying connect under reset. >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF>
   ***** Error: STM32: Connecting to CPU via connect under reset failed. >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF>STM32 (connect): Can not attach to CPU. Trying connect under reset. >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF>
   ***** Error: STM32: Connecting to CPU via connect under reset failed.
-  returns 0x00000000 (0695ms, 6615ms total)
-T53F4 708:104 JLINK_GetFirmwareString(...) (0001ms, 6616ms total)
-T53F4 768:027 JLINK_Close() (0012ms, 6628ms total)
-T53F4 768:027  (0012ms, 6628ms total)
-T53F4 768:027 Closed (0012ms, 6628ms total)
+  returns 0x00000000 (0694ms, 2732ms total)
+T1B48 477:301 JLINK_GetFirmwareString(...) (0000ms, 2732ms total)
+T1B48 478:007 JLINK_Close() (0009ms, 2741ms total)
+T1B48 478:007  (0009ms, 2741ms total)
+T1B48 478:007 Closed (0009ms, 2741ms total)

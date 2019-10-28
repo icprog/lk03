@@ -1,0 +1,12 @@
+lk03\mbfuncdisc.o: ..\zjk_src\modbus\functions\mbfuncdisc.c
+lk03\mbfuncdisc.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+lk03\mbfuncdisc.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+lk03\mbfuncdisc.o: ..\zjk_src\modbus\port\port.h
+lk03\mbfuncdisc.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\assert.h
+lk03\mbfuncdisc.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\inttypes.h
+lk03\mbfuncdisc.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+lk03\mbfuncdisc.o: ..\zjk_src\modbus\include\mb.h
+lk03\mbfuncdisc.o: ..\zjk_src\modbus\include\mbport.h
+lk03\mbfuncdisc.o: ..\zjk_src\modbus\include\mbproto.h
+lk03\mbfuncdisc.o: ..\zjk_src\modbus\include\mbframe.h
+lk03\mbfuncdisc.o: ..\zjk_src\modbus\include\mbconfig.h

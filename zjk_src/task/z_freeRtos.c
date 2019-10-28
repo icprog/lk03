@@ -691,7 +691,7 @@ uint16_t tdc_agc_control(uint16_t nowData,int16_t setPoint)
 		   tesr_1=4;
 		 }
 	 #if  Debug_Pid
-
+      if(_TDC_GP21.pid.ifTrunOn  == false)  ad603_resualt = AD603_AGC_DEFAULT;
       tlc5618_writeBchannal(ad603_resualt);  
  		#endif 
    
